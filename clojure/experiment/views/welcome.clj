@@ -8,8 +8,9 @@
   [:div#welcome
    [:p "Welcome " user ", to experiment '" exp "'"]])
   
-
 (defpage "/welcome" {:keys [user exp]}
   (common/layout
    [:h1 "Experiments"]
    (welcome-msg user exp)))
+
+
