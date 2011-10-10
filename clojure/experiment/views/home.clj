@@ -12,8 +12,8 @@
 	hiccup.form-helpers))
 
  (defpage "/" {}
-   (if (session/logged-in?)
-     (resp/redirect "/app")
+;;   (if (session/logged-in?)
+;;     (resp/redirect "/app")
      (common/simple-layout
       [:div#home-main
        [:div#home-header
@@ -44,7 +44,7 @@
        [:div#home-footer
 	(link-to "/article/terms" "Terms of Use") "|"
 	(link-to "/article/privacy" "Privacy") "|"
-	(link-to "/article/about" "About")]])))
+	(link-to "/article/about" "About")]]))
 	
 
 

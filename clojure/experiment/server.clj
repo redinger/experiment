@@ -1,22 +1,21 @@
 (ns experiment.server
+  (:use [experiment.infra.middleware])
   (:require [noir.server :as server]
 	    [experiment.infra.session :as session]
 	    [clojure.data.json :as json]
 	    [somnium.congomongo :as mongo]
 	    [experiment.infra.api]))
 
-(defn extract-json-payload [handler]
-  (fn [req]
-    (handler
-     (if-let [ctype (get-in req [:headers "content-type"])]
-       (do (println (:body req))
-	   (if (and (string? ctype) (re-find #"application/json" ctype))
-	     (update-in req [:params] assoc :json-payload
-			(json/read-json (slurp (:body req)) true false nil))
-	     req))
-       req))))
+(defonce agent-redirect-rules
+  (atom
+   {#"/app(.*)"
+    [[:iphone "/iphone/app%s"]
+     [:ie6 "/not-supported"]
+     [:ie7 "/not-supported"]]}))
 
 (server/add-middleware extract-json-payload)
+(server/add-middleware redirect-url-for-user-agent
+		       agent-redirect-rules)
 (server/load-views "clojure/experiment/views/")
 
 (defonce ^:dynamic *server* (atom nil))

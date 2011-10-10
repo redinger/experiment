@@ -153,7 +153,7 @@
 
 (defpage login "/action/login" {:as user}
   (if (session/logged-in?)
-    (resp/redirect "/")
+    (resp/redirect "/app")
     (simple-layout
      (form-to [:post "/action/login"]
 	      [:ul.simple-form
@@ -177,5 +177,18 @@
   (apply session/clear! nil)
   (resp/redirect "/"))
 
+(defpage show-map "/util/show-request" {}
+  (simple-layout
+   [:div (interpose
+	  '[:br]
+	  (clojure.string/split 
+	   (with-out-str
+	     (clojure.pprint/write
+	      (noir.request/ring-request)))
+	   #"\n"))]))
 
+(defpage not-supported "/not-supported" {}
+  (simple-layout
+   [:h2 "Your browser is not supported by this site"]))
+  
       
