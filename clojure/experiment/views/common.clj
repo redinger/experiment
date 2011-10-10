@@ -13,14 +13,14 @@
 	      "/js/vendor/handlebars.1.0.0.beta.3.js"
 	      "/js/vendor/underscore.js"
 	      "/js/vendor/backbone.js"
-	      "/js/ddsmoothmenu.js"))
+	      "/js/vendor/ddsmoothmenu.js"))
 
 (defn- include-vendor-libs-prod []
   (include-js "/js/vendor/jquery.js"
 	      "/js/vendor/handlebars.1.0.0.beta.3.js"
 	      "/js/vendor/underscore-min.js"
 	      "/js/vendor/backbone-min.js"
-	      "/js/ddsmoothmenu.js"))
+	      "/js/vendor/ddsmoothmenu.js"))
 
 (defn include-vendor-libs []
   (include-vendor-libs-dev))
@@ -86,9 +86,10 @@
 (defpartial render-menu [menu]
   [:ul {:class "menulist"}
    (map (fn [[name content & subitems]]
-	  [:li {:class "menuitem"}
-	   [:a {:href name :class (when subitems "subfolderstyle")} content]
-	   (when subitems (render-submenu name subitems))])
+	  (let [base (str "/app/" name)]
+	    [:li {:class "menuitem"}
+	     [:a {:href base} content]
+	     (when subitems (render-submenu base subitems))]))
 	menu)])
 
 (defpartial nav-layout [menu-content]

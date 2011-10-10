@@ -129,33 +129,28 @@ ul.menulist li.menuitem ul {
 }
 
 @media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003108}}
-ul.menulist a.subfolderstyle {
-  background: url("/img/right.gif") no-repeat 97% 50%;
-}
-
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003111}}
 /* Holly Hack for IE \*/
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003112}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003109}}
 * html .menulist ul li {
   float: left;
   height: 1%;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003113}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003110}}
 * html .menulist ul li a {
   height: 1%;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003114}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003111}}
 /* End */
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003117}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003114}}
 /* HOME PAGE AND STATIC CONTENT */
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003119}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003116}}
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003121}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003118}}
 #home-main #home-header {
   width: 900px;
   height: 100px;
@@ -163,7 +158,7 @@ ul.menulist a.subfolderstyle {
   color: #fff;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003127}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003124}}
 #home-main #home-header p {
   font-size: 25px;
   font-family: Geneva;
@@ -172,7 +167,7 @@ ul.menulist a.subfolderstyle {
   width: 75%;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003134}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003131}}
 #home-main #home-header a {
   float: left;
   padding-left: 20px;
@@ -180,17 +175,17 @@ ul.menulist a.subfolderstyle {
   color: #fff;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003140}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003137}}
 #home-main #home-about {
   margin: 5px 10px 5px 20px;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003143}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003140}}
 #home-main #home-details {
   margin: 20px 20px 20px 0px;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003146}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003143}}
 #home-main .home-detail {
   float: left;
   width: 200px;
@@ -211,7 +206,7 @@ ul.menulist a.subfolderstyle {
   background: linear-gradient(top, #7abcff 0%, #60abf8 44%, #4096ee 100%);
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003156}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003153}}
 #home-main .home-detail h2 {
   color: #fff;
   font-size: 18px;
@@ -219,21 +214,21 @@ ul.menulist a.subfolderstyle {
   font-weight: bold;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003162}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003159}}
 #home-main .home-detail p {
   color: #eee;
   margin-top: 5px;
   font-size: small;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003167}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003164}}
 #home-main #home-footer {
   clear: both;
   padding-top: 20px;
   margin-left: 25px;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003172}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/layout\.styl}line{font-family:\00003169}}
 #home-main #home-footer a {
   margin-right: 8px;
   margin-left: 8px;

@@ -134,6 +134,7 @@ class MainMenu extends Backbone.View
                 'orientation': 'v'
                 'classname': 'main-menu'
                 'contentsource': 'markup'
+        alert link for link in @$('a')
         link.bind 'click', @activate for link in @$('a')
 
    activate: (event) =>

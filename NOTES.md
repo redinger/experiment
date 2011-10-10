@@ -3,8 +3,9 @@
 ## Architecture
 
 Basic idea is that the server handles data processing and the client
-handles visualization and editing of models, asking the server to perform
-post-processing on rich queries, searching, etc.
+handles visualization and editing of models, asking the server to
+perform post-processing of data returned from rich queries for
+visualization on the front-end.
 
 The rich-client app is a subsection of the site for which any URL from
 the base "/app*" renders the app and the app does client-side dispatch
@@ -18,15 +19,14 @@ The app consists of:
      This means the server needs to have a way of determining what
      data is being rendered.
      
-
-
-
 ## Major TODOs for initial release
 
+   - Support logging through server and client side
    - Nested object REST API support for Backbone
    - Bootstrapping data into views
    - Auto-complete for tags, model names, etc.
    - Structured treatment descriptions using auto-complete
+   - Fix Dynamic menu link generation, dispatch in View handler not dd library
    - Pallet distribution model
        - DONE: pallet, git, keys
        - PARTIAL: Mongo installation, nginx as proxy and static files
