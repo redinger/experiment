@@ -6,6 +6,7 @@
    [clojure.data.json :as json]
    [somnium.congomongo :as mongo])
   (:use noir.core
+	experiment.infra.models
         hiccup.core
         hiccup.page-helpers))
 
@@ -13,6 +14,9 @@
   (common/layout
    [:script {:type "text/x-jquery-html" :id "color-box-template"}
     [:div {:style "margin: 20px; float: left; height: {{height}}px; width: {{width}}px; background-color: {{color}}"}]]
+   [:script {:id "configmodel-bootstrap"}
+    (clj-json.core/generate-string
+     (serialize-client-object (fetch-models "configmodel")))]
    [:h1 "Home Page"]
    [:div {:id "config-app"}
     [:div {:id "config-input" :style "padding: 20px"}

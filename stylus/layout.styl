@@ -1,0 +1,174 @@
+shadow-box()
+  border-radius arguments
+  -moz-box-shadow arguments
+  -webkit-box-shadow arguments
+  box-shadow arguments
+
+blue-gradient()
+  background #7abcff
+  background -moz-linear-gradient(top, #7abcff 0%, #60abf8 44%, #4096ee 100%)
+  background -webkit-gradient(linear, left top, left bottom, color-stop(0%,#7abcff), color-stop(44%,#60abf8), color-stop(100%,#4096ee))
+  background -webkit-linear-gradient(top, #7abcff 0%,#60abf8 44%,#4096ee 100%)
+  background -o-linear-gradient(top, #7abcff 0%,#60abf8 44%,#4096ee 100%)
+  background -ms-linear-gradient(top, #7abcff 0%,#60abf8 44%,#4096ee 100%)
+  background linear-gradient(top, #7abcff 0%,#60abf8 44%,#4096ee 100%)
+
+/* MAIN DYNAMIC APP WINDOW */
+
+#main
+  height 700px
+  width  1000px 
+   
+#nav-pane
+  position absolute
+  left 5px
+  padding 0px
+  top 0px
+  width 200px
+  height 700px
+  background #EEEEEE
+  padding 5px 5px 5px 5px
+
+  #profile-summary
+    width 100%
+    height 100px
+    font-size small
+    padding 5px 10px 20px 5px
+
+  #main-menu
+    height auto !important
+    padding 5px 10px 20px 5px
+
+  #nav-footer
+    position absolute
+    height 80px
+    bottom 0px
+    font-size small
+    padding 5px 10px 20px 5px
+
+    img
+      width 150px
+
+#app-pane
+  margin-left 220px
+  margin-right 199px
+  height 700px
+  padding 0px 5px 0px 5px
+
+#share-pane
+  position absolute
+  height 700px
+  right 5px
+  top 0px
+  width 200px
+  background #EEEEEE
+  padding 0px 5px 0px 5px
+
+#footer
+  height 0px
+
+/* MAIN MENU */
+
+ul.menulist
+  margin 0
+  padding 0
+  list-style-type none
+  font bold 13px Verdana
+  width 180px /* Main Menu Item widths */
+  border-bottom 1px solid #ccc
+
+  li.menuitem
+    position relative
+
+    a
+      display block
+      overflow auto
+      color white
+      text-decoration none
+      padding 6px
+      border-bottom 1px solid #778
+      border-right 1px solid #778
+
+    a:link, a:visited, a:active
+      background-color #0163B0
+
+    a:visited
+      color white
+
+    a:hover
+      background-color black
+
+    ul
+      list-style-type none
+      position absolute
+      width 170px
+      top 0
+      visibility hidden
+
+  a.subfolderstyle
+    background url(/img/right.gif) no-repeat 97% 50%
+ 
+/* Holly Hack for IE \*/
+* html .menulist ul li { float: left; height: 1%; }
+* html .menulist ul li a { height: 1%; }
+/* End */
+
+
+/* HOME PAGE AND STATIC CONTENT */
+
+#home-main
+
+  #home-header
+    width 900px
+    height 100px
+    background-color #2020F0
+    color white
+
+    p
+      font-size 25px
+      font-family Geneva
+      padding-left 20px
+      padding-top 10px
+      width 75%
+
+    a
+      float left
+      padding-left 20px
+      padding-top 10px
+      color white
+
+  #home-about
+    margin 5px 10px 5px 20px
+
+  #home-details
+    margin 20px 20px 20px 0px
+    
+  .home-detail
+    float left
+    width 200px
+    height 150px
+    margin 30px 30px 30px 30px
+    padding 10px 10px 10px 10px
+    background #DDDDDD
+    shadow-box 8px 8px 8px
+    blue-gradient 5px
+
+    h2
+      color white
+      font-size 18px
+      font-style italic
+      font-weight bold
+
+    p
+      color #EEEEEE
+      margin-top 5px
+      font-size small
+
+  #home-footer
+    clear both
+    padding-top 20px
+    margin-left 25px
+
+    a 
+      margin-right 8px
+      margin-left 8px

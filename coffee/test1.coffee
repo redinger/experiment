@@ -6,13 +6,23 @@
 
 # Model
 
+initTemplate = (name) ->
+        @template = Handlebars.compile $(name).html()
+
+renderTemplate = () ->
+        $(@el).html @template @model.first().toJSON()
+
 class ConfigModel extends Backbone.Model
-   initialize: ->
-        @set 'color': 'blue', 'width': '100', 'height': '100'
-        @fetch()
+   defaults:
+        'color': 'blue'
+        'width': '100'
+        'height': '100'
    configBox: (color, dim) =>
         @set 'color': color, 'width': dim, 'height': dim
-   url: "/api/bone/configmodel"
+
+class ConfigCollection extends Backbone.Collection
+   model: ConfigModel
+   urlRoot: "/api/bone/configmodel"
 
 # View
 
@@ -20,6 +30,7 @@ class ConfigInputView extends Backbone.View
    initialize: ->
         @model.view = @
         @model.bind 'change', @render
+        @model.bind 'reset', @render
 
    events:
         'keyup #color-input': 'updateConfig',
@@ -29,44 +40,54 @@ class ConfigInputView extends Backbone.View
 
    # Update form when object updated
    render: () =>
-        $('#color-input').val(@model.get('color'))
-        $('#width-input').val(@model.get('width'))
+        if @model.first()
+             $('#color-input').val(@model.first().get('color'))
+             $('#width-input').val(@model.first().get('width'))
 
    updateConfig: (e) =>
-        @model.configBox $('#color-input').val(), $('#width-input').val()
+        @model.first().configBox $('#color-input').val(), $('#width-input').val()
 
    saveModel: (e) =>
-        @model.save()
+        @model.first().save()
 
    loadModel: (e) =>
-        @model.fetch()
-
+        result = @model.fetch()
 
 class ColorBoxView extends Backbone.View
    tagName: 'li'
    initialize: ->
-        @template = $('#color-box-template')
+        initTemplate.call this, '#color-box-template'
         @model.bind 'change', @render
+        @model.bind 'reset', @render
         @model.view = @
 
    render: () =>
-        json = @model.toJSON()
-        $(@el).html @template.mustache @model.toJSON()
-        return @
+        if @model.first()
+           renderTemplate.call this
+        this
 
 # App Controller
 
 class AppView extends Backbone.View
    el: $('#config-app')
    initialize: ->
-        model = new ConfigModel
-        color_input = new ConfigInputView 'el': $('#config-input'), 'model': model
+        @model = new ConfigCollection
+        color_input = new ConfigInputView 'el': $('#config-input'), 'model': @model
         for x in [1..3]
-           view = new ColorBoxView {"model": model}
+           view = new ColorBoxView {"model": @model}
            $('#color-boxes').append view.render().el
 
 $(document).ready ->
-        window.App = new AppView
+   window.App = new AppView
+   try
+      window.App.model.reset $.parseJSON $('#configmodel-bootstrap').html()
+   catch error
+      console.log "No bootstrapping found"
+   unless window.App.model.first()
+      window.App.model.add new ConfigModel
+      window.App.model.trigger('reset')
+
+
 
 #class ColorBoxCtrl extends Backbone.Router
 #   initialize: ->

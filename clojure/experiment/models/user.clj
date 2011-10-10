@@ -1,11 +1,6 @@
-(ns experiment.model.user
-  (:use noir.core))
-
-;;(defmacro defmodel [name & handlers]
-;;  )
-
-;;(defn valid-user? [user]
-;;  (and (:name user)))
+(ns experiment.models.user
+  (:use noir.core
+	experiment.infra.models))
 
 ;;(defmodel user 
 ;;  :collection :users
@@ -52,16 +47,16 @@
 ;; Users
 ;;
 
-(defmethod model-valid? :user [user]
-  (and (:name user)))
+(defmethod valid-model-params? :user [user]
+  (and (:username user)))
 
-(defmethod model-collection :user [user]
-  :users)
+;;(defmethod model-collection :user [user]
+;;  :users)
 
-(defmethod client-keys :user [user]
-  [:name :avatar :bio :gender :country :state
-   :weight :yob :units :default_privacy
-   :background :acl])
+;;(defmethod client-keys :user [user]
+;;  [:name :avatar :bio :gender :country :state
+;;   :weight :yob :units :default_privacy
+;;   :background :acl])
 
 
 ;;
@@ -84,8 +79,8 @@
    :weight (gen-weight)
    :yob (gen-yob)})
 
-(defn gen-users [count]
-  (dotimes [i count]
-    (create-model! (gen-user))))
+;;(defn gen-users [count]
+;;  (dotimes [i count]
+;    (create-model! (gen-user))))
 
 

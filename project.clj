@@ -2,7 +2,7 @@
             :description "Evaluation platform of a new model for running, recording and sharing self-experiments"
 	    :url ""
 	    :source-path "clojure"
-            :dependencies [[org.clojure/clojure "1.3.0-beta3"]
+            :dependencies [[org.clojure/clojure "1.3.0"]
 			   [org.clojure/data.json "0.1.1"]
                            [noir "1.1.1-SNAPSHOT"]
 			   ;; Backend

@@ -1,57 +1,129 @@
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/reset\.styl}line{font-family:\000031}}
 html {
-	margin:0;
-	padding:0;
-	border:0;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 
-body, div, span, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, code,
-del, dfn, em, img, q, dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, dialog, figure, footer, header,
-hgroup, nav, section {
-	margin: 0;
-	padding: 0;
-	border: 0;
-	font-weight: inherit;
-	font-style: inherit;
-	font-size: 100%;
-	font-family: inherit;
-	vertical-align: baseline;
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/reset\.styl}line{font-family:\000036}}
+body,
+div,
+span,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+code,
+del,
+dfn,
+em,
+img,
+q,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+dialog,
+figure,
+footer,
+header,
+hgroup,
+nav,
+section {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-weight: inherit;
+  font-style: inherit;
+  font-size: 100%;
+  font-family: inherit;
+  vertical-align: baseline;
 }
 
-article, aside, dialog, figure, footer, header,
-hgroup, nav, section {
-	display:block;
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/reset\.styl}line{font-family:\0000316}}
+article,
+aside,
+dialog,
+figure,
+footer,
+header,
+hgroup,
+nav,
+section {
+  display: block;
 }
 
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/reset\.styl}line{font-family:\0000319}}
 body {
-	line-height: 1.5;
-	background: white;
+  line-height: 1.5;
+  background: #fff;
 }
 
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/reset\.styl}line{font-family:\0000323}}
 table {
-	border-collapse: separate;
-	border-spacing: 0;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
-caption, th, td {
-	text-align: left;
-	font-weight: normal;
-	float:none !important;
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/reset\.styl}line{font-family:\0000327}}
+caption,
+th,
+td {
+  text-align: left;
+  font-weight: normal;
+  float: none;
 }
-table, th, td {
-	vertical-align: middle;
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/reset\.styl}line{font-family:\0000332}}
+table,
+th,
+td {
+  vertical-align: middle;
 }
 
-blockquote:before, blockquote:after, q:before, q:after { content: ''; }
-blockquote, q { quotes: "" ""; }
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/reset\.styl}line{font-family:\0000335}}
+blockquote:before,
+blockquote:after,
+q:before,
+q:after {
+  content: "";
+}
 
-a img { border: none; }
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/reset\.styl}line{font-family:\0000338}}
+blockquote,
+q {
+  quotes: "" "";
+}
 
-/*:focus { outline: 0; }*/
-
-
-
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/reset\.styl}line{font-family:\0000341}}
+a img {
+  border: none;
+}

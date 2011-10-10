@@ -11,12 +11,12 @@ printOutput = (process) ->
 
 # Watch Javascript for changes
 watchJS = ->
-  coffee = exec 'coffee -cw -o ./ coffee/'
+  coffee = exec 'coffee -cw -o ./resources/public/js coffee/'
   printOutput(coffee)
 
 # Watch CSS for changes
 watchCSS = ->
-  stylus = exec 'stylus --watch --include ./resources/public --out ./resources/public/css'
+  stylus = exec 'stylus ./stylus/* --watch --firebug --out ./resources/public/css'
   printOutput(stylus)
 
 # ## Tasks

@@ -1,0 +1,12 @@
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/test\.styl}line{font-family:\000036}}
+body {
+  font: 12px Helvetica, Arial, sans-serif;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/test\.styl}line{font-family:\000039}}
+a.button {
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+}
