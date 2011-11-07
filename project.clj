@@ -4,6 +4,8 @@
 	    :source-path "clojure"
             :dependencies [[org.clojure/clojure "1.3.0"]
 			   [org.clojure/data.json "0.1.1"]
+			   [org.clojure/tools.logging "0.2.3"]
+			   [log4j/log4j "1.2.16"]
                            [noir "1.1.1-SNAPSHOT"]
 			   ;; Backend
 			   [congomongo "0.1.7-SNAPSHOT"]

@@ -1,15 +1,81 @@
-(ns experiment.views.home
+(ns experiment.views.app
   (:require
-   [experiment.views.common :as common]
-   [experiment.infra.session :as session]
    [clojure.data.json :as json]
-   [somnium.congomongo :as mongo]
    [noir.response :as resp]
-   [noir.util.crypt :as crypt])
+   [experiment.infra.models :as models]
+   [experiment.infra.session :as session]
+   [experiment.models.user :as user]
+   [experiment.views.common :as common])
   (:use noir.core
         hiccup.core
         hiccup.page-helpers
-	hiccup.form-helpers))
+	hiccup.form-helpers
+	handlebars.templates))
+
+;;
+;; Templates
+;;
+
+(defn render-template [id template]
+  (inline-template
+   id template "text/x-jquery-html"))
+
+(defn render-all-templates
+  ([]
+     (map (fn [[name template]]
+	    (render-template name template))
+	  (all-templates)))
+  ([names]
+     (map (fn [[name template]]
+	    (render-template name template))
+	  (select-keys (all-templates) list))))
+
+;; Dashboard
+
+(deftemplate dashboard-main
+  [:div
+   [:h1 (%str (% name) "'s Dashboard") ]
+   [:div
+    [:ul
+     [:li (%str "Number of Friends: " (% friends))]
+     [:li (%str "Active Experiments: " (% experiments))]]]])
+
+;; Discover
+
+(deftemplate discover-filter
+  [:div.discover-filter
+   [:input {:type "text"
+	    :id "discover-filter-input"
+	    :value (% query)}
+    ]])
+
+;; Discover views
+
+(deftemplate treatment-list-view
+  [:div {:class "result, treatment-list-view"}
+   [:h3 (% name)]
+   [:p (% description)]])
+
+(deftemplate instrument-list-view
+  [:div {:class "result, instrument-list-view"}
+   [:h3 (% name)]
+   [:p (% description)]])
+
+(deftemplate experiment-list-view
+  [:div {:class "result, experiment-list-view"}
+   [:h3 (% name)]
+   [:p (% description)]])
+
+(deftemplate comment-short-view
+  [:div {:class "comment-short"}
+   [:p {:class "comment-text"} (% text)]
+   [:p (%str "@" (% author) " at <date tbd>")]])
+    
+  
+;; Admin
+  
+(deftemplate admin-main
+  [:div [:h1 "This is the admin template"]])
 
 ;;
 ;; Ship a single app template for client side
@@ -17,24 +83,38 @@
 ;;
 
 (defpartial app-skeleton []
-  [:div#browserApp]
-  [:div#homeApp]
+  [:div#dashboardApp]
+  [:div#expApp]
+  [:div#discoverApp]
   [:div#adminApp]
-  [:div#reviewApp])
+  (render-all-templates))
 
 (defpartial share-skeleton []
   [:div#social])
 
+(defpartial bootstrap-data []
+  (let [user (session/current-user)
+	username (:username user)]
+    [:script {:type "text/javascript"}
+     (map #(apply common/bootstrap-collection-expr %)
+	  [["window.Instruments" (models/fetch-models :instrument)]
+	   ["window.Experiments" (models/fetch-models :experiment)]
+	   ["window.MyTrials" (models/fetch-models :trial :where {:username username})]
+	   ["window.Treatments" (models/fetch-models :treatment)]])]))
+
 (defpage "/app*" {}
   (common/app-layout
-   [["home" "Home"]
+   [["dashboard" "Dashboard"]
     ["experiment" "Experiments"
      ["experiment1" "Experiment1"]
      ["experiment2" "Experiment2"]
      ["past" "Past Experiments"]]
-    ["browse" "Browse"]
-    (when (= (:username (session/user)) "eslick")
-      ["/admin" "Admin"])]
+    ["discover" "Discover"]
+    (when (user/admin?)
+      ["admin" "Admin"])]
    (app-skeleton)
-   (share-skeleton)))
+   (share-skeleton)
+   (bootstrap-data)))
+
+
      

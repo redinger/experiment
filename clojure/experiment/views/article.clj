@@ -19,7 +19,9 @@
      (if article
        [:div#main
 	[:h1 (:title article)]
-	(link-to "/" "Return to Home Page...")
+	(if (session/logged-in?)
+	  (link-to "/app/dashboard" "Return to Home Page...")
+	  (link-to "/" "Return to Home Page..."))
 	[:p (:body article)]]
        [:div#main
 	[:h1 "No Article named '" name "' found"]]))))

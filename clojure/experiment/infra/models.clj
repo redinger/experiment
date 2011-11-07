@@ -1,13 +1,26 @@
 (ns experiment.infra.models
+  (:use noir.core)
   (:require
    [noir.response :as response]
    [noir.request :as request]
-   [somnium.congomongo :as mongo])
-  (:use noir.core))
+   [somnium.congomongo :as mongo]
+   [clojure.walk :as walk]
+   [clojure.tools.logging :as log])
+  (:import [org.bson.types ObjectId]
+	   [com.mongodb DBRef]))
 
 ;;
-;; Model Management API
+;; Model Behavior Protocol
 ;;
+
+(defn model?
+  "A predicate to test that we have a valid model:
+   :_id field ala mongo with valid ObjectID
+   :type field indicating type of the model"
+  [model]
+  (and (:type model)
+       (:_id model)
+       (instance? ObjectId (:_id model))))
 
 (defmulti valid-model-params? 
   "Enforces invariant properties of a specific model.  Model
@@ -33,15 +46,90 @@
    slots to the client.  Default is to be permissive."
   :type)
 
-(defn serialize-id [id]
+;;
+;; MongoDB Helpers
+;;
+
+(defn objectid? 
+  [id]
+  (= (type id) ObjectId))
+
+(defn serialize-id
+  "Convert a MongoDB ID for client use"
+  [id]
+  (assert (instance? ObjectId id))
   (str id))
 
-(defn deserialize-id [id]
+(defn deserialize-id
+  "Convert a foreign ID reference to an Mongo ObjectId"
+  [id]
   (mongo/object-id id))
 
+(defn- serialize-dbref
+  "Convert a DBRef object to a pair referencing a namespace and UID"
+  [dbref]
+  (assert (instance? DBRef dbref))
+  (let [ref (.getRef dbref)
+	id (.getId dbref)]
+    (when (and ref id)
+      [ref (.toString id)])))
+
+(defn- deserialize-dbref
+  [ref]
+  (assert (and (= (count ref) 2) (every? string? ref)))
+  (mongo/db-ref (first ref) (mongo/object-id (second ref))))
+
 ;;
+;; Model import/export handlers for MongoDB
+;;
+
+;; Main object IDs
+
+(defn export-model-id
+  "Export a local model-id as a foreign ID"
+  [smodel]
+  (dissoc (assoc smodel :id (serialize-id (:_id smodel))) :_id))
+
+(defn import-model-id
+  "Import a foregin model-id as a local ID"
+  [cmodel]
+  (dissoc (assoc cmodel :_id (deserialize-id (:id cmodel))) :id))
+
+;; Embedded DBRefs
+
+(defn- export-ref
+  "If the object is a DBRef, convert to client format"
+  [ref]
+  (if (mongo/db-ref? ref)
+    (serialize-dbref ref)
+    ref))
+
+(defn export-model-refs [smodel]
+  (walk/postwalk export-ref smodel))
+
+(defn- import-model-ref [model key]
+  (if-let [[ns id] (model key)]
+    (assoc model key (deserialize-dbref ns id))
+    model))
+
+(defn import-model-refs [cmodel]
+  "Import model references from the client"
+  (reduce import-model-ref cmodel (db-reference-params cmodel)))
+
+;; Filter client-keys on import/export for safety
+
+(defn filter-client-keys
+  "Must define client-keys for safety purposes"
+  [cmodel]
+  (let [keys (client-keys cmodel)]
+;;    (assert keys) ;; Comment out for development
+    (if keys (select-keys cmodel keys)
+	cmodel)))
+	
+
+;; =================================
 ;; Model CRUD API
-;;
+;; =================================
 
 (defmulti create-model! :type)
 (defmulti update-model! :type)
@@ -54,45 +142,61 @@
   [options]
   options)
 
-(defn objectid? 
-  [id]
-  (= (type id) org.bson.types.ObjectId))
+(defn export-model [smodel]
+  (cond (empty? smodel)
+	nil
+	(map? smodel)
+	(do (log/spy smodel)
+	    (-> smodel
+		filter-client-keys
+		export-model-id
+		export-model-refs))
+	(sequential? smodel)
+	(vec (doall (map export-model smodel)))
+	true
+	(throw (java.lang.Error. (format "Cannot export model %s" smodel)))))
 
-(defn model?
-  "A predicate to test that we have a valid model:
-   :_id field ala mongo with valid ObjectID
-   :type field indicating type of the model"
-  [model]
-  (and (:type model)
-       (:_id model)
-       (objectid? (:_id model))))
+(defn import-model [cmodel]
+  (-> cmodel
+      filter-client-keys
+      import-model-id 
+      import-model-refs))
+
+(defn import-new-model [cmodel]
+  (-> cmodel
+      filter-client-keys
+      import-model-refs))
 
 ;;
-;; Default implementations
+;; Default Model behaviors
 ;;
 
 (defmethod valid-model-params? :default
   [model]
   true)
 
+(defmethod model-collection :default
+  [model]
+  (assert (:type model))
+  (name (:type model)))
+
 (defmethod db-reference-params :default
   [model]
   [])
 
-(defmethod model-collection :default
-  [model]
-  (assert (:type model))
-  (str (:type model) "s"))
-
 (defmethod client-keys :default
   [model]
-  model)
+  (keys model))
+
+;;
+;; Default API implementation
+;;
 
 (defmethod create-model! :default
   [model]
   (assert (not (model? model)))
   (if (valid-model-params? model)
-    (mongo/insert! (model-collection model) (client-keys model))
+    (mongo/insert! (model-collection model) model)
     "Error"))
 
 (defn- update-by-modifiers
@@ -101,25 +205,14 @@
     {:$set bare}))
 
 (defmethod update-model! :default
-  [model & id]
-  (let [result
-  (if id
-    (if (and (objectid? (first id)) (valid-model-params? model))
-      (.getError
-       (mongo/update! (model-collection model)
-		      {:_id (first id)}
-		      (update-by-modifiers (client-keys model))
-		      :upsert false))
-      "Error")
-    (if (and (model? model) (valid-model-params? model))
-      (.getError
-       (mongo/update! (model-collection model)
-		      {:_id (:_id model)}
-		      (update-by-modifiers (client-keys model))
-		      :upsert false))
-      "Error"))]
-	(println result)
-	result))
+  [model]
+  (if (valid-model-params? model)
+    (.getError
+     (mongo/update! (model-collection model)
+		    {:_id (:_id model)}
+		    (update-by-modifiers model)
+		    :upsert false))
+    "Error"))
   
 (defmethod fetch-model :default [type & options]
   (apply mongo/fetch-one
@@ -142,42 +235,48 @@
 ;; Client Model translation API
 ;;
 
-(defmulti serialize-client-object
-;;  "Convert a server-side object to JSON for transmission to a backbone client"
-  :type)
+;; (defmulti serialize-client-object
+;; ;;  "Convert a server-side object to JSON for transmission to a backbone client"
+;;   (fn [obj]
+;;     (if (sequential? obj)
+;;       (.toString (:type (first obj)))
+;;       (.toString (:type obj)))))
 
-;;
-;; Generic object translation methods
-;;
+;; ;;
+;; ;; Generic object translation methods
+;; ;;
 
-(defn- add-db-ref [ns model key]
-  (if-let [[type id] (model key)]
-    (assoc model key
-	   (mongo/db-ref (model-collection {:type type}) (mongo/object-id id)))
-    model))
+;; (defmethod serialize-client-object :default
+;;   [object]
+;;   (cond
+;;    (nil? object) nil
+;;    (sequential? object)
+;;    (map serialize-client-object object)
+;;    (associative? object)
+;;    (add-db-refs
+;;     (dissoc (assoc object :id (str (:_id object))) :_id))
+;;    true object))
 
-(defn- add-db-refs [model]
-  (reduce add-db-ref model (db-reference-params model)))
 
-(defmethod serialize-client-object :default
-  [object]
-  (cond
-   (nil? object) nil
-   (seq? object)
-   (map serialize-client-object object)
-   (associative? object)
-   (add-db-refs
-    (dissoc (assoc object :id (str (:_id object))) :_id))
-   true object))
+;; (defmethod serialize-client-object "experiment"
+;;   [object]
+;;   (clojure.walk/postwalk (fn [obj]
+;; 			   (cond (= obj :_id) :id
+;; 				 (mongo/db-ref? obj) (convert-dbref obj)
+;; 				 (instance? ObjectId obj) (.toString obj)
+;; 				 true obj))
+;; 			 object))
 
-(defn deserialize-client-object
-  "Take any properly formatted json object in parsed form and
-   extract an object with an :id field and a :type field"
-  [json]
-  (assert (:type json))
-  (if (and (:id json) (= (count (:id json)) 24))
-    (dissoc (assoc json :_id (mongo/object-id (:id json))) :id)
-    json))
+;; ;; 
+
+;; (defn deserialize-client-object
+;;   "Take any properly formatted json object in parsed form and
+;;    extract an object with an :id field and a :type field"
+;;   [json]
+;;   (assert (:type json))
+;;   (if (and (:id json) (= (count (:id json)) 24))
+;;     (dissoc (assoc json :_id (mongo/object-id (:id json))) :id)
+;;     json))
 
 ;;
 ;; Compact model definition macro

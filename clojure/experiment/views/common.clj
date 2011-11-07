@@ -1,32 +1,41 @@
 (ns experiment.views.common
-  (:require [experiment.models.user :as user]
-	    [experiment.infra.session :as session]
-	    [noir.response :as resp])
   (:use noir.core
         noir.content.css
         hiccup.core
         hiccup.form-helpers
-        hiccup.page-helpers))
+        hiccup.page-helpers)
+  (:require [experiment.models.user :as user]
+	    [experiment.infra.auth :as auth]
+	    [experiment.infra.session :as session]
+	    [experiment.infra.models :as models]
+	    [clj-json.core :as json]
+	    [noir.response :as resp]))
 
 (defn- include-vendor-libs-dev []
-  (include-js "/js/vendor/jquery.js"
+  (include-js "/js/vendor/jquery-1.7.js"
+	      "/js/vendor/jquery.autoSuggest.js"
 	      "/js/vendor/handlebars.1.0.0.beta.3.js"
 	      "/js/vendor/underscore.js"
 	      "/js/vendor/backbone.js"
-	      "/js/vendor/ddsmoothmenu.js"))
-
+	      "/js/vendor/jquery.sparkline.min.js"
+	      "/js/vendor/highcharts.src.js"))
+	      
 (defn- include-vendor-libs-prod []
-  (include-js "/js/vendor/jquery.js"
+  (include-js "/js/vendor/jquery-1.7.min.js"
+	      "/js/vendor/jquery.autoSuggest.packed.js"
 	      "/js/vendor/handlebars.1.0.0.beta.3.js"
 	      "/js/vendor/underscore-min.js"
 	      "/js/vendor/backbone-min.js"
-	      "/js/vendor/ddsmoothmenu.js"))
+	      "/js/vendor/jquery.sparkline.min.js"
+	      "/js/vendor/highcharts.js"))
 
 (defn include-vendor-libs []
   (include-vendor-libs-dev))
 
 (defpartial include-standard-css []
   (include-css "/css/reset.css")
+;;  (include-css "/css/jquery.backbone.widgets.css")
+  (include-css "/css/autoSuggest.css")
 ;;  [:style {:type "text/css"} (noir-css)]
   (include-css "/css/layout.css"))
 
@@ -65,14 +74,13 @@
 ;; Application layouts
 
 (defpartial render-profile-summary []
-  (let [user (session/user)]
+  (let [user (session/current-user)]
     (if (session/logged-in?)
-      (list [:h3 (or (:name user) "NO NAME!")]
-	    [:span
-	     (link-to "/app/home" "Profile") ;;(url-for render-my-profile-page) "Profile")
-	     "&nbsp; | &nbsp;"
-	     (link-to "/action/logout" "Logout") ;; (url-for handle-logout) "Logout")])
-	     ])
+      (list [:img {:src "https://gp1.wac.edgecastcdn.net/801245/socialcast.s3.amazonaws.com/tenants/6255/profile_photos/499368/Ian_Headshot_Zoom_square70.jpg"}]
+	    [:h1 (or (:name user) "NO NAME!")]
+	    (link-to "/app/profile" "Edit Profile")
+	    [:br]
+	    (link-to "/action/logout" "Logout"))
       (list [:span
 	     (link-to "/action/login" "Login")]))))
 
@@ -86,10 +94,11 @@
 (defpartial render-menu [menu]
   [:ul {:class "menulist"}
    (map (fn [[name content & subitems]]
-	  (let [base (str "/app/" name)]
-	    [:li {:class "menuitem"}
-	     [:a {:href base} content]
-	     (when subitems (render-submenu base subitems))]))
+	  (when name
+	    (let [base (str "/app/" name)]
+	      [:li {:class "menuitem"}
+	       [:a {:href base} content]
+	       (when subitems (render-submenu base subitems))])))
 	menu)])
 
 (defpartial nav-layout [menu-content]
@@ -102,12 +111,11 @@
    [:div#nav-footer
     (image "/img/c3ntheme_logo.png" "C3N Logo")
     [:br]
-    [:div
-     (link-to "/content/terms" "Terms of Use")
+    [:div {:style "text-align: center"}
+     (link-to "/article/terms" "Terms of Use")
      "&nbsp; | &nbsp;"
-     (link-to "/content/privacy" "Privacy")
-     "&nbsp; | &nbsp;"
-     (mail-to "eslick@media.mit.edu" "Help")]]])
+     (link-to "/article/privacy" "Privacy")
+     "&nbsp;"]]])
 
 (defpartial app-pane-layout [app-pane]
   [:div#app-pane
@@ -117,7 +125,23 @@
   [:div#share-pane
    share-pane])
 
-(defpartial app-layout [menu app-pane share-pane]
+(defn bootstrap-collection-expr [name coll]
+  (str name ".reset("
+       (json/generate-string
+	(models/export-model coll))
+       ");"))
+
+(defn bootstrap-instance-expr [name coll]
+  (str name ".set("
+       (json/generate-string
+	(models/export-model coll))
+       ");"))
+
+(defpartial send-user []
+  [:script {:type "text/javascript"}
+   (bootstrap-instance-expr "window.User" (session/current-user))])
+
+(defpartial app-layout [menu app-pane share-pane bootstrap-data]
   (html5
    (standard-head-nojs)
    [:body
@@ -130,7 +154,9 @@
     (include-vendor-libs)
     (include-js "/js/models.js")
     (include-js "/js/app.js")
-    (include-js "/js/create.js")]))
+    (include-js "/js/create.js")
+    (send-user)
+    bootstrap-data]))
 
       
 
@@ -165,17 +191,17 @@
 	       (submit-button {:class "submit"} "submit")]))))
 
 (defpage do-login [:post "/action/login"] {:as user}
-  (if (session/login user)
+  (if (auth/login user)
     (do (println "Successful login by " user)
 	(if-let [targ (:target user)]
 	  (do (println "Redirecting to target: " targ)
 	      (resp/redirect targ))
-	  (resp/redirect "/app/home")))
+	  (resp/redirect "/app/dashboard")))
     (do (println "Failed login by " user)
 	(render "/action/login" user))))
 
 (defpage do-logout "/action/logout" {}
-  (apply session/clear! nil)
+  (session/clear!)
   (resp/redirect "/"))
 
 (defpage show-map "/util/show-request" {}

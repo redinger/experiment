@@ -2,31 +2,34 @@
 
 ## Architecture
 
-Basic idea is that the server handles data processing and the client
-handles visualization and editing of models, asking the server to
-perform post-processing of data returned from rich queries for
-visualization on the front-end.
+Basic partitioning is that the server handles data processing and the
+client handles visualization and editing of models, asking the server
+to perform pre-processing of data resulting from client queries that
+can be visualized on a front-end.
 
 The rich-client app is a subsection of the site for which any URL from
-the base "/app*" renders the app and the app does client-side dispatch
-of the rest of the URL.
+the base "/app*" renders the app and client handles the rest of the
+URL.  Basic support is provided for dispatching on the user-agent or a
+cookie value for different web-based clients.
 
-The app consists of:
+A mobile app client can use the APIs directly and bypass the /app
+namespace.
+
+A client app consists of:
+   - HTML skeleton for site frame and place holder divs for app modules
    - Application javascript files
-   - HTML skeleton for major sub-applications and site frame
    - Model templates for dynamic rendering
    - Boostrap data for the specific sub-view being requested
-     This means the server needs to have a way of determining what
-     data is being rendered.
+   - This means the server needs to have a way of determining what data is being rendered and some duplication of URL parsing between server and client
      
 ## Major TODOs for initial release
 
-   - Support logging through server and client side
+   x Bootstrapping data into views
    - Nested object REST API support for Backbone
-   - Bootstrapping data into views
+   - Support proper logging through server and client side
    - Auto-complete for tags, model names, etc.
    - Structured treatment descriptions using auto-complete
-   - Fix Dynamic menu link generation, dispatch in View handler not dd library
+   - Fix Dynamic menu link generation, dispatch in View handler
    - Pallet distribution model
        - DONE: pallet, git, keys
        - PARTIAL: Mongo installation, nginx as proxy and static files
@@ -35,9 +38,9 @@ The app consists of:
 ## Open Architectural Issues
 
    - Release model for aggregated/versioned javascript files
-   - Generalized error handling across server & client
+   - Error handling across server & client
    - Model abstraction on server
-     - Handle references
+     x Handle references
      - Handle synchronization conflicts for models
      - Define important properties like type checks, etc
    - Backbone-based abstraction layer (base classes, protocols) for the 'model model'
@@ -47,7 +50,7 @@ The app consists of:
 ## Longer term architectural issues
 
    - Caching layer for static content or snippets?
-   - Cache model templates in external files for releases
+   - Cache model templates in external files for release
    - Support search indexibility and SEO by rendering sub-views with
      proper links on the server side for search crawlers or
      accessibility.  The server-side of a given application will have

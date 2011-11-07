@@ -1,9 +1,29 @@
 (ns experiment.infra.middleware
   (:require
+   [somnium.congomongo :as mongo]
+   [noir.session :as session]
    [noir.request :as req]
    [noir.response :as resp]
    [clojure.data.json :as json]
    [clojure.string :as str]))
+
+
+;;
+;; Current user
+;;
+
+(def ^:dynamic *current-user* nil)
+
+(defn session-user
+  "Binds the current session user, when logged in.  Use tools in infra/sessions
+   and infra/auth to login and logout users"
+  [handler]
+  (fn [req]
+    (let [userid (session/get :userid)]
+      (binding [*current-user*
+		(and userid
+		     (mongo/fetch-one :user :where {:_id userid}))]
+	(handler req)))))
 
 ;;
 ;; JSON Payload Parsing
@@ -25,6 +45,7 @@
 
 ;;
 ;; Redirect to a new URL based on user agent
+;;
 ;; - Very special purpose facility
 ;; - Be nice to make general?
 
@@ -81,4 +102,3 @@
 	      (resp/redirect new-uri))
 	  (handler req))
 	(handler req)))))
-	   

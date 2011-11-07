@@ -3,6 +3,7 @@
 	somnium.congomongo)
   (:refer-clojure :exclude [get])
   (:require
+   [experiment.infra.middleware :as mid]
    [somnium.congomongo.coerce :as coerce]
    [noir.session :as session]
    [noir.util.crypt :as crypt])
@@ -42,6 +43,10 @@
     (session/put! key new)
     new))
 
+;;
+;; Proxy session commands
+;;
+
 (def put! session/put!)
 (def get session/get)
 (def remove! session/remove!)
@@ -50,32 +55,24 @@
 (def flash-get session/flash-get)
 
 ;;
-;; Session Authentication and Common State
+;; The session user and logged-in status
 ;;
+;; NOTE: A hack to get around the fact that models aren't defined
+;; yet in the infra directory
 
-(defn user []
+(defn current-user []
   (try 
-    (and (session/get :logged-in?)
-	 (fetch-one :users :where {:_id (session/get :user)}))
+    (or (and
+	 noir.request/*request* ;; active request
+	 (get :logged-in?)
+	 mid/*current-user*)
+	(fetch-one :user :where {:username "eslick"})) ;; debug
     (catch java.lang.Throwable e
       (println "Get User from Session Error: " e)
       nil)))
 	
-(defn login [user]
-  (let [record (or (fetch-one :users :where {:username (:username user)})
-		   (fetch-one :users :where {:email (:username user)}))]
-    (if (and record (crypt/compare (:password user) (:password record)))
-      (do (session/put! :logged-in? true)
-	  (session/put! :user (:_id record))
-	  user)
-      nil)))
-
-(defn logout []
-  (session/put! :logged-in? false))
-
 (defn logged-in? []
-  (and (session/get :logged-in?)
-       (user)))
+  (when (current-user) true))
        
 
 

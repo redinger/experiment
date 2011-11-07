@@ -1,7 +1,6 @@
 (ns experiment.models.core
   (:use [experiment.infra.models]))
 
-
 ;; VARIABLE/SYMPTOM [name ref]
 ;;  has name
 ;;  contains Comments

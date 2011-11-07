@@ -1,11 +1,11 @@
 (ns experiment.infra.api
+  (:use noir.core
+	experiment.infra.models)
   (:require
    [noir.response :as response]
    [noir.request :as request]
    [somnium.congomongo :as mongo]
-   [clojure.data.json :as json])
-  (:use noir.core
-	experiment.infra.models))
+   [clojure.data.json :as json]))
 
 ;;
 ;; Backbone Model Interaction API 
@@ -15,9 +15,9 @@
 (defpage backbone-api-create [:post "/api/bone/:type"] {:keys [type json-payload]}
   (println "Handling Post")
   (response/json
-   (serialize-client-object
+   (export-model 
     (try
-      (create-model! (assoc json-payload :type type))
+      (create-model! (import-new-model (assoc json-payload :type type)))
       (catch java.lang.Throwable t
 	(str "Error: Problem deserializing or saving new model " json-payload))))))
      
@@ -25,46 +25,59 @@
 ;; Update - PUT
 (defpage backbone-api-update [:put "/api/bone/:type"] {:keys [type json-payload]}
 ;;  (println "Handling Put")
+  (assert (sequential? json-payload))
   (response/json
-   (serialize-client-object 
-    (update-model! (deserialize-client-object json-payload)))))
+   (export-model 
+    (update-model! (map import-model json-payload)))))
 
 (defpage backbone-api-update [:put "/api/bone/:type/:id"] {:keys [type id json-payload]}
 ;;  (println "Handling Put w/ ID")
-  (let [model (deserialize-client-object json-payload)]
-;;    (println model)
+  (let [model (import-model json-payload)]
     (assert (= (deserialize-id id) (:_id model)))
     (response/json
-     (serialize-client-object 
+     (export-model 
       (update-model! model)))))
 
 ;; Read - GET
 (defpage backbone-api-read-all "/api/bone/:type" {:keys [type options json-payload] :as params}
-;;  (println params)
+  (println "GET " params)
   (response/json
-   (serialize-client-object 
-    (let [models (apply fetch-models type (when options (json/read-json options true)))]
-;;      (println "GET ALL: " models)
-      (map client-keys models)))))
+   (vec
+    (map export-model
+	 (apply fetch-models type (when options (json/read-json options true)))))))
+      
 
-(defpage backbone-api-read "/api/bone/:type/:id" {type :type id :id}
+(defpage backbone-api-read "/api/bone/:type/:id" {:keys [type id] :as params}
+  (println "GET ONE " params)
   (response/json
-   (serialize-client-object
-    (let [model (fetch-model type :where {:_id (mongo/object-id id)})]
-;;      (println "GET: " model)
-      (client-keys model)))))
+   (export-model
+    (fetch-model type :where {:_id (mongo/object-id id)}))))
 
 
 ;; Delete - DELETE
 (defpage backbone-api-delete-id [:delete "/api/bone/:type/:id"] {:keys [type id]}
-;;  (println "Delete id")
+  (println "Delete id")
   (response/json
-   (serialize-client-object
+   (export-model
     (delete-model! {:type type :_id (mongo/object-id id)}))))
 
 (defpage backbone-api-delete-model [:delete "/api/bone/:type"] {:keys [type json-payload]}
-;;  (println "Delete model")
+  (println "Delete model")
   (response/json
-   (serialize-client-object
-    (delete-model! (deserialize-client-object json-payload)))))
+   (export-model
+    (delete-model! (import-model json-payload)))))
+
+;;
+;; Search API for Browser and Completion
+;;
+
+(defpage search-api-prefix "/api/search/:type" {:keys [type query tags options]}
+  (let [clause {:tags {:$in tags}
+		:name (re-pattern (str "^" query))}]
+    (response/json
+     (vec
+      (map export-model 
+	   (fetch-models type :where clause))))))
+
+
 

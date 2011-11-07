@@ -1,6 +1,7 @@
 (ns experiment.models.user
   (:use noir.core
-	experiment.infra.models))
+	experiment.infra.models)
+  (:require [experiment.infra.session :as session]))
 
 ;;(defmodel user 
 ;;  :collection :users
@@ -50,6 +51,12 @@
 (defmethod valid-model-params? :user [user]
   (and (:username user)))
 
+(defn has-permission? [perm]
+  ((set (:permissions (session/current-user))) perm))
+
+(defn admin? []
+  (has-permission? "admin"))
+  
 ;;(defmethod model-collection :user [user]
 ;;  :users)
 
