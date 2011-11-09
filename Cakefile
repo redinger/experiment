@@ -35,6 +35,10 @@ task 'compileJS', 'Compiles all Coffeescript files into JS', ->
  coffee = exec "coffee -cj -o ./resources/public/js coffee/" # coffee/models/ coffee/views/"
  printOutput(coffee)
 
+task 'compileCSS', 'Compiles all Coffeescript files into JS', ->
+ stylus = exec "stylus ./stylus/* --firebug --out ./resources/public/css"
+ printOutput(stylus)
+
 #task 'test', 'Runs all tests', ->
 #  vows = exec 'vows test/*.test.js'
 #  printOutput(vows)
