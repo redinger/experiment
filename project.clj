@@ -10,8 +10,8 @@
 			   ;; Backend
 			   [congomongo "0.1.7-SNAPSHOT"]
 			   ;; Utilities for libs
-			   [woven/clj-http "0.1.2-SNAPSHOT"]
-			   [woven/clj-json "0.3.1"]
+			   [clj-http "0.2.1"]
+			   [org.clojars.kovasb/clj-json "0.3.2-SNAPSHOT"]
 			   [clj-time "0.2.0-SNAPSHOT"]
 			   [clj-glob "1.0.0"]]
 	    :dev-dependencies [[swank-clojure "1.3.0-SNAPSHOT"]
