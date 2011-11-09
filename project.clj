@@ -15,7 +15,9 @@
 			   [clj-time "0.2.0-SNAPSHOT"]
 			   [clj-glob "1.0.0"]]
 	    :dev-dependencies [[swank-clojure "1.3.0-SNAPSHOT"]
-			       [lein-daemon "0.2.1"]
+			       [lein-daemon "0.4.0"]
 			       [lein-run "1.0.0-SNAPSHOT"]]
+	    :daemon {:server {:ns experiment.server
+			      :pidfile "./server.pid"}}
 	    :main experiment.server)
 

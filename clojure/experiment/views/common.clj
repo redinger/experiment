@@ -97,7 +97,8 @@
 	  (when name
 	    (let [base (str "/app/" name)]
 	      [:li {:class "menuitem"}
-	       [:a {:href base} content]
+	       [:a {:href base} 
+		content]
 	       (when subitems (render-submenu base subitems))])))
 	menu)])
 

@@ -102,6 +102,7 @@ class Comment extends Backbone.Model
 
 class Comments extends Backbone.Collection
   model: Comment
+
 window.FocusComments = new Comments
 
 
@@ -316,22 +317,24 @@ class DiscoverFilterView extends Backbone.View
         @initTemplate '#discover-filter'
 
   addFilterTag: (tag) =>
-        alert $(tag).find ':last-child'
         @model.addPhrase $(tag).find ':last-child'
+        tag
 
   removeFilterTag: (tag) =>
-        alert $(tag).find ':last-child'
         @model.removePhrase $(tag).find ':last-child'
+        tag
 
   allObjects: ->
         window.Treatments.toJSON().concat window.Instruments.toJSON()
 
   render: =>
         @renderTemplate()
+        @
+
+  finalize: =>
         $(@el).find('#discover-filter-input').autoSuggest @allObjects(), $(discoverSuggestDefaults).extend
                 selectionAdded: @addFilterTag
                 selectionRemoved: @removeFilterTag
-        @
 
 # -----------------------------
 #   NLP filter list according to selected tags
@@ -350,15 +353,18 @@ class DiscoverItemView extends Backbone.View
         @
 
   events:
-        'click': 'sel'
+        'mouseover': 'inspect'
+        'click': 'zoom'
 
   render: =>
         $(@el).html @template @model.toJSON()
         @
 
-  sel: =>
-        alert 'clicked on ' + @model.get 'variable'
+  inspect: ->
         window.socialView.setContext @model
+
+  zoom: ->
+
 
 
 # The UI View for the filtered object set
@@ -392,7 +398,7 @@ class DiscoverListView extends Backbone.View
   getResults: (limit) ->
         filter = @model.get 'query'
 #        alert 'filter using: ' + filter
-        window.Instruments.models
+        window.Treatments.models
 
   asItemView: (model) =>
         new DiscoverItemView
@@ -404,16 +410,12 @@ class DiscoverListView extends Backbone.View
         @render()
 
   render: =>
-        me = $(@el).empty()
-        me.append view.render().el for view in @items
+        $(@el).empty()
+        $(@el).append view.render().el for view in @items
         @
 
-  # Handling events
-  events:
-        'click': 'action'
-
-  action: =>
-        alert 'discoverlistview'
+  finalize: ->
+        view.delegateEvents() for view in @items
 
 
 # ----------------------------------------
@@ -432,27 +434,48 @@ class DiscoverApp extends Backbone.View
         $(@el).append '<h1>Discover</h1>'
         $(@el).append @filterView.render().el
         $(@el).append @listView.render().el
+        @filterView.finalize()
+        @listView.finalize()
         @
 
 #        $(@el).append @discoverList.render().el
 #"/api/suggest/discover/", discoverSuggestDefaults
 
 # ---------------------------------
-#   Experiment Viewer
+#   Trial Viewer
 # ---------------------------------
-class ExperimentApp extends Backbone.View
-  @implements TemplateView, SwitchPane
+class TrialView extends Backbone.View
+  @implements TemplateView
   initialize: (exp) ->
+        @initTemplate '#trial-list-view'
+
+  render: =>
+        @renderTemplate()
+
+  finalize: ->
+        @delegateEvents()
+
+class TrialApp extends Backbone.View
+  @implements TemplateView, SwitchPane
+  newTrial: (trial) ->
+        new TrialView
+                model: trial
+
+  initialize: (exp) ->
+        @views = window.MyTrials.map @newTrial
+        window.TrialApp = @
         @
 
   render: =>
-        $(@el).append '<h1>Experiment Page</h1>'
+        $(@el).append '<h1>My Trials</h1>'
+        $(@el).append view.render().el for view in @views
+        view.finalize() for view in @views
         @
 
 
-#+++++++++++++++++++++
+# +++++++++++++++++++++
 # Social Viewer
-#+++++++++++++++++++++
+# +++++++++++++++++++++
 
 # View dispatch sends message that new social data is available
 # handler on social viewer grabs data from event and updates view
@@ -466,17 +489,20 @@ class SocialView extends Backbone.View
 
   setContext: (model) ->
         @model = model
+        @render()
 
   renderComment: (comment) ->
         $(@el).append @template comment
 
   render: =>
         $(@el).empty()
-        $(@el).append '<h1>Discussions</h1>'
+        $(@el).append '<h1>Discussion</h1>'
         if @model
-                $(@el).append '<h2>' + @model.get 'type' + @model.get 'variable' + '</h2>'
-                @renderComment c for c in @model.comments() when @model.comments
+                @renderComment c for c in @model.comments() or [] when @model.comments
         @
+
+#                string = '<h2>'.concat(@model.get('type'), '</h2>')
+#                $(@el).append string
 
 ##################################################################
 # APPLICATION
@@ -490,13 +516,13 @@ class AppRouter extends Backbone.Router
   initialize: ->
         @switcher = new PaneSwitcher
                 'dashboard': new DashboardApp
-                        el: $('#dashboardApp')[0]
-                'experiment': new ExperimentApp
-                        el: $('#expApp')[0]
+                        el: $('#dashboardApp').first()
+                'trials': new TrialApp
+                        el: $('#trialApp').first()
                 'discover': new DiscoverApp
-                        el: $('#discoverApp')[0]
+                        el: $('#discoverApp').first()
                 'admin': new AdminApp
-                        el: $('#adminApp')[0]
+                        el: $('#adminApp').first()
 
   # Routing
   routes:
@@ -528,7 +554,7 @@ class MainMenu extends Backbone.View
 
    initialize: ->
         @root = @options.root ? @root
-        @el = $(@options.elid).first() if not @el
+        @el = $(@options.elid).first()
         @
 
    events:
@@ -568,6 +594,7 @@ $(document).ready ->
    window.socialView = new SocialView '#social'
    window.appRouter = new AppRouter
    window.mainMenu = new MainMenu {elid: '#main-menu'}
+   window.mainMenu.delegateEvents()
    match = Backbone.history.start
         pushState: true
         root: "/app"

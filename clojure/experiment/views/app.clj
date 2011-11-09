@@ -34,22 +34,21 @@
 
 (deftemplate dashboard-main
   [:div
-   [:h1 (%str (% name) "'s Dashboard") ]
+   [:h1 (%str (% name) "'s Dashboard")]
    [:div
     [:ul
      [:li (%str "Number of Friends: " (% friends))]
      [:li (%str "Active Experiments: " (% experiments))]]]])
 
-;; Discover
+;; Search
 
 (deftemplate discover-filter
   [:div.discover-filter
    [:input {:type "text"
 	    :id "discover-filter-input"
-	    :value (% query)}
-    ]])
+	    :value (% query)}]])
 
-;; Discover views
+;; Search views
 
 (deftemplate treatment-list-view
   [:div {:class "result, treatment-list-view"}
@@ -66,11 +65,17 @@
    [:h3 (% name)]
    [:p (% description)]])
 
+(deftemplate trial-list-view
+  [:div {:class "result, trial-list-view"}
+   [:h3 (%with experiment (% name))]
+   [:p (% user)]])
+
 (deftemplate comment-short-view
   [:div {:class "comment-short"}
-   [:p {:class "comment-text"} (% text)]
-   [:p (%str "@" (% author) " at <date tbd>")]])
-    
+   [:p {:class "comment-text"} (% content)]
+   [:p {:class "comment-sig"} (%str "@" (% user) " at [date tbd]")]])
+
+
   
 ;; Admin
   
@@ -84,7 +89,7 @@
 
 (defpartial app-skeleton []
   [:div#dashboardApp]
-  [:div#expApp]
+  [:div#trialApp]
   [:div#discoverApp]
   [:div#adminApp]
   (render-all-templates))
@@ -99,17 +104,14 @@
      (map #(apply common/bootstrap-collection-expr %)
 	  [["window.Instruments" (models/fetch-models :instrument)]
 	   ["window.Experiments" (models/fetch-models :experiment)]
-	   ["window.MyTrials" (models/fetch-models :trial :where {:username username})]
+	   ["window.MyTrials" (models/fetch-models :trial :where {:user username})]
 	   ["window.Treatments" (models/fetch-models :treatment)]])]))
 
 (defpage "/app*" {}
   (common/app-layout
    [["dashboard" "Dashboard"]
-    ["experiment" "Experiments"
-     ["experiment1" "Experiment1"]
-     ["experiment2" "Experiment2"]
-     ["past" "Past Experiments"]]
-    ["discover" "Discover"]
+    ["trials" "Trials"]
+    ["discover" "Search"]
     (when (user/admin?)
       ["admin" "Admin"])]
    (app-skeleton)

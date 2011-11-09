@@ -43,7 +43,7 @@
   (server/stop @*server*)
   (swap! *server* (fn [a] nil)))
 
-(defn -main [& m]
-  (start (first m)))
+(defn -main []
+  (start :prod))
 
 

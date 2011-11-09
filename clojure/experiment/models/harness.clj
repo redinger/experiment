@@ -10,7 +10,6 @@
   [:symptom
    :instrument
    :treatment
-   :user
    :trial])
 
 (defn create-user []
@@ -27,8 +26,11 @@
     ;; Tracking info
     :experiments 1}))
 
-(defn clear-all-models []
+(defn clear-models []
   (map mongo/drop-coll! model-types))
+
+(defn clear-all-models []
+  (map mongo/drop-coll! (concat model-types [:user])))
 
 (defn create-models []
 ;;  (create-user)
@@ -123,7 +125,19 @@
 ;;   (let [user (fetch-model :user :where {:username "eslick"})]
 ;;     ))
 ;;    (create-model! (assoc user  
-	 
+
+(defn create-articles []
+  (map #(create-model! :article (assoc %1 :type :article))
+       {:name :terms
+	:title "Terms of Use"
+	:body "TBD"}
+       {:name :privacy
+	:title "Privacy Policy"
+	:body "TBD"}
+       {:type :article
+	:title "About this site"
+	:body "TBD"}))
+	
 		     
 			
 		    

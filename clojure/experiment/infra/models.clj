@@ -201,7 +201,7 @@
 
 (defn- update-by-modifiers
   [model]
-  (let [bare (dissoc model :_id :id)]
+  (let [bare (dissoc model :_id :id :type)]
     {:$set bare}))
 
 (defmethod update-model! :default
@@ -229,54 +229,6 @@
   (mongo/destroy! (model-collection {:type (:type model)})
 		  {:_id (:_id model)})
   true)
-
-
-;;
-;; Client Model translation API
-;;
-
-;; (defmulti serialize-client-object
-;; ;;  "Convert a server-side object to JSON for transmission to a backbone client"
-;;   (fn [obj]
-;;     (if (sequential? obj)
-;;       (.toString (:type (first obj)))
-;;       (.toString (:type obj)))))
-
-;; ;;
-;; ;; Generic object translation methods
-;; ;;
-
-;; (defmethod serialize-client-object :default
-;;   [object]
-;;   (cond
-;;    (nil? object) nil
-;;    (sequential? object)
-;;    (map serialize-client-object object)
-;;    (associative? object)
-;;    (add-db-refs
-;;     (dissoc (assoc object :id (str (:_id object))) :_id))
-;;    true object))
-
-
-;; (defmethod serialize-client-object "experiment"
-;;   [object]
-;;   (clojure.walk/postwalk (fn [obj]
-;; 			   (cond (= obj :_id) :id
-;; 				 (mongo/db-ref? obj) (convert-dbref obj)
-;; 				 (instance? ObjectId obj) (.toString obj)
-;; 				 true obj))
-;; 			 object))
-
-;; ;; 
-
-;; (defn deserialize-client-object
-;;   "Take any properly formatted json object in parsed form and
-;;    extract an object with an :id field and a :type field"
-;;   [json]
-;;   (assert (:type json))
-;;   (if (and (:id json) (= (count (:id json)) 24))
-;;     (dissoc (assoc json :_id (mongo/object-id (:id json))) :id)
-;;     json))
 
 ;;
 ;; Compact model definition macro
