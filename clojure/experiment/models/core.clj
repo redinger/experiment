@@ -109,8 +109,7 @@
 ;;  content
 
 (deftemplate journal-header
-  [:div {:class "journal-list"}
-   
+  [:div {:class "journal-list"}])
 
 (deftemplate journal-entry
   [:div {:class "journal-entry"}

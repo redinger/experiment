@@ -181,7 +181,7 @@
 
 (defpage login "/action/login" {:as user}
   (if (session/logged-in?)
-    (resp/redirect "/app")
+    (resp/redirect "/app/dashboard")
     (simple-layout
      (form-to [:post "/action/login"]
 	      [:ul.simple-form
