@@ -51,10 +51,6 @@
 ;;   (if (session/logged-in?)
 ;;     (resp/redirect "/app")
      (common/simple-layout
-      [:div#home-main
-       [:div#home-header
-	[:p "InventHealth"]
-	(link-to "/action/login" "Login")]
        [:div#home-about
 	[:p "Welcome to the Invent Health site for personal experimentation.  This site is intended to help you share your experiences with lifestyle interventions, alternative therapies, with each other and with your medical professional.  We seek to help you better understand if and how much changes you are making to your life are having the impact you want. &nbsp;"
 	 (link-to "/article/about" "Read more...")]]
@@ -62,7 +58,7 @@
        [:div#home-footer
 	(link-to "/article/terms" "Terms of Use") "|"
 	(link-to "/article/privacy" "Privacy") "|"
-	(link-to "/article/about" "About")]]))
+	(link-to "/article/about" "About")]))
 	
 
 
