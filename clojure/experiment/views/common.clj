@@ -69,7 +69,13 @@
    (standard-head)
    [:body
     [:div#wrapper
-     content]]))
+     [:div#home-main
+      [:div#home-header
+       [:p [:a {:class "site-name" :href "/"} "InventHealth"]]
+       (if (session/logged-in?)
+	 (link-to "/action/logout" "Logout")
+	 (link-to "/action/login" "Login"))]
+      content]]]))
 
 ;; Application layouts
 
