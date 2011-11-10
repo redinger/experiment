@@ -11,36 +11,54 @@
         hiccup.page-helpers
 	hiccup.form-helpers))
 
+(def detail-records
+  [{:header "Find Personal Experiments"
+    :body "This site contains dozens of small lifestyle changes and
+     alternative therapies you can try out on your own to see if they help."
+    :link "/article/experiments"}
+   {:header "Run a Self-Trial"
+    :body "The site can help you run your trial by tracking your treatments and symptoms"
+    :link "/article/trials"}
+   {:header "Design your own experiments"
+    :body "If you have a treatment that you can't find here, you can
+	  describe it and design your own experiment"
+    :link "/article/design"}
+   {:header "Share your experiences"
+    :body "You can journal privately or publically about your experiences.  You can comment and discuss any of the treatments with other people and integrate your experiments with social media"
+    :link "/article/sharing"}
+   {:header "Integrate with your devices"
+    :body "We integrate with the Zeo, your Garmin, Strava.com, your phone's SMS, and e-mail to simplify your self discovery process."
+    :link "/article/experiments"}
+   {:header "Learn about this service"
+   :body "This project is an experiment to understand better how
+   ordinary people online can collaborate to learn more about
+   treatments"
+   :link "/article/about"}])
+	 
+(defpartial render-home-detail [record]
+  [:div.home-detail-wrap
+   [:a {:class "home-detail-link" :href (:link record)}
+    [:div.home-detail
+     [:h2 (:header record)]
+     [:p (:body record)]]]])
+
+(defpartial render-home-details []
+  [:div#home-details
+   (map render-home-detail detail-records)])
+  
+
  (defpage "/" {}
 ;;   (if (session/logged-in?)
 ;;     (resp/redirect "/app")
      (common/simple-layout
       [:div#home-main
        [:div#home-header
-	[:p "InventHealth.org [Cool graphics here]"]
+	[:p "InventHealth"]
 	(link-to "/action/login" "Login")]
        [:div#home-about
-	[:p "One paragraph intro to the site here or learn "
-	 (link-to "/article/about" "more...")]]
-       [:div#home-details
-	[:div.home-detail
-	 [:h2 "Discover Health Experiments"]
-	 [:p "[copy about health discovery]"]]
-	[:div.home-detail
-	 [:h2 "Run a Self-Trial"]
-	 [:p "[copy about your own trial]"]]
-	[:div.home-detail
-	 [:h2 "Design your own experiments"]
-	 [:p "[copy about designing your own experiments]"]]
-	[:div.home-detail
-	 [:h2 "Share your experiences"]
-	 [:p "You can journal privately or publically about your experiences.  You can comment and discuss any of the treatments with other people and integrate your experiments with social media"]]
-	[:div.home-detail
-	 [:h2 "Integrate with your devices"]
-	 [:p "We integrate with the Zeo, your Garmin, Strava.com, your phone's SMS, and e-mail to simplify your self discovery process."]]
-	[:div.home-detail
-	 [:h2 "Support this service"]
-	 [:p "We have a small grant to run this site, but we bear hosting costs and each SMS we sent cost a little money.  Donate [here] to the cause!"]]]
+	[:p "Welcome to the Invent Health site for personal experimentation.  This site is intended to help you share your experiences with lifestyle interventions, alternative therapies, with each other and with your medical professional.  We seek to help you better understand if and how much changes you are making to your life are having the impact you want. &nbsp;"
+	 (link-to "/article/about" "Read more...")]]
+       (render-home-details)
        [:div#home-footer
 	(link-to "/article/terms" "Terms of Use") "|"
 	(link-to "/article/privacy" "Privacy") "|"
