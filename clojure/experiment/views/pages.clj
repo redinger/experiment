@@ -5,11 +5,13 @@
    [experiment.infra.models :as models]
    [experiment.infra.session :as session]
    [experiment.models.user :as user]
+   [experiment.models.core :as core]
    [experiment.views.common :as common])
   (:use noir.core
         hiccup.core
         hiccup.page-helpers
 	hiccup.form-helpers
+	experiment.libs.highcharts
 	handlebars.templates))
 
 ;; This file contains templates and other harness for differnet
