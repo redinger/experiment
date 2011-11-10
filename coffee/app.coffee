@@ -37,45 +37,88 @@ else
 # - Load everything for now
 # - To scale, lazy-load base collections as needed (TBD)
 
-# Experiments
-class Experiment extends Backbone.Model
+# Resolving references utility
+findModel = (models, id) ->
+        models.find (mod) => mod.id == id
 
-class Experiments extends Backbone.Collection
-  model: Experiment
-window.Experiments = new Experiments
+resolveReference = (ref) ->
+        if ref
+          alert "Bad Reference [#{ ref }]" if not _.isArray ref if ref
+          switch ref[0]
+            when 'experiment' then findModel window.Experiments, ref[1]
+            when 'treatment' then findModel window.Treatments, ref[1]
+            when 'instrument' then findModel window.Instruments, ref[1]
+            when 'trial' then findModel window.MyTrials, ref[1]
+            else alert "Reference not found [#{ ref }]"
+
+class Model extends Backbone.Model
+  # Declarations for subclasses
+  dbrefs: []
+  resolveRefs: () =>
+        updates = {}
+        for field in @dbrefs
+                value = @get field
+                if _.isArray _.first(value)
+                    updates[field] = _.map(@get(field), resolveReference)
+                else
+                    updates[field] = resolveReference(@get(field))
+        @set updates
+
+  # Recursive toJSON to resolve models
+  toJSON: () =>
+        attrs = Backbone.Model.prototype.toJSON.call(this)
+        for field in @dbrefs
+                model = attrs[field]
+                if _.isArray model
+                   iter = (model) -> model.toJSON() if model
+                   attrs[field] = _.map(model, iter) if model
+                else
+                   attrs[field] = attrs[field].toJSON()
+        attrs
+
+
+class ModelCollection extends Backbone.Collection
+  resolveReferences: =>
+        @map (mod) -> mod.resolveRefs()
+
 
 # Treatments
-class Treatment extends Backbone.Model
+class Treatment extends Model
   defaults:
         'tags': []
         'comments': []
 
-  tag: (tag) =>
-        @set 'tags': @get('tags').push(tag)
-
-  comment: (comment) =>
-        @set 'comments': @get('comments').push(comment)
-
-  comments: =>
-        @get 'comments'
-
   url: "/api/bone/treatment"
 
-class Treatments extends Backbone.Collection
+class Treatments extends ModelCollection
   model: Treatment
 window.Treatments = new Treatments
 
 # Instruments
-class Instrument extends Backbone.Model
-  comments: =>
-        @get 'comments'
+class Instrument extends Model
 
-class Instruments extends Backbone.Collection
+class Instruments extends ModelCollection
   model: Instrument
 window.Instruments = new Instruments
 
+# Experiments
+class Experiment extends Model
+  dbrefs: [ 'instruments' ]
+
+class Experiments extends ModelCollection
+  model: Experiment
+window.Experiments = new Experiments
+
+# My Trials
+class Trial extends Model
+  dbrefs: [ 'experiment' ]
+
+class Trials extends ModelCollection
+  model: Trial
+window.MyTrials = new Trials
+
 # Comment model
-class Comment extends Backbone.Model
+class Comment extends Model
   defaults:
         'type': 'comment'
 
@@ -100,12 +143,6 @@ class Comment extends Backbone.Model
         response.save()
         @set 'responses', @get('responses').push response
 
-class Comments extends Backbone.Collection
-  model: Comment
-
-window.FocusComments = new Comments
-
-
 # User Object
 # - Always initialized by the server
 # - Singleton model, so use uppercase instance convention
@@ -114,13 +151,6 @@ class UserModel extends Backbone.Model
   adminp: -> 'admin' in @get('permissions')
 window.User = new UserModel
 
-
-# My Trials
-class Trial extends Backbone.Model
-
-class Trials extends Backbone.Collection
-  model: Trial
-window.MyTrials = new Trials
 
 ###################################################
 # Local Models
@@ -145,8 +175,16 @@ class BrowserModel extends Backbone.Model
 # TemplateView - default template support for Backbone.View apps
 #
 class TemplateView
+  getTemplate: (name) ->
+        try
+          html = $(name).html()
+          alert 'No template found for #{ name }' unless name
+          Handlebars.compile html
+        catch error
+          alert "Error loading template #{ name } ... #{ error }"
+
   initTemplate: (name) ->
-        @template = Handlebars.compile $(name).html()
+        @template = @getTemplate name
         @
 
   resolveModel: (model) ->
@@ -158,14 +196,16 @@ class TemplateView
            model = new Backbone.Model(model)
         model
 
-  renderTemplate: (model) ->
+  renderTemplate: (model, template) ->
         model = @resolveModel model
-        $(@el).html @template model.toJSON()
+        template or= @template
+        $(@el).html template model.toJSON()
         @
 
-  inlineTemplate: (model) ->
+  inlineTemplate: (model, template) ->
         model = @resolveModel model
-        @template model.toJSON()
+        template or= @template
+        $(@el).append template model.toJSON()
 
 
 #
@@ -260,7 +300,7 @@ class DashboardApp extends Backbone.View
   model: window.User
   initialize: ->
         @model.bind('change', @render) if @model
-        @initTemplate '#dashboard-main'
+        @initTemplate '#dashboard-header'
 
   events: {}
 
@@ -452,8 +492,16 @@ class TrialView extends Backbone.View
   render: =>
         @renderTemplate()
 
+  events:
+        'click': 'viewModel'
+
   finalize: ->
         @delegateEvents()
+
+  viewModel: () =>
+        window.socialView.setContext @model.get 'experiments'
+        id = @model.get('id')
+        window.appRouter.navigate "/app/trials/#{ id }", true
 
 class TrialApp extends Backbone.View
   @implements TemplateView, SwitchPane
@@ -463,15 +511,46 @@ class TrialApp extends Backbone.View
 
   initialize: (exp) ->
         @views = window.MyTrials.map @newTrial
-        window.TrialApp = @
+        @initTemplate '#trial-header'
+        @chartTemplate = @getTemplate '#highchart-div'
+        @journalTemplate = @getTemplate '#journal-entry'
         @
 
+  dispatch: (path) ->
+        if path
+           model = findModel window.MyTrials, path
+           alert 'no model found for #{ path }' unless model
+           @model = model
+        else
+           @model = null
+        @render()
+
   render: =>
+        if @model
+           @renderModel()
+        else
+           @renderList()
+        @
+
+  renderList: ->
+        $(@el).empty()
         $(@el).append '<h1>My Trials</h1>'
         $(@el).append view.render().el for view in @views
         view.finalize() for view in @views
         @
 
+  renderOutcome: ->
+        @inlineTemplate @, @chartTemplate
+
+  renderJournal: ->
+        @inlineTemplate entry, @journalTemplate for entry in @model.get 'journal'
+
+  renderModel: ->
+        $(@el).empty()
+        @inlineTemplate()
+        @renderOutcome()
+        @renderJournal()
+        @
 
 # +++++++++++++++++++++
 # Social Viewer
@@ -498,7 +577,8 @@ class SocialView extends Backbone.View
         $(@el).empty()
         $(@el).append '<h1>Discussion</h1>'
         if @model
-                @renderComment c for c in @model.comments() or [] when @model.comments
+                comments = @model.get('comments')
+                @renderComment c for c in comments when comments
         @
 
 #                string = '<h2>'.concat(@model.get('type'), '</h2>')
@@ -527,16 +607,17 @@ class AppRouter extends Backbone.Router
   # Routing
   routes:
         '/app/:app/*path': 'activate'
+        '/app/:app/':      'activate'
         '/app/:app':       'activate'
 
   # Activate an app
-  activate: (name, path) =>
-        console.log 'Activating ' + name + ' with ' + path
+  activate: (pname, path) =>
+        console.log 'Activating ' + pname + ' with ' + path
         if typeof path == 'undefined'
-            window.mainMenu.setMenu "app/" + name
+            window.mainMenu.setMenu "app/" + pname
         else
-            window.mainMenu.setMenu "app/" + name + "/" + path
-        pane = @switcher.get(name)
+            window.mainMenu.setMenu "app/" + pname + "/" + path
+        pane = @switcher.get(pname)
         if pane
            @switcher.hideOtherPanes()
            pane.showPane()
@@ -591,11 +672,18 @@ loadModels = ->
 
 $(document).ready ->
    loadModels()
+   # Fix up internal references
+   window.Instruments.resolveReferences()
+   window.Experiments.resolveReferences()
+   window.MyTrials.resolveReferences()
+   window.Treatments.resolveReferences()
+   # Setup top level views
    window.socialView = new SocialView '#social'
    window.appRouter = new AppRouter
    window.mainMenu = new MainMenu {elid: '#main-menu'}
    window.mainMenu.delegateEvents()
+   # Initialize navigation, resolve URL
    match = Backbone.history.start
         pushState: true
-        root: "/app"
+        root: ''
    window.appRouter.navigate document.location.pathname, true

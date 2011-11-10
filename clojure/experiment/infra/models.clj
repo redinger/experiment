@@ -46,6 +46,19 @@
    slots to the client.  Default is to be permissive."
   :type)
 
+(defmulti export-hook
+  "An optional function that is the identity fn by default which
+   takes the internal model and transforms it to another version of
+   an internal model prior to export"
+  (fn [model]
+    (name (:type model))))
+
+(defmulti import-hook
+  "The import hook runs on the internal representation of the model
+   after import but before the object is saved to the underlying store"
+  (fn [model]
+    (name (:type model))))
+
 ;;
 ;; MongoDB Helpers
 ;;
@@ -146,8 +159,9 @@
   (cond (empty? smodel)
 	nil
 	(map? smodel)
-	(do (log/spy smodel)
+	(do ;; (log/spy smodel)
 	    (-> smodel
+		export-hook
 		filter-client-keys
 		export-model-id
 		export-model-refs))
@@ -160,12 +174,14 @@
   (-> cmodel
       filter-client-keys
       import-model-id 
-      import-model-refs))
+      import-model-refs
+      import-hook))
 
 (defn import-new-model [cmodel]
   (-> cmodel
       filter-client-keys
-      import-model-refs))
+      import-model-refs
+      import-hook))
 
 ;;
 ;; Default Model behaviors
@@ -188,8 +204,17 @@
   [model]
   (keys model))
 
+(defmethod export-hook :default
+  [model]
+  (println model)
+  model)
+
+(defmethod import-hook :default
+  [model]
+  model)
+
 ;;
-;; Default API implementation
+;; Default Model CRUD API implementation
 ;;
 
 (defmethod create-model! :default

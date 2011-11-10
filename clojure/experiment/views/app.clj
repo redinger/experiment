@@ -12,8 +12,15 @@
 	hiccup.form-helpers
 	handlebars.templates))
 
+;; This file packages and renders most resources relevant to the
+;; client application including client-side templates, data
+;; bootstrapping and HTML skeletons.
+
+;; See views/common.clj for the static page template and menu
+;; rendering
+
 ;;
-;; Templates
+;; Rendering all templates
 ;;
 
 (defn render-template [id template]
@@ -30,61 +37,8 @@
 	    (render-template name template))
 	  (select-keys (all-templates) list))))
 
-;; Dashboard
-
-(deftemplate dashboard-main
-  [:div
-   [:h1 (%str (% name) "'s Dashboard")]
-   [:div
-    [:ul
-     [:li (%str "Number of Friends: " (% friends))]
-     [:li (%str "Active Experiments: " (% experiments))]]]])
-
-;; Search
-
-(deftemplate discover-filter
-  [:div.discover-filter
-   [:input {:type "text"
-	    :id "discover-filter-input"
-	    :value (% query)}]])
-
-;; Search views
-
-(deftemplate treatment-list-view
-  [:div {:class "result, treatment-list-view"}
-   [:h3 (% name)]
-   [:p (% description)]])
-
-(deftemplate instrument-list-view
-  [:div {:class "result, instrument-list-view"}
-   [:h3 (% name)]
-   [:p (% description)]])
-
-(deftemplate experiment-list-view
-  [:div {:class "result, experiment-list-view"}
-   [:h3 (% name)]
-   [:p (% description)]])
-
-(deftemplate trial-list-view
-  [:div {:class "result, trial-list-view"}
-   [:h3 (%with experiment (% name))]
-   [:p (% user)]])
-
-(deftemplate comment-short-view
-  [:div {:class "comment-short"}
-   [:p {:class "comment-text"} (% content)]
-   [:p {:class "comment-sig"} (%str "@" (% user) " at [date tbd]")]])
-
-
-  
-;; Admin
-  
-(deftemplate admin-main
-  [:div [:h1 "This is the admin template"]])
-
 ;;
-;; Ship a single app template for client side
-;; application execution
+;; Ship a application skeleton to the client side
 ;;
 
 (defpartial app-skeleton []

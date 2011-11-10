@@ -119,8 +119,11 @@
     (map create-model!
 	 [{:type :trial
 	   :user "eslick"
-	   :experiment (mongo/db-ref :instrument (:_id (fetch-model :instrument :where {:title "Does diet rapidly improve fatigue if I control for sleep?"})))
-	   :sms? true}]))
+	   :experiment (mongo/db-ref :experiment (:_id (fetch-model :instrument :where {:title "Does diet rapidly improve fatigue if I control for sleep?"})))
+	   :sms? true
+	   :active? true
+	   :start "date"
+	   :end "date"}]))
    )
 ;;   (let [user (fetch-model :user :where {:username "eslick"})]
 ;;     ))
