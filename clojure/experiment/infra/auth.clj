@@ -23,8 +23,8 @@
   "Due to the use of middleware to track the user, we need to
    ensure that any handler redirects after log-ins"
   [auth]
-  (let [user (or (fetch-one :users :where {:username (:username auth)})
-		 (fetch-one :users :where {:email (:username auth)}))
+  (let [user (or (fetch-one :user :where {:username (:username auth)})
+		 (fetch-one :user :where {:email (:username auth)}))
 	encrypted (and user (:password user))]
     (if (and encrypted (crypt/compare (:password auth) (:password user)))
       (do (session/clear!)

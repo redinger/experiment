@@ -57,9 +57,6 @@
 (defn admin? []
   (has-permission? "admin"))
   
-;;(defmethod model-collection :user [user]
-;;  :users)
-
 ;;(defmethod client-keys :user [user]
 ;;  [:name :avatar :bio :gender :country :state
 ;;   :weight :yob :units :default_privacy
