@@ -67,17 +67,6 @@
    (export-model
     (delete-model! (import-model json-payload)))))
 
-;;
-;; Search API for Browser and Completion
-;;
-
-(defpage search-api-prefix "/api/search/:type" {:keys [type query tags options]}
-  (let [clause {:tags {:$in tags}
-		:name (re-pattern (str "^" query))}]
-    (response/json
-     (vec
-      (map export-model 
-	   (fetch-models type :where clause))))))
 
 
 

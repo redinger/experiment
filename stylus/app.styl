@@ -1,0 +1,155 @@
+@import "functions"  
+
+/* General Styling */
+
+body
+  font 13.34px/1.4 helvetica,arial,freesans,clean,sans-serif
+  margin 0
+  padding 0
+  line-height 1.5em
+
+.clear 
+  clear both
+  display block
+
+h1
+  font-size 140%
+
+h2
+  font-size 130%
+
+h3
+  font-size 120%
+
+li
+  margin-left 10px
+  
+
+/* MAIN APP WINDOW */
+
+#main
+  height 700px
+  width  1024px 
+  margin 0 auto
+   
+.left-side-bar
+  border-right 1px solid #CCC
+  position relative
+  float left
+  width 180px
+  min-height 700px
+  margin-left -1024px
+  background #EEEEEE
+  border
+
+  .profile-summary
+    width 100%
+    font-size small
+    padding 5px 10px 20px 5px
+    
+    h1
+      font-size small
+
+    img
+      float left
+      margin-right 5px
+      height 80px
+      width 70px
+
+  .nav-footer
+    position absolute
+    height 65px
+    bottom 0px
+    font-size small
+    padding 5px 10px 20px 5px
+    text-align center
+
+    img
+      width 140px
+
+.main-menu
+  height auto !important
+  padding 0px
+  width 150px
+
+  ul
+    list-style-type none
+
+  li 
+    margin 0 0 1px 0
+  
+    a 
+      display block
+      height 25px
+      padding 5px 0 3px 10px
+      border-top 2px #fff
+      text-decoration none
+      font bold 12pt sans-serif
+      line-height 25px
+      vertical-align baseline
+      text-align left
+
+    a:link, a:visited
+      color #FFF
+      background-color #505050
+
+    a:hover
+      color #FFF
+      gradient(top, #666, 0%, #222, 100%)
+      gen-box-shadow(0, 1px, 1px, rgba(0,0,0,0.2))
+
+.app-pane-wrap
+  float left
+  width 100%
+
+.app-pane
+  margin 0 250px 0 180px
+
+.inner-pad
+  padding 5px 10px 5px 10px
+  min-height 700px
+
+.right-side-bar
+  border-left 1px solid #CCC
+  float left
+  width 180px
+  min-height 700px
+  margin-left -250px
+  background #EEEEEE
+
+#footer
+  clear both
+  height 0px
+
+
+/* Comments */
+
+#social
+  .comment-text
+    font-size small
+
+  .comment-sig
+    font-size small
+    font-style italic
+
+
+/* Search */
+
+.search-list
+  margin-top 15px
+
+.search-list-item
+  padding-top 5px
+  padding-bottom 5px
+  border-bottom solid 1px 
+
+  h3 
+    font-size medium
+
+  p
+    font-size small
+
+.filter-guide
+  font-size x-small
+  font-family "Verdana"
+  margin-left 10px

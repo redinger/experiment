@@ -54,7 +54,7 @@ resolveReference = (ref) ->
 class Model extends Backbone.Model
   # Declarations for subclasses
   dbrefs: []
-  resolveRefs: () =>
+  resolveRefs: =>
         updates = {}
         for field in @dbrefs
                 value = @get field
@@ -81,6 +81,47 @@ class ModelCollection extends Backbone.Collection
   resolveReferences: =>
         @map (mod) -> mod.resolveRefs()
 
+# MODEL INDEX
+
+makeModelMap = ->
+   map = {}
+   for inst in window.Instruments.models
+       map[inst.get 'id'] = inst
+   for exp in window.Experiments.models
+       map[exp.get 'id'] = exp
+   for treat in window.Treatments.models
+       map[treat.get 'id'] = treat
+   for trial in window.MyTrials.models
+       map[trial.get 'id'] = trial
+   window.modelMap = map
+
+window.lookupModels = (refs) ->
+   models = []
+   if _.isArray(refs) and _.isArray(refs[0])
+        for [type, id] in refs
+           model = window.modelMap[id]
+           if model
+                models.push model
+           else
+                alert "model not found #{ id }"
+   else if _.isArray(refs) and _.isArray.length == 2
+      model = window.modelMap[refs[1]]
+      if model
+          models.push window.modelMap[refs[1]]
+      else
+          alert "model not found #{ id }"
+   models
+
+#######################################################
+# CONCRETE MODELS
+
+# Suggestions
+class Suggestion extends Backbone.Model
+
+class Suggestions extends Backbone.Collection
+  model: Suggestion
+
+window.Suggestions = new Suggestions
 
 # Treatments
 class Treatment extends Model
@@ -165,6 +206,63 @@ class BrowserFilter extends Backbone.Model
 class BrowserModel extends Backbone.Model
    defaults:
         'state': 'list'
+
+####################################################
+# Utility Views
+####################################################
+
+calendarBehavior = () ->
+  distance = 10
+  time = 250
+  hideDelay = 500
+  hideDelayTimer = null
+  beingShown = false
+  shown = false
+  trigger = $(this)
+  popup = $('.events ul', this).css('opacity', 0)
+
+  $([trigger.get(0), popup.get(0)]).mouseover () ->
+        if hideDelayTimer
+                clearTimeout(hideDelayTimer)
+        if beingShown or shown
+                return
+        else
+                beingShown = true
+        popup.css
+                bottom: 20
+                left: -76
+                display: 'block'
+        .animate {bottom: "+=#{ distance }px", opacity: 1}, time, 'swing', ->
+                  beingShown = false
+                  shown = true
+   .mouseout () ->
+           clearTimeout hideDelayTimer if hideDelayTimer
+           popup.animate {bottom: "-=#{ distance }px", opacity: 0},time,'swing', ->
+                   shown = false
+                   popup.css 'display', 'none'
+
+initCalendars = () ->
+        $('.date_has_event').each calendarBehavior
+        $('.date_has_event').each ->
+
+renderTrackerChart = (id, instrument, start, extra, options) ->
+        options = $(options).extend
+                chart:
+                        type: 'spline'
+                        renderTo: id
+                tooltip:
+                        formatter: ->
+                                datestr = Highcharts.dateFormat('%e. %b', this.x) +': '+ this.y +' m'
+                                "<b>#{ this.series.name }</b><br/>"
+
+                $.ajax "/api/charts/tracker",
+                data: $(extra).extend
+                        inst: instrument.get 'id'
+                        start: start
+                success: (config) ->
+                        new Highcharts.Chart $(config).extend options or {}
+
+
 
 
 ####################################################
@@ -300,12 +398,22 @@ class DashboardApp extends Backbone.View
   model: window.User
   initialize: ->
         @model.bind('change', @render) if @model
-        @initTemplate '#dashboard-header'
+        @headerTemplate = @getTemplate '#dashboard-header'
+        @trialsTemplate = @getTemplate '#trial-table'
+#        @schedule = new ScheduleView
+#        @journal = new JournalView
+#        @discussions = new RecentDiscussionsView
+#        @background = new BackgroundDataView
 
   events: {}
 
+  dispatch: ->
+        if $(@el).empty()
+                @render()
   render: =>
-        @renderTemplate()
+        $(@el).append @headerTemplate @model.toJSON()
+        $(@el).append @trialsTemplate {trials: window.MyTrials.toJSON()}
+        @
 
 class AdminApp extends Backbone.View
   @implements TemplateView, SwitchPane
@@ -318,7 +426,7 @@ class AdminApp extends Backbone.View
         @renderTemplate()
 
 # ++++++++++++++++++++++++++++++
-# Discover App
+# Search App
 # ++++++++++++++++++++++++++++++
 
 # -----------------------------
@@ -326,55 +434,86 @@ class AdminApp extends Backbone.View
 # -----------------------------
 
 # The BB Model for the current filter state
-class DiscoverFilterModel extends Backbone.Model
-  initialize: ->
-        @phrases = []
+class SearchFilterModel extends Backbone.Model
 
-  addPhrase: (text) =>
-        @phrases.push text
-
-  removePhrase: (text) =>
-        @phrases = _.difference @phrases, [ text ]
 
 # Configuration for the autocomplete
-preFill = [ { value: "show experiments" } ]
-discoverSuggestDefaults =
-  startText: 'What are you searching for?'
-  preFill: preFill
-  keyDelay: 200
-  resultsHighlight: false
-  neverSubmit: true
-  retrieveLimit: 20
-  selectedValuesProp: 'value'
-  selectedItemProp: 'value'
-  searchObjProps: 'name,variable'
+searchSuggestDefaults =
+   startText: 'What are you looking for?'
+   keyDelay: 200
+   resultsHighlight: false
+   neverSubmit: true
+   retrieveLimit: 20
+   selectedValuesProp: 'value'
+   selectedItemProp: 'title'
+   searchObjProps: 'trigger,title,search'
+   resultsHighlight: false
 
 # The UI View for the filter state, handles autocomplete for phrases
-class DiscoverFilterView extends Backbone.View
+class SearchFilterView extends Backbone.View
   @implements TemplateView
   initialize: ->
-        @model = window.discoverFilter or= new DiscoverFilterModel
-        @initTemplate '#discover-filter'
+        @model = window.searchFilter or= new SearchFilterModel
+        @initTemplate '#search-filter'
+        @dialog = @getTemplate '#basic-dialog'
 
-  addFilterTag: (tag) =>
-        @model.addPhrase $(tag).find ':last-child'
-        tag
+  update: (elt) =>
+        results = $('input.as-values').attr('value').split(',').filter( (x) ->
+                x.length > 1 )
+        @model.set filters: results
 
-  removeFilterTag: (tag) =>
-        @model.removePhrase $(tag).find ':last-child'
-        tag
+  removeUpdate: (elt) =>
+        elt.remove()
+        @update()
 
   allObjects: ->
-        window.Treatments.toJSON().concat window.Instruments.toJSON()
+        window.Suggestions.toJSON()
 
   render: =>
-        @renderTemplate()
+        $(@el).empty()
+        @inlineTemplate()
+        message =
+                title: "Search Help"
+                body: "Type 'show X' to filter by experiment"
+        $(@el).append @dialog message
         @
 
   finalize: =>
-        $(@el).find('#discover-filter-input').autoSuggest @allObjects(), $(discoverSuggestDefaults).extend
-                selectionAdded: @addFilterTag
-                selectionRemoved: @removeFilterTag
+        defaults = searchSuggestDefaults
+        defaults.selectionAdded = @update
+        defaults.selectionRemoved = @removeUpdate
+        $(@el).find('#search-filter-input').autoSuggest @allObjects(), defaults
+        $('input.as-values').attr('value', ',')
+
+  # Help Dialog
+  events:
+        'click a.help-link': 'showHelpDialog'
+
+  openDialog: (d) =>
+        @container = d.container[0]
+        d.overlay.show()
+        d.container.show()
+        $('#osx-modal-content', @container).show()
+        title = $('#osx-modal-title', @container)
+        title.show()
+        h = $('#osx-modal-data', @container).height() + title.height() + 30
+        $('#osx-container').height(h)
+        $('div.close', @container).show()
+        $('#osx-modal-data', @container).show()
+
+
+  showHelpDialog: (e) ->
+        e.preventDefault()
+        $('#osx-modal-content').modal
+                overlayId: 'osx-overlay'
+                containerId: 'osx-container'
+                position: [100]
+                closeHTML: null
+                minHeight: 80
+                opacity: 40
+                overlayClose: true
+                onOpen: @openDialog
+
 
 # -----------------------------
 #   NLP filter list according to selected tags
@@ -382,10 +521,10 @@ class DiscoverFilterView extends Backbone.View
 
 # Views for individual models
 # - requires @model and @parent to be valid
-class DiscoverItemView extends Backbone.View
-  className: 'discover-list-item'
+class SearchItemView extends Backbone.View
+  className: 'search-list-item'
   initTemplate: ->
-        @template = @parent.getTemplate @model
+        @template = @parent.lookupTemplate @model
 
   initialize: ->
         @parent = @options.parent
@@ -394,7 +533,7 @@ class DiscoverItemView extends Backbone.View
 
   events:
         'mouseover': 'inspect'
-        'click': 'zoom'
+        'click': 'viewModel'
 
   render: =>
         $(@el).html @template @model.toJSON()
@@ -403,83 +542,196 @@ class DiscoverItemView extends Backbone.View
   inspect: ->
         window.socialView.setContext @model
 
-  zoom: ->
+  viewModel: =>
+        window.socialView.setContext @model
+        type = @model.get 'type'
+        id = @model.get 'id'
+        window.appRouter.navigate "/app/search/#{ type }/#{ id }", true
 
-
-
+#
 # The UI View for the filtered object set
-class DiscoverListView extends Backbone.View
-  # SETUP
-  className: 'discover-list'
+#
+class SearchListView extends Backbone.View
+  # State
+  limit: 20
+
+  # View configuration and setup
+  className: 'search-list'
+
   subviews:
         experiment: '#experiment-list-view'
         treatment: '#treatment-list-view'
         instrument: '#instrument-list-view'
 
-  compileSubviews: ->
+  buildTemplates: ->
         results = {}
         _.map @subviews, (id, type) ->
                 results[type] = Handlebars.compile $(id).html()
         results
 
-  getTemplate: (model) ->
+  lookupTemplate: (model) ->
         type = model.get 'type'
         @templates[type]
 
   initialize: ->
-        window.listView = @ #debug
-        @model.bind('change', @updateView)
-        @templates = @compileSubviews()
-        @items = []
-        @updateView()
+        window.listView = @ # NOTE: debug
+        @views = []
+        @templates = @buildTemplates()
+        # Handle search bar changes
+        @model.bind('change', @updateModels)
+        # Handle new models
+        @models = new Backbone.Collection
+        @models.bind('reset', @updateView)
+        @updateModels() # called when new filters added
         @
 
   # Handling changes
-  getResults: (limit) ->
-        filter = @model.get 'query'
-#        alert 'filter using: ' + filter
-        window.Treatments.models
+  allModels: ->
+         window.Experiments.models.concat window.Treatments.models.concat window.Instruments.models
 
+  selectModels: (selects) ->
+        selects or= []
+        if selects.length == 0
+                models = @allModels()
+                @models.reset models
+        else
+                $.get "/api/fsearch?query=#{ selects }&limit=#{ @limit }",
+                      {},
+                      ( refs, status, jqxhr ) =>
+                          @models.reset window.lookupModels refs
+
+  updateModels: =>
+        filters = @model.get 'filters'
+        @selectModels filters
+
+
+
+  # Rendering current result list
   asItemView: (model) =>
-        new DiscoverItemView
+        new SearchItemView
                 model: model
                 parent: this
 
   updateView: =>
-        @items = _.map(@getResults(8), @asItemView)
+        @views = _.map(@models.models, @asItemView)
         @render()
 
   render: =>
         $(@el).empty()
-        $(@el).append view.render().el for view in @items
+        $(@el).append view.render().el for view in @views
         @
 
   finalize: ->
-        view.delegateEvents() for view in @items
+        view.delegateEvents() for view in @views
+
+class SearchView extends Backbone.View
+  @implements TemplateView
+  className: "search-view"
+  initialize: ->
+        @filterView = new SearchFilterView
+        @filterView.render()
+        @listView = new SearchListView
+                model: @filterView.model
+        @listView.render()
+
+  show: ->
+        $(@el).show()
+  hide: ->
+        $(@el).hide()
+
+  render: =>
+        $(@el).append @filterView.el
+        $(@el).append @listView.el
+        @
+
+  finalize: =>
+        @filterView.finalize()
+        @listView.finalize()
+
+#
+# SINGLE OBJECT VIEW
+#
+class ObjectView extends Backbone.View
+  @implements TemplateView
+  className: "object-view"
+  viewMap:
+        experiment: '#experiment-view'
+        treatment: '#treatment-view'
+        instrument: '#instrument-view'
+  templateMap: {}
+  initialize: ->
+        try
+                _.map @viewMap, (id, type) =>
+                        @templateMap[type] = Handlebars.compile $(id).html()
+        catch error
+                alert 'Failed to load object view templates'
+
+  # Actions
+  show: ->
+        $(@el).show()
+  hide: ->
+        $(@el).hide()
+
+  setModel: (model) =>
+        @model = model
+        @render()
+
+  # Rendering
+  render: =>
+        $(@el).empty()
+        $(@el).append "<span class='breadcrumb'><a href='/app/search'>Search</a> -> #{ @model.attributes.type } -> <a href='/app/search/#{ @model.attributes.type }/#{ @model.attributes.id }'>#{ @model.attributes.name }</a></span>" if @model
+        $(@el).append "<span class='breadcrumb'><a  href='/app/search'>Search</a></span>" unless @model
+        $(@el).append @templateMap[@model.get 'type'] @model.toJSON() if @model
+        @
+
+  finalize: =>
 
 
 # ----------------------------------------
-#   Main browser window (rarely refreshed)
+#   Main browser window - rarely refreshed
 # ----------------------------------------
-class DiscoverApp extends Backbone.View
+class SearchApp extends Backbone.View
   @implements TemplateView, SwitchPane
   initialize: ->
-        @filterView = new DiscoverFilterView
-        @listView = new DiscoverListView
-                model: @filterView.model
+        @search = new SearchView
+        @search.render()
+        @view = new ObjectView
+        @
+
+  # Dispatch object
+  dispatchObject: (ref) =>
+           models = lookupModels [ ref ]
+           if models.length > 0
+                @view.setModel models[0]
+                document.title = models[0].get 'title'
+                return true
+           else
+                alert "no model found for #{ ref }" unless models
+                window.appRouter.navigate "/app/search", true
+                return false
+
+  # Dispatch view type
+  dispatch: (path) =>
+        if $(@el).children().size() == 0
+           @render()
+
+        ref = path.split("/") if path
+        if ref and ref.length = 2
+           if @dispatchObject(ref)
+              @search.hide()
+              @view.show()
+        else
+           @search.show()
+           @view.hide()
         @
 
   render: =>
         $(@el).empty()
-        $(@el).append '<h1>Discover</h1>'
-        $(@el).append @filterView.render().el
-        $(@el).append @listView.render().el
-        @filterView.finalize()
-        @listView.finalize()
+        $(@el).append @search.render().el
+        $(@el).append @view.render().el
+        @search.finalize()
+        @view.finalize()
         @
-
-#        $(@el).append @discoverList.render().el
-#"/api/suggest/discover/", discoverSuggestDefaults
 
 # ---------------------------------
 #   Trial Viewer
@@ -519,7 +771,7 @@ class TrialApp extends Backbone.View
   dispatch: (path) ->
         if path
            model = findModel window.MyTrials, path
-           alert 'no model found for #{ path }' unless model
+           alert "no model found for #{ path }" unless model
            @model = model
         else
            @model = null
@@ -540,7 +792,17 @@ class TrialApp extends Backbone.View
         @
 
   renderOutcome: ->
-        @inlineTemplate @, @chartTemplate
+        # TODO
+        # Get instrument reference from trial
+        # Make sure template renders correctly
+        # Ensure that javascript renders in place
+        @model.get 'instrument'
+        @inlineTemplate
+                cssid: 'chart1'
+                height: '150px'
+                width: '500px',
+                @chartTemplate
+        renderTrackerChart 'chart1',
 
   renderJournal: ->
         @inlineTemplate entry, @journalTemplate for entry in @model.get 'journal'
@@ -550,6 +812,7 @@ class TrialApp extends Backbone.View
         @inlineTemplate()
         @renderOutcome()
         @renderJournal()
+        initCalendars()
         @
 
 # +++++++++++++++++++++
@@ -578,7 +841,7 @@ class SocialView extends Backbone.View
         $(@el).append '<h1>Discussion</h1>'
         if @model
                 comments = @model.get('comments')
-                @renderComment c for c in comments when comments
+                @renderComment c for c in comments if comments
         @
 
 #                string = '<h2>'.concat(@model.get('type'), '</h2>')
@@ -599,8 +862,8 @@ class AppRouter extends Backbone.Router
                         el: $('#dashboardApp').first()
                 'trials': new TrialApp
                         el: $('#trialApp').first()
-                'discover': new DiscoverApp
-                        el: $('#discoverApp').first()
+                'search': new SearchApp
+                        el: $('#searchApp').first()
                 'admin': new AdminApp
                         el: $('#adminApp').first()
 
@@ -660,7 +923,6 @@ class MainMenu extends Backbone.View
         window.appRouter.navigate target, true
         @
 
-
 # After the page is loaded, we have the skeleton in place
 # and just need to dispatch to the app we need based on the
 # rest of the URL.  Any other top-level initialization can be
@@ -677,11 +939,14 @@ $(document).ready ->
    window.Experiments.resolveReferences()
    window.MyTrials.resolveReferences()
    window.Treatments.resolveReferences()
+   makeModelMap()
+
    # Setup top level views
    window.socialView = new SocialView '#social'
    window.appRouter = new AppRouter
    window.mainMenu = new MainMenu {elid: '#main-menu'}
    window.mainMenu.delegateEvents()
+
    # Initialize navigation, resolve URL
    match = Backbone.history.start
         pushState: true

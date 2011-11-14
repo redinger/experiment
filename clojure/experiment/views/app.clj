@@ -5,11 +5,13 @@
    [experiment.infra.models :as models]
    [experiment.infra.session :as session]
    [experiment.models.user :as user]
+   [experiment.models.events :as events]
    [experiment.views.common :as common])
   (:use noir.core
         hiccup.core
         hiccup.page-helpers
 	hiccup.form-helpers
+	experiment.models.suggestions
 	handlebars.templates))
 
 ;; This file packages and renders most resources relevant to the
@@ -44,9 +46,10 @@
 (defpartial app-skeleton []
   [:div#dashboardApp]
   [:div#trialApp]
-  [:div#discoverApp]
+  [:div#searchApp]
   [:div#adminApp]
-  (render-all-templates))
+  [:div#viewTemplates
+   (render-all-templates)])
 
 (defpartial share-skeleton []
   [:div#social])
@@ -59,13 +62,16 @@
 	  [["window.Instruments" (models/fetch-models :instrument)]
 	   ["window.Experiments" (models/fetch-models :experiment)]
 	   ["window.MyTrials" (models/fetch-models :trial :where {:user username})]
-	   ["window.Treatments" (models/fetch-models :treatment)]])]))
+	   ["window.Treatments" (models/fetch-models :treatment)]])
+     (str "window.Suggestions.reset("
+	  (json/json-str (compute-suggestions))
+	  ");")]))
 
 (defpage "/app*" {}
   (common/app-layout
    [["dashboard" "Dashboard"]
     ["trials" "Trials"]
-    ["discover" "Search"]
+    ["search" "Search"]
     (when (user/admin?)
       ["admin" "Admin"])]
    (app-skeleton)

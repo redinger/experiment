@@ -22,11 +22,9 @@
 
 (deftemplate dashboard-header
   [:div
-   [:h1 (%strcat (% name) "'s Dashboard")]
-   [:div
-    [:ul
-     [:li (%str "Number of Friends: " (% friends))]
-     [:li (%str "Active Experiments: " (% experiments))]]]])
+   [:ul
+    [:li (%str "Number of Friends: " (% friends))]
+    [:li (%str "Active Experiments: " (% experiments))]]])
 
 
 ;; ===========================
@@ -35,7 +33,7 @@
 ;; Take a trial object and render it's header
 (deftemplate trial-header
   [:div
-   [:h1 (% experiment.name)]])
+   [:h1 (% experiment.title)]])
    
 
 ;; Application renders views of data   
@@ -43,14 +41,29 @@
 ;; ===========================
 ;; Search
 
-(deftemplate discover-filter
-  [:div.discover-filter
+(deftemplate search-filter
+  [:div.search-filter
    [:input {:type "text"
-	    :id "discover-filter-input"
-	    :value (% query)}]])
+	    :id "search-filter-input"
+	    :value (% query)}]
+   [:span {:class "filter-guide"}
+    "<b>show</b> type, <b>with</b> treatment, <b>for</b> symptom/condition, <b>use</b> instrument &nbsp;" [:a {:href "#" :class "help-link"} "[More help...]"]]])
 
 ;; ===========================
 ;; Admin
   
 (deftemplate admin-main
   [:div [:h1 "This is the admin template"]])
+
+
+;; ===========================
+;; Dialogs
+
+(deftemplate basic-dialog
+  [:div {:id "osx-modal-content"}
+   [:div {:id "osx-modal-title"} "Help Dialog"]
+   [:div {:class "close"}
+    [:a {:href "#" :class "simplemodal-close"} "x"]]
+   [:div {:id "osx-modal-data"}
+    [:h2 (% title)]
+    [:p (% body)]]])

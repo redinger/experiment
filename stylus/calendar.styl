@@ -1,0 +1,76 @@
+@import "functions"
+
+.calendar 
+
+  table
+    border-collapse separate
+    border 1px solid #9DABCE
+    border-width 0px 0px 1px 1px
+    margin 10px auto
+    font-size 8px
+
+  td, th
+    width 27px
+    height 27px
+    text-align center
+    vertical-align middle
+    background url(/img/cells.png)
+    color #444
+    position relative
+
+  th
+    height 15px
+    font-weight bold
+    font-size 8px
+
+  td:hover, th:hover
+    background-position 0px -81px 
+    color #222
+
+  td.date_has_event
+    background-position 162px 0px
+
+  td.date_has_event:hover
+    background-position 162px -81px
+
+  td.padding
+    background url(/img/calpad.jpg)
+
+  td.today
+    background-position 81px 0px
+    color white
+
+  td.today:hover
+    background-position 81px -81px
+
+  .events 
+    position relative
+
+    ul 
+      text-align left
+      position absolute
+      display none
+      z-index 1000
+      padding 15px
+      background #E7ECF2 url(/img/popup.png) no-repeat
+      color white
+      border 1px solid white
+      font-size 15px
+      width 200px
+      gen-border-radius(3px)
+      list-style none
+      color #444444
+      gen-box-shadow(0px 8px 8px #333)
+
+    li 
+      padding-bottom 5px
+ 
+      span
+        display block
+        font-size 12px
+        text-align justify
+        color #555
+
+      span.title
+        font-weight bold
+        color #222

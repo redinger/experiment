@@ -1,9 +1,13 @@
 (ns experiment.models.harness
   (:use experiment.infra.models
 	experiment.models.core
-	experiment.models.user)
+	experiment.models.user
+	clj-time.core)
   (:require
-   [somnium.congomongo :as mongo]))
+   [experiment.infra.session :as session]
+   [experiment.infra.auth :as auth]
+   [somnium.congomongo :as mongo]
+   [clj-time.coerce :as coerce]))
 	
 
 (def model-types
@@ -14,17 +18,17 @@
 
 (defn create-user []
   (create-model!
-   {:type :user
-    :username "eslick"
-    :salt "foobar"
-    :password (experiment.infra.auth/encrypt-password "apple" "foobar")
-    :name "Ian Eslick"
-    :bio "Entrepreneur, site developer"
-    :city "San Francisco"
-    :state "California"
-    :country "USA"
-    ;; Tracking info
-    :experiments 1}))
+   (auth/set-user-password
+    {:type :user
+     :username "eslick"
+     :salt "foobar"
+     :name "Ian Eslick"
+     :bio "Entrepreneur, site developer"
+     :city "San Francisco"
+     :state "California"
+     :country "USA"
+     ;; Tracking info
+     :experiments 1} "apple")))
 
 (defn clear-models []
   (map mongo/drop-coll! model-types))
@@ -104,10 +108,10 @@
 	[{:type :experiment
 	  :editors ["eslick"]
 	  :title "Does diet rapidly improve fatigue if I control for sleep?"
-	  :instruments [(mongo/db-ref :instrument (:_id (fetch-model :instrument :where {:variable "Fatigue" :src :manual})))
-			(mongo/db-ref :instrument (:_id (fetch-model :instrument :where {:variable "Sleep quality" :src :zeo})))
-			(mongo/db-ref :instrument (:_id (fetch-model :instrument :where {:variable "Adherence" :src :manual})))
-			(mongo/db-ref :instrument (:_id (fetch-model :instrument :where {:variable "Psoriasis activity" :src :manual})))]
+	  :outcome [(as-dbref (fetch-model :instrument :where {:variable "Fatigue" :src :manual}))]
+	  :instruments [(as-dbref (fetch-model :instrument :where {:variable "Sleep quality" :src :zeo}))
+			(as-dbref (fetch-model :instrument :where {:variable "Adherence" :src :manual}))
+			(as-dbref (fetch-model :instrument :where {:variable "Psoriasis activity" :src :manual}))]
 	  :measurements [{:type :schedule
 			  :interval-unit "day"
 			  :interval 1}]
@@ -119,15 +123,35 @@
     (map create-model!
 	 [{:type :trial
 	   :user "eslick"
-	   :experiment (mongo/db-ref :experiment (:_id (fetch-model :instrument :where {:title "Does diet rapidly improve fatigue if I control for sleep?"})))
+	   :experiment (mongo/db-ref :experiment (:_id (fetch-model :experiment :where {:title "Does diet rapidly improve fatigue if I control for sleep?"})))
 	   :sms? true
 	   :active? true
 	   :start "date"
 	   :end "date"}]))
+	   
    )
 ;;   (let [user (fetch-model :user :where {:username "eslick"})]
 ;;     ))
 ;;    (create-model! (assoc user  
+
+(defn create-dataset []
+  (let [user (as-dbref (fetch-model :user :where {:username "eslick"}))
+	instrument (as-dbref (fetch-model :instrument :where {:variable "Fatigue" :src :manual}))
+	now (now)
+	data (reverse
+	      (map (fn [offset value]
+		     [(coerce/to-long (minus now (days offset))) value])
+		   (range 0 10) (repeatedly (partial rand-int 7))))
+	start (first (first data))
+	end (first (last data))]
+    (map create-model!
+	 [{:type "event"
+	   :user user
+	   :instrument instrument
+	   :start start
+	   :end end
+	   :data data}])))
+	 
 
 (defn create-articles []
   (map #(create-model! :article (assoc %1 :type :article))

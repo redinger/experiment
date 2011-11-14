@@ -7,25 +7,11 @@
 ;; Authentication
 ;;
 
-(defn encrypt-password
-  [salt plaintext]
-  (crypt/encrypt plaintext))
-
-(defn compare-passwords
-  [encrypted salt plaintext]
-  (crypt/compare plaintext encrypted))
-
-(defn generate-salt []
-  (.substring (.toString (java.util.UUID/randomUUID)) 0 8))
-
-
 (defn set-user-password
   "Set the salt and encrypt the user's plaintext password"
   [user plaintext]
-  (let [salt (generate-salt)]
-    (assoc user
-      :salt salt
-      :password (encrypt-password plaintext salt))))
+  (assoc user
+    :password (crypt/encrypt plaintext)))
 
 ;;
 ;; Session Authentication and Common State
@@ -40,7 +26,7 @@
   (let [user (or (fetch-one :users :where {:username (:username auth)})
 		 (fetch-one :users :where {:email (:username auth)}))
 	encrypted (and user (:password user))]
-    (if (and encrypted (crypt/compare encrypted (:password auth)))
+    (if (and encrypted (crypt/compare (:password auth) (:password user)))
       (do (session/clear!)
 	  (session/put! :logged-in? true)
 	  (session/put! :userid (:_id user))

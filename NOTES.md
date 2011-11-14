@@ -25,15 +25,16 @@ A client app consists of:
 ## Major TODOs for initial release
 
    x Bootstrapping data into views
-   - Nested object REST API support for Backbone
+   x Nested object REST API support for Backbone
    - Support proper logging through server and client side
-   - Auto-complete for tags, model names, etc.
+   ~ Auto-complete for tags, model names, etc.
    - Structured treatment descriptions using auto-complete
-   - Fix Dynamic menu link generation, dispatch in View handler
+   x Fix Dynamic menu link generation, dispatch in View handler
    - Pallet distribution model
        - DONE: pallet, git, keys
        - PARTIAL: Mongo installation, nginx as proxy and static files
        - TODO: Leinengin
+       - TODO: Site upgrade scripts
 
 ## Open Architectural Issues
 
@@ -43,8 +44,8 @@ A client app consists of:
      x Handle references
      - Handle synchronization conflicts for models
      - Define important properties like type checks, etc
-   - Backbone-based abstraction layer (base classes, protocols) for the 'model model'
-   - How to identify bootstrapped data to send for sub-URLs
+   x Backbone-based abstraction layer (base classes, protocols) for the 'model model'
+   x How to identify bootstrapped data to send for sub-URLs
    - Proper support for dev/prod mode and versioning
 
 ## Longer term architectural issues
@@ -61,3 +62,6 @@ A client app consists of:
      sends mobile client-app, search engine gets simple HTML view, web clients
      get web app and older browsers get 'install new browser' page.
      
+## Feature Wishlist
+
+   - Site introduction similar to Coda's: http://www.panic.com/coda/

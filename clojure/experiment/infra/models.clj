@@ -139,6 +139,10 @@
     (if keys (select-keys cmodel keys)
 	cmodel)))
 	
+(defn as-dbref [model]
+  (let [{:keys [type _id]} model]
+    (assert (and type _id))
+    (mongo/db-ref type _id)))
 
 ;; =================================
 ;; Model CRUD API
@@ -206,7 +210,6 @@
 
 (defmethod export-hook :default
   [model]
-  (println model)
   model)
 
 (defmethod import-hook :default

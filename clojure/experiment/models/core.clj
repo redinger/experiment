@@ -38,6 +38,10 @@
    [:h3 (% name)]
    [:p (% description)]])
 
+(deftemplate treatment-view
+  [:div {:class "treatment-view"}
+   [:h1 (% name)]])
+
 ;; ===========================================================
 ;; INSTRUMENT [type ref]
 ;;  has name
@@ -50,6 +54,11 @@
   [:div {:class "result, instrument-list-view"}
    [:h3 (% name)]
    [:p (% description)]])
+
+(deftemplate instrument-view
+  [:div {:class "instrument-view"}
+   [:h1 (% variable)]
+   [:p (% src)]])
 
 ;; ===========================================================
 ;; EXPERIMENT
@@ -71,8 +80,19 @@
 
 (deftemplate experiment-list-view
   [:div {:class "result, experiment-list-view"}
-   [:h3 (% name)]
-   [:p (% description)]])
+   [:h3 (% title)]])
+
+(deftemplate experiment-view
+  [:div {:class "experiment-view"}
+   [:h1 {:class "exp-title"}
+    (% title)]
+   [:span (%str (% trials) " trials")]
+   [:ul {:class "exp-instruments"}
+    (%each instruments
+     [:li {:class "exp-instrument"}
+      [:div {:class "inst-name"} (% variable)]
+      [:div {:class "inst-description"} (% description)]
+      [:div {:class "inst-src"} (% src)]])]])
 
 ;; ===========================================================
 ;; TRIAL
@@ -96,12 +116,25 @@
   [:div {:class "result, trial-list-view"}
    [:h3 (%with experiment (% title))]
    [:p (%with stats
-	      (%str "Run for " (% elapsed) " days with " (% remaining) " remaining"))]])
+	 (%str "Run for " (% elapsed) " days with " (% remaining) " remaining"))]])
 
-(deftemplate trial-header
+(deftemplate trial-table
+  [:div {:class "trial-table"}
+   [:h2 {:class "trial-table-header"}]
+   [:ul {:class "trial-table-list"}
+    (%each trials
+	   [:li {:class "trial-table-list-entry"}
+	    [:span {:class "trial-title"} (% experiment.title)]
+	    [:p (%with stats
+		       (%str "Run for " (% elapsed) " days with " (% remaining) " remaining"))]])]])
+
+
+(deftemplate trial-view-header
   [:div {:class "trial-header"}
    [:h1 (%strcat "Trial of '" (% experiment.title) "'")]])
-   
+
+	    
+	    
 
 ;; ===========================================================
 ;; JOURNAL (embedded)

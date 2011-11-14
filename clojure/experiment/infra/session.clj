@@ -62,11 +62,10 @@
 
 (defn current-user []
   (try 
-    (or (and
-	 noir.request/*request* ;; active request
-	 (get :logged-in?)
-	 mid/*current-user*)
-	(fetch-one :user :where {:username "eslick"})) ;; debug
+    (and
+     noir.request/*request* ;; active request
+     (get :logged-in?)
+     mid/*current-user*)
     (catch java.lang.Throwable e
       (println "Get User from Session Error: " e)
       nil)))

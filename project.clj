@@ -6,14 +6,13 @@
 			   [org.clojure/data.json "0.1.1"]
 			   [org.clojure/tools.logging "0.2.3"]
 			   [log4j/log4j "1.2.16"]
-                           [noir "1.1.1-SNAPSHOT"]
+                           [noir "1.2.1"]
 			   ;; Backend
 			   [congomongo "0.1.7-SNAPSHOT"]
 			   ;; Utilities for libs
 			   [clj-http "0.2.1"]
 			   [org.clojars.kovasb/clj-json "0.3.2-SNAPSHOT"]
-			   [clj-time "0.2.0-SNAPSHOT"]
-			   [clj-glob "1.0.0"]]
+			   [clj-time "0.3.2"]]
 	    :dev-dependencies [[swank-clojure "1.3.0-SNAPSHOT"]
 			       [lein-daemon "0.4.0"]
 			       [lein-run "1.0.0-SNAPSHOT"]]
