@@ -1,6 +1,5 @@
 (ns experiment.views.common
   (:use noir.core
-        noir.content.css
         hiccup.core
         hiccup.form-helpers
         hiccup.page-helpers)
