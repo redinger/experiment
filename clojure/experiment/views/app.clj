@@ -70,7 +70,11 @@
 (defpage "/app*" {}
   (common/app-layout
    [["dashboard" "Dashboard"]
-    ["trials" "Trials"]
+    (concat ["trials" "Trials"]
+	    (map (fn [model num]
+		   [(:_id model) (str "Trial " num)])
+		 (models/fetch-models :trial :where {:user (:username (session/current-user))})
+		 (range 1 10)))
     ["search" "Search"]
     (when (user/admin?)
       ["admin" "Admin"])]

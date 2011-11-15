@@ -4,12 +4,9 @@
 	handlebars.templates)
   (:require [clojure.data.json :as json]))
 
-(deftemplate highchart-div
-  [:div {:class "highchart"}
-   [:div {:id (% cssid) :style (%strcat "height: " (% height) "px; width: " (% width) "px;")}]])
-    
-(defn default-config [title type series]
-  {:chart {:type type}
+(defn default-config [id title type series]
+  {:chart {:type type
+	   :renderTo id}
    :plotOptions {:series {:animation false
 			  :marker {:enabled false}}}
    :title {:text title}

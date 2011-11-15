@@ -12,11 +12,6 @@
 	hiccup.form-helpers
 	handlebars.templates))
 
-
-;; 2) Time series
-;; 3) Reminders
-;; 4) Calendar
-
 ;; ==================================
 ;; Events
 ;; ==================================
@@ -54,14 +49,6 @@
    }
   )
 
-
-
-;; A study schedule
-;; Generates reminders 
-;; User actions generate events
-;; Background API dumps generate events
-;; Events -> reports (for a time range)
-;; Events -> Calendar
 
 (defn user-events []
   (let [user (session/current-user)]

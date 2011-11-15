@@ -65,3 +65,11 @@
     margin: 30px 10px 20px 50px;
 }
 
+#dialog-container .buttons {
+    margin: 0px 10px 0px 50px;
+}
+
+#dialog-container .buttons input {
+    margin-right: 20px;
+}
+

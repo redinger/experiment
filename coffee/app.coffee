@@ -211,6 +211,8 @@ class BrowserModel extends Backbone.Model
 # Utility Views
 ####################################################
 
+## Events and Calendar
+
 calendarBehavior = () ->
   distance = 10
   time = 250
@@ -245,22 +247,23 @@ initCalendars = () ->
         $('.date_has_event').each calendarBehavior
         $('.date_has_event').each ->
 
+## ------------------------
+## Charts
+## ------------------------
+
 renderTrackerChart = (id, instrument, start, extra, options) ->
         options = $(options).extend
                 chart:
                         type: 'spline'
                         renderTo: id
-                tooltip:
-                        formatter: ->
-                                datestr = Highcharts.dateFormat('%e. %b', this.x) +': '+ this.y +' m'
-                                "<b>#{ this.series.name }</b><br/>"
 
-                $.ajax "/api/charts/tracker",
-                data: $(extra).extend
-                        inst: instrument.get 'id'
-                        start: start
-                success: (config) ->
-                        new Highcharts.Chart $(config).extend options or {}
+        $.getJSON "/api/charts/tracker",
+                inst: instrument.get 'id'
+                start: start,
+                (config) ->
+                        config = $.extend config, options
+                        window.chart_config = config
+                        new Highcharts.Chart config
 
 
 
@@ -751,7 +754,8 @@ class TrialView extends Backbone.View
         @delegateEvents()
 
   viewModel: () =>
-        window.socialView.setContext @model.get 'experiments'
+        window.socialView.setContext @model.get 'experiment'
+        window.socialView.enableEdit true
         id = @model.get('id')
         window.appRouter.navigate "/app/trials/#{ id }", true
 
@@ -784,36 +788,38 @@ class TrialApp extends Backbone.View
            @renderList()
         @
 
-  renderList: ->
-        $(@el).empty()
-        $(@el).append '<h1>My Trials</h1>'
-        $(@el).append view.render().el for view in @views
-        view.finalize() for view in @views
-        @
-
-  renderOutcome: ->
-        # TODO
-        # Get instrument reference from trial
-        # Make sure template renders correctly
-        # Ensure that javascript renders in place
-        @model.get 'instrument'
-        @inlineTemplate
-                cssid: 'chart1'
-                height: '150px'
-                width: '500px',
-                @chartTemplate
-        renderTrackerChart 'chart1',
-
-  renderJournal: ->
-        @inlineTemplate entry, @journalTemplate for entry in @model.get 'journal'
-
-  renderModel: ->
+  renderModel: =>
         $(@el).empty()
         @inlineTemplate()
         @renderOutcome()
         @renderJournal()
         initCalendars()
         @
+
+  renderOutcome: =>
+        # TODO
+        # Get instrument reference from trial
+        # Make sure template renders correctly
+        # Ensure that javascript renders in place
+        experiment = @model.get 'experiment'
+        outcome = experiment.get('instruments')[0]
+        @inlineTemplate
+                cssid: 'chart1'
+                height: '150px'
+                width: '500px',
+                @chartTemplate
+        renderTrackerChart 'chart1', outcome, 0
+
+  renderJournal: =>
+        @inlineTemplate entry, @journalTemplate for entry in @model.get 'journal'
+
+  renderList: =>
+        $(@el).empty()
+        $(@el).append '<h1>My Trials</h1>'
+        $(@el).append view.render().el for view in @views
+        view.finalize() for view in @views
+        @
+
 
 # +++++++++++++++++++++
 # Social Viewer
@@ -824,24 +830,29 @@ class TrialApp extends Backbone.View
 # to point at the current 'sociable' model
 
 class SocialView extends Backbone.View
+  @implements TemplateView
   initialize: (id) ->
         @el = $('#social' ? id)[0]
-        @template = Handlebars.compile $('#comment-short-view').html()
+        @initTemplate '#comment-short-view'
+        @edit = false
         @render()
 
   setContext: (model) ->
         @model = model
         @render()
 
-  renderComment: (comment) ->
-        $(@el).append @template comment
+  enableEdit: (flag) ->
+        @edit = flag
+        @render()
 
   render: =>
         $(@el).empty()
         $(@el).append '<h1>Discussion</h1>'
+        if @edit
+                $(@el).append "<a class='sview-add-link' href='#'>Add Comment</a><br/>"
         if @model
-                comments = @model.get('comments')
-                @renderComment c for c in comments if comments
+                comments = @model.get 'comments'
+                @inlineTemplate c for c in comments if comments
         @
 
 #                string = '<h2>'.concat(@model.get('type'), '</h2>')
@@ -877,9 +888,9 @@ class AppRouter extends Backbone.Router
   activate: (pname, path) =>
         console.log 'Activating ' + pname + ' with ' + path
         if typeof path == 'undefined'
-            window.mainMenu.setMenu "app/" + pname
+            window.mainMenu.setMenu pname
         else
-            window.mainMenu.setMenu "app/" + pname + "/" + path
+            window.mainMenu.setMenu pname + "/" + path
         pane = @switcher.get(pname)
         if pane
            @switcher.hideOtherPanes()
@@ -899,25 +910,41 @@ class MainMenu extends Backbone.View
    initialize: ->
         @root = @options.root ? @root
         @el = $(@options.elid).first()
+        @delegateEvents()
         @
 
-   events:
-        'click a': 'activate'
-
    setCurrent: (link) ->
-        @$('li.current').removeClass('current')
-        $(link).parent().addClass 'current'
+        window.testlink2 = window.testlink
+        window.testlink = link
+        if link
+                @$('a.current').removeClass('current')
+                $(link).addClass 'current'
 
-   setMenu: (base, path) =>
+   setMenu: (base, path) ->
+        window.testlast = 'setmenu'
         if path
-           link = $("a[href='#{@root}/#{base}/#{path}']")
+           link = $("a[href='/#{@root}/#{base}/#{path}']").first()
+           link.parents('ul.submenu').show()
+           console.log(link)
         else
-           link = $("a[href='#{@root}/#{base}']")
-        @setCurrent link
+           link = $("a[href='/#{@root}/#{base}']").first()
+           console.log(link)
+        if link
+           @setCurrent link
+
+   events:
+        'click a.expand': 'expand'
+        'click a.action': 'activate'
+
+   expand: (event) =>
+        event.preventDefault()
+        sublist = $(event.target).next()
+        sublist.slideToggle 'fast'
 
    activate: (event) =>
         event.preventDefault()
-        newLink = $(event.target)
+        newLink = event.target
+        window.testlast = 'activate'
         @setCurrent newLink
         target = $(newLink).attr 'href'
         window.appRouter.navigate target, true
@@ -945,7 +972,6 @@ $(document).ready ->
    window.socialView = new SocialView '#social'
    window.appRouter = new AppRouter
    window.mainMenu = new MainMenu {elid: '#main-menu'}
-   window.mainMenu.delegateEvents()
 
    # Initialize navigation, resolve URL
    match = Backbone.history.start

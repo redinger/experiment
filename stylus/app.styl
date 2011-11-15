@@ -70,7 +70,8 @@ li
 .main-menu
   height auto !important
   padding 0px
-  width 150px
+  width 170px
+  margin-left 5px
 
   ul
     list-style-type none
@@ -97,6 +98,19 @@ li
       color #FFF
       gradient(top, #666, 0%, #222, 100%)
       gen-box-shadow(0, 1px, 1px, rgba(0,0,0,0.2))
+
+    a.current
+      background-color #707070
+
+  a:hover.current
+    gradient(top, #888, 0%, #444, 100%)
+
+  li.subitem
+    a
+      height 20px
+      padding 5px 0px 3px 30px
+      font normal 12pt sans-serif
+
 
 .app-pane-wrap
   float left

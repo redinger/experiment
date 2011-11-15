@@ -62,10 +62,10 @@
 
 (defn current-user []
   (try 
-    (and
-     noir.request/*request* ;; active request
-     (get :logged-in?)
-     mid/*current-user*)
+    (if (not (= (type (noir.request/ring-request)) clojure.lang.Var$Unbound)) ;; active request?
+      (and (get :logged-in?)
+	   mid/*current-user*)
+      (fetch-one :user :where {:username "eslick"}))
     (catch java.lang.Throwable e
       (println "Get User from Session Error: " e)
       nil)))

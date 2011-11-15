@@ -94,7 +94,9 @@
 		(label "username" "Username") (text-field "username")]
 	       [:div {:class "form-pair password-field"}
 		(label "password" "Password") (password-field "password")]
-	       [:input {:type "submit" :style "visibility:hidden"}])))))
+	       [:div {:class "buttons"}
+		[:input {:type "submit" :name "submit" :value "Login"}]
+		[:input {:type "submit" :name "cancel" :value "Cancel"}]])))))
 
 (defpartial render-footer []
   [:div.clear]
@@ -155,10 +157,11 @@
 	      "Login"]]))))
 
 (defpartial render-submenu [parent menu]
-  [:ul {:class "sublist"}
+  [:ul {:class "submenu" :style "display: none;"}
    (map (fn [[name content]]
 	  [:li {:class "subitem"}
-	   [:a {:href (str parent "/" name)} content]])
+	   [:a {:href (str parent "/" name) :class "action"}
+	    content]])
 	menu)])
 
 (defpartial render-menu [menu]
@@ -167,7 +170,7 @@
 	  (when name
 	    (let [base (str "/app/" name)]
 	      [:li {:class "menuitem"}
-	       [:a {:href base} 
+	       [:a {:href base :class (if subitems "expand" "action")}
 		content]
 	       (when subitems (render-submenu base subitems))])))
 	menu)])
@@ -177,7 +180,7 @@
    [:div.profile-summary
     (render-profile-summary)]
    [:hr]
-   [:div.main-menu
+   [:div#main-menu.main-menu
     (render-menu menu-content)]
    [:div.nav-footer
     (image "/img/c3ntheme_logo.png" "C3N Logo")
@@ -262,14 +265,18 @@
 	       (submit-button {:class "submit"} "submit")]))))
 
 (defpage do-login [:post "/action/login"] {:as user}
-  (if (auth/login user)
-    (do (println "Successful login by " user)
-	(if-let [targ (:target user)]
-	  (do (println "Redirecting to target: " targ)
-	      (resp/redirect targ))
-	  (resp/redirect "/app/dashboard")))
-    (do (println "Failed login by " user)
-	(resp/redirect "/"))))
+  (println user)
+  (cond (:cancel user)
+	(resp/redirect "/")
+	(auth/login user)
+	(do (println "Successful login by " user)
+	    (if-let [targ (:target user)]
+	      (do (println "Redirecting to target: " targ)
+		  (resp/redirect targ))
+	      (resp/redirect "/app/dashboard")))
+	true
+	(do (println "Failed login by " user)
+	    (resp/redirect "/"))))
 
 (defpage do-logout "/action/logout" {}
   (session/clear!)
