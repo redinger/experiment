@@ -64,6 +64,11 @@ class Model extends Backbone.Model
                     updates[field] = resolveReference(@get(field))
         @set updates
 
+  url: () ->
+        type = @get 'type'
+        id = @get 'id'
+        "/api/bone/#{ type }/#{ id }"
+
   # Recursive toJSON to resolve models
   toJSON: () =>
         attrs = Backbone.Model.prototype.toJSON.call(this)
@@ -76,6 +81,13 @@ class Model extends Backbone.Model
                    attrs[field] = attrs[field].toJSON()
         attrs
 
+  # Modify state
+  comment: (text) =>
+        id = @get 'id'
+        type = @get 'type'
+        $.post "/api/annotate/#{type}/#{id}/comment",
+                text: text
+        @fetch()
 
 class ModelCollection extends Backbone.Collection
   resolveReferences: =>
@@ -129,8 +141,6 @@ class Treatment extends Model
         'tags': []
         'comments': []
 
-  url: "/api/bone/treatment"
-
 class Treatments extends ModelCollection
   model: Treatment
 window.Treatments = new Treatments
@@ -183,6 +193,9 @@ class Comment extends Model
         response = new Comment params.extend 'parent'
         response.save()
         @set 'responses', @get('responses').push response
+
+class Comments extends Backbone.Collection
+
 
 # User Object
 # - Always initialized by the server
@@ -243,9 +256,10 @@ calendarBehavior = () ->
                    shown = false
                    popup.css 'display', 'none'
 
-initCalendars = () ->
-        $('.date_has_event').each calendarBehavior
-        $('.date_has_event').each ->
+initCalendar = (url, id, month) ->
+        $.get(url + id, {month: month}, (cal) =>
+                $(id).html cal
+                $('.date_has_event').each calendarBehavior)
 
 ## ------------------------
 ## Charts
@@ -577,7 +591,6 @@ class SearchListView extends Backbone.View
         @templates[type]
 
   initialize: ->
-        window.listView = @ # NOTE: debug
         @views = []
         @templates = @buildTemplates()
         # Handle search bar changes
@@ -753,11 +766,11 @@ class TrialView extends Backbone.View
   finalize: ->
         @delegateEvents()
 
-  viewModel: () =>
-        window.socialView.setContext @model.get 'experiment'
-        window.socialView.enableEdit true
+  viewModel: =>
+        window.socialView.setContext model.get 'experiment'
+        window.socialView.setEdit true
         id = @model.get('id')
-        window.appRouter.navigate "/app/trials/#{ id }", true
+        window.appRouter.navigate "/app/trials/#{id}", true
 
 class TrialApp extends Backbone.View
   @implements TemplateView, SwitchPane
@@ -765,19 +778,24 @@ class TrialApp extends Backbone.View
         new TrialView
                 model: trial
 
+
   initialize: (exp) ->
         @views = window.MyTrials.map @newTrial
-        @initTemplate '#trial-header'
+        @initTemplate '#trial-view-header'
         @chartTemplate = @getTemplate '#highchart-div'
         @journalTemplate = @getTemplate '#journal-entry'
+        @calendarTemplate = @getTemplate '#small-calendar'
+        @instTableTemplate = @getTemplate '#instrument-short-table'
         @
 
   dispatch: (path) ->
         if path
            model = findModel window.MyTrials, path
            alert "no model found for #{ path }" unless model
+           @viewModel model
            @model = model
         else
+           window.socialView.setEdit false
            @model = null
         @render()
 
@@ -788,21 +806,30 @@ class TrialApp extends Backbone.View
            @renderList()
         @
 
-  renderModel: =>
+  viewModel: (model) =>
+        window.socialView.setContext model.get 'experiment'
+        window.socialView.setEdit true
+
+  renderModel: ->
+        experiment = @model.get 'experiment'
+        treatment = experiment.get 'treatment'
+        outcome = experiment.get 'outcome'
         $(@el).empty()
         @inlineTemplate()
-        @renderOutcome()
+        @renderCalendar(experiment)
+        @renderInstruments(experiment)
+        $(@el).append "<div class='clear'/>"
+        @renderOutcome(experiment) # TODO: outcome)
         @renderJournal()
-        initCalendars()
         @
 
-  renderOutcome: =>
+  renderOutcome: (outcome) ->
         # TODO
         # Get instrument reference from trial
         # Make sure template renders correctly
         # Ensure that javascript renders in place
-        experiment = @model.get 'experiment'
-        outcome = experiment.get('instruments')[0]
+        outcome = outcome.get('instruments')[0]
+        $(@el).append '<h1>Results</h1>'
         @inlineTemplate
                 cssid: 'chart1'
                 height: '150px'
@@ -810,8 +837,29 @@ class TrialApp extends Backbone.View
                 @chartTemplate
         renderTrackerChart 'chart1', outcome, 0
 
-  renderJournal: =>
-        @inlineTemplate entry, @journalTemplate for entry in @model.get 'journal'
+  renderCalendar: (experiment) ->
+        mydiv = $("<div class='trial-calendar-wrap'/>")
+        $(@el).append mydiv
+        mydiv.append '<h2>Schedule</h2>'
+        id = experiment.get 'id'
+        month = "now"
+        mydiv.append @calendarTemplate {id: 'trial-cal'}
+        initCalendar("/api/calendar/experiment/#{ id }", '#trial-cal', month)
+
+  renderInstruments: (experiment) ->
+        mydiv = $("<div class='trial-measures'/>")
+        $(@el).append mydiv
+        mydiv.append '<h2>Tracking</h2>'
+        instruments = experiment.get('instruments')
+        data = {instruments: _.map(instruments, (x) -> x.toJSON())}
+        mydiv.append @instTableTemplate data
+
+  renderJournal: ->
+        mydiv = $("<div class='trial-journal'/>")
+        $(@el).append mydiv
+        mydiv.append '<h2>Latest Trial Journal Entry</h2>'
+        entry = @model.get('journal')[0]
+        mydiv.append @journalTemplate entry
 
   renderList: =>
         $(@el).empty()
@@ -838,10 +886,12 @@ class SocialView extends Backbone.View
         @render()
 
   setContext: (model) ->
-        @model = model
+        @parent = model
+        @parent.bind('change', @render)
+        @edit = false
         @render()
 
-  enableEdit: (flag) ->
+  setEdit: (flag) ->
         @edit = flag
         @render()
 
@@ -849,14 +899,19 @@ class SocialView extends Backbone.View
         $(@el).empty()
         $(@el).append '<h1>Discussion</h1>'
         if @edit
-                $(@el).append "<a class='sview-add-link' href='#'>Add Comment</a><br/>"
-        if @model
-                comments = @model.get 'comments'
-                @inlineTemplate c for c in comments if comments
+                 $(@el).append "<textarea rows='5' cols='20'/><button class='comment' type='button'>Comment</button>"
+        if @parent
+                comments = @parent.get 'comments'
+                @inlineTemplate c for c in _.sortBy(comments, (x) -> x.date).reverse() if comments
+        @delegateEvents()
         @
 
-#                string = '<h2>'.concat(@model.get('type'), '</h2>')
-#                $(@el).append string
+  # Events
+  events:
+        'click button.comment': 'addComment'
+
+  addComment: =>
+        @parent.comment $('#social textarea').val()
 
 ##################################################################
 # APPLICATION
@@ -914,14 +969,12 @@ class MainMenu extends Backbone.View
         @
 
    setCurrent: (link) ->
-        window.testlink2 = window.testlink
         window.testlink = link
         if link
                 @$('a.current').removeClass('current')
                 $(link).addClass 'current'
 
    setMenu: (base, path) ->
-        window.testlast = 'setmenu'
         if path
            link = $("a[href='/#{@root}/#{base}/#{path}']").first()
            link.parents('ul.submenu').show()
@@ -944,7 +997,6 @@ class MainMenu extends Backbone.View
    activate: (event) =>
         event.preventDefault()
         newLink = event.target
-        window.testlast = 'activate'
         @setCurrent newLink
         target = $(newLink).attr 'href'
         window.appRouter.navigate target, true

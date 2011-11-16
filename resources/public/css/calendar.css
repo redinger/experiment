@@ -2,13 +2,15 @@
 @media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/functions\.styl}line{font-family:\000031}}
 
 @media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/calendar\.styl}line{font-family:\000033}}
+.calendar {
+  margin-top: 10px;
+}
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/calendar\.styl}line{font-family:\000035}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/calendar\.styl}line{font-family:\000036}}
 .calendar table {
   border-collapse: separate;
   border: 1px solid #9dabce;
   border-width: 0px 0px 1px 1px;
-  margin: 10px auto;
   font-size: 8px;
 }
 

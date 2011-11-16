@@ -67,6 +67,16 @@
    (export-model
     (delete-model! (import-model json-payload)))))
 
+;; Convenience method for annotating major objects with subobjects
 
+(defpage backbone-api-annotate [:post "/api/annotate/:mtype/:id/:type"]
+  {:keys [mtype id type] :as args}
+  (let [object (resolve-dbref mtype id)]
+    (response/json
+     (when-let [anno (and object (make-annotation (dissoc args :mtype :id)))]
+       (annotate-model! object (model-collection {:type type}) anno)
+       true))))
+			
+			
 
 

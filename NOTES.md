@@ -73,20 +73,24 @@ Architectural design tasks
 
 Feature tasks
    
-   - Tracking charts
-   - Outcome control chart
-   - Trial schedule and view
+   x Journaling and Comment Creation
+   x Tracking charts (basic)
+   - Dashboard
    - Simple object views
    - Run Trial from Experiment view
-   - Journaling and Comment Creation
-   - Profile editing / forms
-     - Pretty forms CSS or JS
    - Object creation screens
+   - Trial schedule and view
+     - Handle schedule and reminders 
+   - Outcome control chart
+   - Tracking View
    - AH: Cover letter
    - AH: Presentation
-   - AH: Screencast
+   - AH: Screencast?
+   - Profile editing / forms
+     - Pretty forms CSS or JS
    - Site auxilary content
    - Styling interior pages
+   - Generate content
 
 
 ### Tasks for v0.2 - Stability Release
@@ -94,6 +98,7 @@ Feature tasks
 Architecture design tasks
 
    - Proper support for dev/prod mode and versioning
+   - Break coffeescript into multiple independent UI modules
    - Support proper logging through server and client side
    - Cache model templates in external files for release
    - Release model for aggregated/versioned javascript files
@@ -104,9 +109,11 @@ Architecture design tasks
       x TODO: Leinengin
       - TODO: Site upgrade scripts
    - Database and server backup
+   - Sensible dump and reload database
 
 Feature tasks
 
+   - Refactor Trial UI into components
    - Full UX and UI review   
 
 ### Tasks for v0.3 - Tuning Release

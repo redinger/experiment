@@ -38,7 +38,7 @@
   "Maps a model to a mongodb collection.  Embedded models
    are TBD, but I imagine we'll return a vector that includes
    the parent's collection + id + path"
-  :type)
+  (fn [model] (keyword (:type model))))
 
 (defmulti client-keys 
   "Performs a select-keys on client data so we don't store
@@ -58,6 +58,12 @@
    after import but before the object is saved to the underlying store"
   (fn [model]
     (name (:type model))))
+
+(defmulti make-annotation
+  "For embedded objects we expose a generic API for creating objects
+   from client arguments dispatching on the :type field of the arguments"
+  (fn [model]
+    (keyword (:type model))))
 
 ;;
 ;; MongoDB Helpers
@@ -144,6 +150,18 @@
     (assert (and type _id))
     (mongo/db-ref type _id)))
 
+(defn as-oid [id]
+  (cond (objectid? id) id
+	(string? id) (mongo/object-id id)
+	true (assert (str "Unrecognized id: " id))))
+
+(defn resolve-dbref [ref & [id]]
+  (if id
+    (do (assert (or (keyword? ref) (string? ref)))
+	(mongo/fetch-one ref :where {:_id (as-oid id)}))
+    (do (assert (mongo/db-ref? ref))
+	(mongo/fetch-one (.getRef ref) :where {:_id (.getId ref)}))))
+
 ;; =================================
 ;; Model CRUD API
 ;; =================================
@@ -153,6 +171,7 @@
 (defmulti fetch-model (fn [type & options] type))
 (defmulti fetch-models (fn [type & options] type))
 (defmulti delete-model! :type)
+(defmulti annotate-model! (fn [type field anno] type))
 
 (defn translate-options
   "Convert our options to an mongo argument list"
@@ -241,7 +260,17 @@
 		    (update-by-modifiers model)
 		    :upsert false))
     "Error"))
-  
+
+(defmethod annotate-model! :default
+  [model location annotation]
+  (if (valid-model-params? model)
+    (.getError
+     (mongo/update! (model-collection model)
+		    {:_id (:_id model)}
+		    {:$push { location annotation }}
+		    :upsert false))
+    "Error"))
+
 (defmethod fetch-model :default [type & options]
   (apply mongo/fetch-one
 	 (model-collection {:type type})

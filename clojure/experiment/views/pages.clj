@@ -26,16 +26,6 @@
     [:li (%str "Number of Friends: " (% friends))]
     [:li (%str "Active Experiments: " (% experiments))]]])
 
-
-;; ===========================
-;; Trial View
-
-;; Take a trial object and render it's header
-(deftemplate trial-header
-  [:div
-   [:h1 (% experiment.title)]])
-   
-
 ;; Application renders views of data   
 
 ;; ===========================
