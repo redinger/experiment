@@ -151,10 +151,13 @@
 	    [:h1 (or (:username user) "NO NAME!")]
 	    (link-to "/app/profile" "Edit Profile")
 	    [:br]
-	    (link-to "/action/logout" "Logout"))
+	    (link-to "/action/logout" "Logout")
+	    [:br]
+	    [:a {:class "help" :href "#"} "Help"])
       (list [:span
 	     [:a {:class "login-link" :href "/action/login"}
-	      "Login"]]))))
+	      "Login"]]
+	    [:a {:class "help" :href "#"} "Help"]))))
 
 (defpartial render-submenu [parent menu]
   [:ul {:class "submenu" :style "display: none;"}

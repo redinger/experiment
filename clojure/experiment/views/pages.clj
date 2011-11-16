@@ -20,8 +20,14 @@
 ;; ===========================
 ;; Dashboard
 
+;;{:trials
+;; :user
+;; :tracking }
+
 (deftemplate dashboard-header
   [:div
+   [:div.tabs
+    
    [:ul
     [:li (%str "Number of Friends: " (% friends))]
     [:li (%str "Active Experiments: " (% experiments))]]])
@@ -36,8 +42,8 @@
    [:input {:type "text"
 	    :id "search-filter-input"
 	    :value (% query)}]
-   [:span {:class "filter-guide"}
-    "<b>show</b> type, <b>with</b> treatment, <b>for</b> symptom/condition, <b>use</b> instrument &nbsp;" [:a {:href "#" :class "help-link"} "[More help...]"]]])
+   [:span.filter-guide
+    "<b>show</b> type, <b>with</b> treatment, <b>for</b> symptom/condition, <b>use</b> instrument &nbsp;" [:a.help-link {:href "#"} "[More help...]"]]])
 
 ;; ===========================
 ;; Admin
@@ -50,10 +56,10 @@
 ;; Dialogs
 
 (deftemplate basic-dialog
-  [:div {:id "osx-modal-content"}
-   [:div {:id "osx-modal-title"} "Help Dialog"]
-   [:div {:class "close"}
-    [:a {:href "#" :class "simplemodal-close"} "x"]]
-   [:div {:id "osx-modal-data"}
+  [:div#osx-modal-content 
+   [:div#.osx-modal-content "Help Dialog"]
+   [:div.close
+    [:a.simplemodal-close {:href "#"} "x"]]
+   [:div#osx-modal-data
     [:h2 (% title)]
     [:p (% body)]]])

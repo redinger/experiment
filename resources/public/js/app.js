@@ -1,5 +1,5 @@
 (function() {
-  var AdminApp, AppRouter, BrowserFilter, BrowserModel, Comment, Comments, DashboardApp, Experiment, Experiments, Instrument, Instruments, MainMenu, Model, ModelCollection, ObjectView, PaneSwitcher, SearchApp, SearchFilterModel, SearchFilterView, SearchItemView, SearchListView, SearchView, SocialView, Suggestion, Suggestions, SwitchPane, TemplateView, Treatment, Treatments, Trial, TrialApp, TrialView, Trials, UserModel, calendarBehavior, findModel, implements, initCalendar, loadModels, makeModelMap, renderTrackerChart, resolveReference, searchSuggestDefaults;
+  var AdminApp, AppRouter, BrowserFilter, BrowserModel, Comment, Comments, DashboardApp, Experiment, Experiments, Instrument, Instruments, JournalView, MainMenu, Model, ModelCollection, ObjectView, PaneSwitcher, SearchApp, SearchFilterModel, SearchFilterView, SearchItemView, SearchListView, SearchView, SocialView, Suggestion, Suggestions, SwitchPane, TemplateView, Treatment, Treatments, Trial, TrialApp, TrialView, Trials, UserModel, calendarBehavior, findModel, implements, initCalendar, loadModels, makeModelMap, renderTrackerChart, resolveReference, searchSuggestDefaults;
   var __slice = Array.prototype.slice, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; }, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
     for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
     function ctor() { this.constructor = child; }
@@ -72,7 +72,7 @@
   Model = (function() {
     __extends(Model, Backbone.Model);
     function Model() {
-      this.comment = __bind(this.comment, this);
+      this.annotate = __bind(this.annotate, this);
       this.toJSON = __bind(this.toJSON, this);
       this.resolveRefs = __bind(this.resolveRefs, this);
       Model.__super__.constructor.apply(this, arguments);
@@ -121,11 +121,11 @@
       }
       return attrs;
     };
-    Model.prototype.comment = function(text) {
-      var id, type;
+    Model.prototype.annotate = function(type, text) {
+      var id, mtype;
       id = this.get('id');
-      type = this.get('type');
-      $.post("/api/annotate/" + type + "/" + id + "/comment", {
+      mtype = this.get('type');
+      $.post("/api/annotate/" + mtype + "/" + id + "/" + type, {
         text: text
       });
       return this.fetch();
@@ -581,6 +581,100 @@
     };
     return PaneSwitcher;
   })();
+  JournalView = (function() {
+    __extends(JournalView, Backbone.View);
+    function JournalView() {
+      this.cancel = __bind(this.cancel, this);
+      this.submit = __bind(this.submit, this);
+      this.edit = __bind(this.edit, this);
+      this.prevPage = __bind(this.prevPage, this);
+      this.nextPage = __bind(this.nextPage, this);
+      this.render = __bind(this.render, this);
+      JournalView.__super__.constructor.apply(this, arguments);
+    }
+    JournalView.implements(TemplateView);
+    JournalView.prototype.initialize = function() {
+      this.initTemplate('#journal-viewer');
+      this.model.bind('change', this.render);
+      this.paging = this.options.paging;
+      this.page = this.options.page || 1;
+      this.size = this.options.pagesize || 1;
+      this.editable = this.options.editable || false;
+      return this.editing = false;
+    };
+    JournalView.prototype.render = function() {
+      var base, bounds, entries;
+      entries = this.model.get('journal');
+      if (this.options.paging) {
+        base = (this.page - 1) * this.size;
+        bounds = this.page * this.size;
+        entries = _.toArray(entries).slice(base, bounds);
+      }
+      $(this.el).empty();
+      this.inlineTemplate({
+        type: 'Trial',
+        context: this.model.get('experiment').get('title'),
+        entries: entries
+      });
+      if (this.editing) {
+        this.editView();
+      } else {
+        this.journalView();
+      }
+      return this;
+    };
+    JournalView.prototype.finalize = function() {
+      this.journalView();
+      return this.delegateEvents();
+    };
+    JournalView.prototype.events = {
+      'click .create': 'edit',
+      'click .submit': 'submit',
+      'click .cancel': 'cancel',
+      'click .next': 'nextPage',
+      'click .prev': 'prevPage'
+    };
+    JournalView.prototype.journalView = function() {
+      this.$('div.edit').hide();
+      if (this.editable) {
+        this.$('div.create').show();
+      }
+      return this.$('div.journal-entry').show();
+    };
+    JournalView.prototype.editView = function() {
+      this.$('div.create').hide();
+      this.$('div.journal-entry').hide();
+      return this.$('div.edit').show();
+    };
+    JournalView.prototype.nextPage = function() {
+      if (!(this.editing || (this.page * this.size) > this.model.get('journal').length - 1)) {
+        this.page = this.page + 1;
+        return this.render();
+      }
+    };
+    JournalView.prototype.prevPage = function() {
+      if (!(this.editing || this.page <= 1)) {
+        this.page = this.page - 1;
+        return this.render();
+      }
+    };
+    JournalView.prototype.edit = function() {
+      this.editing = true;
+      this.editView();
+      return this;
+    };
+    JournalView.prototype.submit = function() {
+      this.model.annotate('journal', this.$('textarea').val());
+      this.journalView();
+      this.editing = false;
+      return this;
+    };
+    JournalView.prototype.cancel = function() {
+      this.journalView();
+      return this.editing = false;
+    };
+    return JournalView;
+  })();
   DashboardApp = (function() {
     __extends(DashboardApp, Backbone.View);
     function DashboardApp() {
@@ -594,7 +688,10 @@
         this.model.bind('change', this.render);
       }
       this.headerTemplate = this.getTemplate('#dashboard-header');
-      return this.trialsTemplate = this.getTemplate('#trial-table');
+      this.trialsTemplate = this.getTemplate('#trial-table');
+      return this.journal = new JournalView({
+        model: this.model
+      });
     };
     DashboardApp.prototype.events = {};
     DashboardApp.prototype.dispatch = function() {
@@ -1047,7 +1144,6 @@
       this.views = window.MyTrials.map(this.newTrial);
       this.initTemplate('#trial-view-header');
       this.chartTemplate = this.getTemplate('#highchart-div');
-      this.journalTemplate = this.getTemplate('#journal-entry');
       this.calendarTemplate = this.getTemplate('#small-calendar');
       this.instTableTemplate = this.getTemplate('#instrument-short-table');
       return this;
@@ -1055,12 +1151,19 @@
     TrialApp.prototype.dispatch = function(path) {
       var model;
       if (path) {
-        model = findModel(window.MyTrials, path);
+        this.model = model = findModel(window.MyTrials, path);
         if (!model) {
           alert("no model found for " + path);
         }
+        this.journal = new JournalView({
+          className: 'trial-journal',
+          model: model,
+          paging: true,
+          editable: true,
+          page: 1,
+          pagesize: 1
+        });
         this.viewModel(model);
-        this.model = model;
       } else {
         window.socialView.setEdit(false);
         this.model = null;
@@ -1090,7 +1193,8 @@
       this.renderInstruments(experiment);
       $(this.el).append("<div class='clear'/>");
       this.renderOutcome(experiment);
-      this.renderJournal();
+      $(this.el).append(this.journal.render().el);
+      this.journal.finalize();
       return this;
     };
     TrialApp.prototype.renderOutcome = function(outcome) {
@@ -1127,14 +1231,6 @@
         })
       };
       return mydiv.append(this.instTableTemplate(data));
-    };
-    TrialApp.prototype.renderJournal = function() {
-      var entry, mydiv;
-      mydiv = $("<div class='trial-journal'/>");
-      $(this.el).append(mydiv);
-      mydiv.append('<h2>Latest Trial Journal Entry</h2>');
-      entry = this.model.get('journal')[0];
-      return mydiv.append(this.journalTemplate(entry));
     };
     TrialApp.prototype.renderList = function() {
       var view, _i, _j, _len, _len2, _ref, _ref2;
@@ -1204,7 +1300,7 @@
       'click button.comment': 'addComment'
     };
     SocialView.prototype.addComment = function() {
-      return this.parent.comment($('#social textarea').val());
+      return this.parent.annotate('comment', $('#social textarea').val());
     };
     return SocialView;
   })();

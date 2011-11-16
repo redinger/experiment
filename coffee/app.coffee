@@ -82,10 +82,10 @@ class Model extends Backbone.Model
         attrs
 
   # Modify state
-  comment: (text) =>
+  annotate: (type, text) =>
         id = @get 'id'
-        type = @get 'type'
-        $.post "/api/annotate/#{type}/#{id}/comment",
+        mtype = @get 'type'
+        $.post "/api/annotate/#{mtype}/#{id}/#{type}",
                 text: text
         @fetch()
 
@@ -401,6 +401,83 @@ class PaneSwitcher
         @hideOtherPanes name
         pane.showPane()
 
+#
+# JOURNAL VIEW
+#
+class JournalView extends Backbone.View
+  @implements TemplateView
+  initialize: ->
+        @initTemplate '#journal-viewer'
+        @model.bind('change', @render)
+        @paging = @options.paging
+        @page = @options.page or 1
+        @size = @options.pagesize or 1
+        @editable = @options.editable or false
+        @editing = false
+
+  render: =>
+        entries = @model.get('journal')
+        if @options.paging
+                base = (@page - 1) * @size
+                bounds = @page * @size
+                entries = _.toArray(entries).slice(base, bounds)
+        $(@el).empty()
+        @inlineTemplate
+                type: 'Trial'
+                context: @model.get('experiment').get('title')
+                entries: entries
+        if @editing
+           @editView()
+        else
+           @journalView()
+        @
+
+  finalize: ->
+        @journalView()
+        @delegateEvents()
+
+  events:
+        'click .create': 'edit'
+        'click .submit': 'submit'
+        'click .cancel': 'cancel'
+        'click .next': 'nextPage'
+        'click .prev': 'prevPage'
+
+  journalView: ->
+        @$('div.edit').hide()
+        @$('div.create').show() if @editable
+        @$('div.journal-entry').show()
+
+  editView: ->
+        @$('div.create').hide()
+        @$('div.journal-entry').hide()
+        @$('div.edit').show()
+
+  nextPage: =>
+        unless @editing or (@page * @size) > @model.get('journal').length - 1
+                @page = @page + 1
+                @render()
+
+  prevPage: =>
+        unless @editing or @page <= 1
+                @page = @page - 1
+                @render()
+
+  edit: =>
+        @editing = true
+        @editView()
+        @
+
+  submit: =>
+        @model.annotate 'journal', @$('textarea').val()
+        @journalView()
+        @editing = false
+        @
+
+  cancel: =>
+        @journalView()
+        @editing = false
+
 
 ####################################################
 # APPLICATION PANES
@@ -418,7 +495,8 @@ class DashboardApp extends Backbone.View
         @headerTemplate = @getTemplate '#dashboard-header'
         @trialsTemplate = @getTemplate '#trial-table'
 #        @schedule = new ScheduleView
-#        @journal = new JournalView
+        @journal = new JournalView
+                model: @model
 #        @discussions = new RecentDiscussionsView
 #        @background = new BackgroundDataView
 
@@ -778,22 +856,26 @@ class TrialApp extends Backbone.View
         new TrialView
                 model: trial
 
-
   initialize: (exp) ->
         @views = window.MyTrials.map @newTrial
         @initTemplate '#trial-view-header'
         @chartTemplate = @getTemplate '#highchart-div'
-        @journalTemplate = @getTemplate '#journal-entry'
         @calendarTemplate = @getTemplate '#small-calendar'
         @instTableTemplate = @getTemplate '#instrument-short-table'
         @
 
   dispatch: (path) ->
         if path
-           model = findModel window.MyTrials, path
+           @model = model = findModel window.MyTrials, path
            alert "no model found for #{ path }" unless model
+           @journal = new JournalView
+                className: 'trial-journal'
+                model: model
+                paging: true
+                editable: true
+                page: 1
+                pagesize: 1
            @viewModel model
-           @model = model
         else
            window.socialView.setEdit false
            @model = null
@@ -820,7 +902,8 @@ class TrialApp extends Backbone.View
         @renderInstruments(experiment)
         $(@el).append "<div class='clear'/>"
         @renderOutcome(experiment) # TODO: outcome)
-        @renderJournal()
+        $(@el).append @journal.render().el
+        @journal.finalize()
         @
 
   renderOutcome: (outcome) ->
@@ -853,13 +936,6 @@ class TrialApp extends Backbone.View
         instruments = experiment.get('instruments')
         data = {instruments: _.map(instruments, (x) -> x.toJSON())}
         mydiv.append @instTableTemplate data
-
-  renderJournal: ->
-        mydiv = $("<div class='trial-journal'/>")
-        $(@el).append mydiv
-        mydiv.append '<h2>Latest Trial Journal Entry</h2>'
-        entry = @model.get('journal')[0]
-        mydiv.append @journalTemplate entry
 
   renderList: =>
         $(@el).empty()
@@ -911,7 +987,7 @@ class SocialView extends Backbone.View
         'click button.comment': 'addComment'
 
   addComment: =>
-        @parent.comment $('#social textarea').val()
+        @parent.annotate 'comment', $('#social textarea').val()
 
 ##################################################################
 # APPLICATION

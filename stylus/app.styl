@@ -46,7 +46,7 @@ li
   .profile-summary
     width 100%
     font-size small
-    padding 5px 10px 20px 5px
+    padding 5px 10px 0px 5px
     
     h1
       font-size small
@@ -174,16 +174,31 @@ li
 .search-list
   margin-top 15px
 
-.search-list-item
-  padding-top 5px
-  padding-bottom 5px
-  border-bottom solid 1px 
+  .result
+    margin-bottom 7px
+    padding 7px 7px 7px 7px
+    gen-border-radius(8px, 8px, 8px, 8px)
+    border 1px solid #CCC
+    background #EEE
+    gen-box-shadow(2px, 2px, 2px, rgba(0,0,0,0.3))
 
-  h3 
-    font-size medium
 
-  p
-    font-size small
+    h3 
+      font-size 1.1em
+
+    p
+      font-size 0.875em
+
+/*
+  .instrument-list-view
+     background #fffacd
+
+  .experiment-list-view
+    background #ACE
+
+  .treatment-list-view
+    background #AEC
+*/
 
 .filter-guide
   font-size x-small
@@ -206,7 +221,7 @@ li
 
   span.variable
     display inline
-    text-align left
+    text-align leftt
 
   span.type
     margin-left 30px
@@ -226,7 +241,7 @@ li
       margin-left 0
 
 
-.trial-journal
+.journal
   width 90%
   margin-left 2.5%
   gen-border-radius 5px 5px 5px 5px
@@ -235,9 +250,26 @@ li
   background #EEE
   min-height 200px
 
+  div.create
+    position absolute
+    bottom 20px
+
+  div.edit
+
+    textarea
+      resize none
+      width 100%
+      height 100%
+      margin-bottom 5px
+      margin-top 5px
+
+  div.paging
+    float right
+    
   h3
     font-size 8pt
     font-weight 700
+
     
   p 
     font-size 10pt
