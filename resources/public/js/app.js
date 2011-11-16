@@ -614,12 +614,20 @@
       this.inlineTemplate({
         type: 'Trial',
         context: this.model.get('experiment').get('title'),
+        page: this.page,
+        total: this.model.get('journal').length / this.size,
         entries: entries
       });
       if (this.editing) {
         this.editView();
       } else {
         this.journalView();
+      }
+      if (this.page === 1) {
+        this.$('button.prev').attr('disabled', true);
+      }
+      if ((this.page * this.size) >= this.model.get('journal').length) {
+        this.$('button.next').attr('disabled', true);
       }
       return this;
     };

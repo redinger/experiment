@@ -425,11 +425,16 @@ class JournalView extends Backbone.View
         @inlineTemplate
                 type: 'Trial'
                 context: @model.get('experiment').get('title')
+                page: @page
+                total: @model.get('journal').length / @size
                 entries: entries
         if @editing
            @editView()
         else
            @journalView()
+        @$('button.prev').attr('disabled', true) if @page == 1
+        @$('button.next').attr('disabled', true) if (@page * @size) >= @model.get('journal').length
+
         @
 
   finalize: ->

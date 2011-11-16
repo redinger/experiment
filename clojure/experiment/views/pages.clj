@@ -26,8 +26,6 @@
 
 (deftemplate dashboard-header
   [:div
-   [:div.tabs
-    
    [:ul
     [:li (%str "Number of Friends: " (% friends))]
     [:li (%str "Active Experiments: " (% experiments))]]])

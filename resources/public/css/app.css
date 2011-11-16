@@ -367,7 +367,7 @@ li {
 @media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/app\.styl}line{font-family:\00003253}}
 .journal div.create {
   position: absolute;
-  bottom: 20px;
+  bottom: 0px;
 }
 
 @media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/app\.styl}line{font-family:\00003257}}
@@ -387,13 +387,19 @@ li {
 }
 
 @media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/app\.styl}line{font-family:\00003269}}
+.journal div.paging p {
+  padding-right: 10px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/app\.styl}line{font-family:\00003272}}
 .journal h3 {
   font-size: 8pt;
   font-weight: 700;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/app\.styl}line{font-family:\00003274}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/app\.styl}line{font-family:\00003276}}
 .journal p {
+  padding-left: 10px;
   font-size: 10pt;
   font-family: Helvetica, serif;
 }

@@ -153,9 +153,9 @@
     (%if donep
 	 [:p "Ended: " (% end-str)])]
    [:div.trial-actions
-    [:a.pause    {:href "#"} "Pause"]
-    [:a.stop     {:href "#"} "Stop"]
-    [:a.complete {:href "#"} "Complete"]]])
+    [:button.pause {:type "button"} "Pause"] " | "
+    [:button.stop  {:type "button"} "Stop"] " | "
+    [:button.complete {:type "button"} "Complete"]]])
     
 (deftemplate trial-table
   [:div.trial-table
@@ -184,11 +184,13 @@
 (deftemplate journal-viewer
   [:div.journal
    [:div.paging
+    [:span "Page " (% page) " of " (% total)]
     [:button.prev {:type "button"} "Prev"]
      "&nbsp; | &nbsp;"
     [:button.next {:type "button"} "Next"]]
    [:h2 "Journal"
     (%if type (%strcat " for " (% type)))]
+   [:hr]
    (%each entries
     [:div.journal-entry
      [:h3.date-header "Recorded at " (% date-str)]
