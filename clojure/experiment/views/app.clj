@@ -61,8 +61,11 @@
      (map #(apply common/bootstrap-collection-expr %)
 	  [["window.Instruments" (models/fetch-models :instrument)]
 	   ["window.Experiments" (models/fetch-models :experiment)]
-	   ["window.MyTrials" (models/fetch-models :trial :where {:user username})]
-	   ["window.Treatments" (models/fetch-models :treatment)]])
+	   ["window.MyTrials"
+	    (models/fetch-models :trial :where {:user username})]
+	   ["window.Treatments" (models/fetch-models :treatment)]
+	   ["window.MyTrackers"
+	    (models/fetch-models :tracker :where {:user.$id (:_id user)})]])
      (str "window.Suggestions.reset("
 	  (json/json-str (compute-suggestions))
 	  ");")]))

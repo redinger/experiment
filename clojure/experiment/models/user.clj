@@ -1,7 +1,8 @@
 (ns experiment.models.user
   (:use noir.core
 	experiment.infra.models)
-  (:require [experiment.infra.session :as session]))
+  (:require [experiment.infra.session :as session]
+	    [experiment.infra.auth :as auth]))
 
 ;;(defmodel user 
 ;;  :collection :users
@@ -62,6 +63,29 @@
 ;;   :weight :yob :units :default_privacy
 ;;   :background :acl])
 
+(defn make-user [username password email name]
+   (create-model!
+    (auth/set-user-password
+     {:type :user
+      :username username
+      :name name
+      :email email}
+     password)))
+
+(defn user
+  "Model for reference"
+  [reference]
+  (cond (string? reference)
+	(fetch-model :user :where {:username reference})
+	true
+	(resolve-dbref reference)))
+
+(defn user-dbref [reference]
+  (cond (and (map? reference) (= (name (:type reference)) "user"))
+	(as-dbref reference)
+	true
+	(as-dbref (user reference))))
+     
 
 ;;
 ;; Test Users

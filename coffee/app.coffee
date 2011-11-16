@@ -41,6 +41,12 @@ else
 findModel = (models, id) ->
         models.find (mod) => mod.id == id
 
+returnUser = (id) ->
+        if id == window.User.get('id')
+                window.User
+        else
+                alert "Found object reference to another user #{ id }"
+
 resolveReference = (ref) ->
         if ref
           alert "Bad Reference [#{ ref }]" if not _.isArray ref if ref
@@ -49,6 +55,8 @@ resolveReference = (ref) ->
             when 'treatment' then findModel window.Treatments, ref[1]
             when 'instrument' then findModel window.Instruments, ref[1]
             when 'trial' then findModel window.MyTrials, ref[1]
+            when 'tracker' then findModel window.MyTrackers, ref[1]
+            when 'user' then returnUser ref[1]
             else alert "Reference not found [#{ ref }]"
 
 class Model extends Backbone.Model
@@ -105,6 +113,8 @@ makeModelMap = ->
        map[treat.get 'id'] = treat
    for trial in window.MyTrials.models
        map[trial.get 'id'] = trial
+   for tracker in window.MyTrackers.models
+       map[trial.get 'id'] = tracker
    window.modelMap = map
 
 window.lookupModels = (refs) ->
@@ -168,34 +178,6 @@ class Trials extends ModelCollection
   model: Trial
 window.MyTrials = new Trials
 
-# Comment model
-class Comment extends Model
-  defaults:
-        'type': 'comment'
-
-  initialize: (params, parent) ->
-        @parent = parent
-        alert 'No type specified' unless params.type
-        if @get('responses')
-           @responses = new CommentCollection @get('responses')
-
-  voteUp: ->
-        votes = @get('votes')
-        unless votes[username]
-                @set 'votes': votes[username] = 1
-
-  voteDown: ->
-        votes = @get('votes')[username]
-        unless votes[username]
-                @set 'votes': votes[username] = -1
-
-  addComment: (params) ->
-        response = new Comment params.extend 'parent'
-        response.save()
-        @set 'responses', @get('responses').push response
-
-class Comments extends Backbone.Collection
-
 
 # User Object
 # - Always initialized by the server
@@ -205,6 +187,12 @@ class UserModel extends Backbone.Model
   adminp: -> 'admin' in @get('permissions')
 window.User = new UserModel
 
+class Tracker extends Model
+  dbrefs: ['user', 'instrument']
+
+class Trackers extends ModelCollection
+  model: Tracker
+window.MyTrackers = new Trackers
 
 ###################################################
 # Local Models
@@ -383,6 +371,10 @@ class PaneSwitcher
            alert 'Pane not found for name ' + name
         pane
 
+  render: (target) =>
+        window.testpanes = @panes
+        console.log "#{ name }, #{ pane }" for name, pane of @panes
+        $(target).append pane.render().el for name,pane of @panes
 
   # Switch panes
   hideOtherPanes: (target) ->
@@ -395,6 +387,7 @@ class PaneSwitcher
            (pane.hidePane() if pane and pane != target) for own name, pane of @panes
 
   switch: (name) =>
+        @active = name
         pane = @get name
         if pane == null
           alert 'no pane for name ' + name
@@ -409,6 +402,7 @@ class JournalView extends Backbone.View
   initialize: ->
         @initTemplate '#journal-viewer'
         @model.bind('change', @render)
+        @mtype = @options.type
         @paging = @options.paging
         @page = @options.page or 1
         @size = @options.pagesize or 1
@@ -417,24 +411,27 @@ class JournalView extends Backbone.View
 
   render: =>
         entries = @model.get('journal')
+        entries = _.sortBy(entries, (x) -> x.date).reverse() if entries
         if @options.paging
                 base = (@page - 1) * @size
                 bounds = @page * @size
                 entries = _.toArray(entries).slice(base, bounds)
         $(@el).empty()
-        @inlineTemplate
-                type: 'Trial'
-                context: @model.get('experiment').get('title')
+
+        args =
                 page: @page
-                total: @model.get('journal').length / @size
+                total: Math.ceil @model.get('journal').length / @size
                 entries: entries
+        if @mtype
+                args['type'] = @mtype
+                args['context'] = " " #@model.get('experiment').get('title')
+        @inlineTemplate args
         if @editing
            @editView()
         else
            @journalView()
         @$('button.prev').attr('disabled', true) if @page == 1
         @$('button.next').attr('disabled', true) if (@page * @size) >= @model.get('journal').length
-
         @
 
   finalize: ->
@@ -476,6 +473,7 @@ class JournalView extends Backbone.View
   submit: =>
         @model.annotate 'journal', @$('textarea').val()
         @journalView()
+        @page = 1
         @editing = false
         @
 
@@ -492,28 +490,125 @@ class JournalView extends Backbone.View
 # Dashboard Page
 #+++++++++++++++++++++
 
+class SummaryView extends Backbone.View
+  @implements SwitchPane, TemplateView
+  className: 'dashboard-summary'
+  initialize: ->
+        @trialsTemplate = @getTemplate '#trial-table'
+  newTrial: (trial) ->
+        new TrialView
+                model: trial
+
+  initialize: (exp) ->
+        @views = window.MyTrials.map (trial) -> new TrialView
+                model: trial
+        @
+
+  render: =>
+        $(@el).append '<h1>PLACEHOLDER PAGE</h1><br/><br/>'
+        $(@el).append '<h2>Active Trials</h2>'
+        $(@el).append view.render().el for view in @views
+        view.finalize() for view in @views
+        $(@el).append '<div class="reminders"><h2>Reminders</h2></div>'
+        $(@el).append '<div class="feeds"><h2>Feeds</h2></div>'
+        @
+
+  finalize: ->
+
+#        @feedTemplate = @getTemplate '#feed-list'
+#        @schedule = new ScheduleView
+#        @discussions = new RecentDiscussionsView
+
+class TrackerView extends Backbone.View
+  @implements SwitchPane, TemplateView
+  className: 'dashboard-tracker'
+
+  initialize: ->
+        @initTemplate '#highchart-div'
+        @trackers = window.MyTrackers.models
+        @
+
+  render: =>
+        $(@el).append '<h1>Tracker Summary</h1>'
+        @renderChart @getID tracker for tracker in @trackers
+        @
+
+  finalize: ->
+        for tracker in @trackers
+                cssid = @getID tracker
+                inst = tracker.get('instrument')
+                renderTrackerChart cssid, inst, 0
+
+  getID: (tracker) ->
+        if tracker
+                tracker.get('id')
+        else
+                alert 'Unrecognized tracker'
+
+  renderChart: (id) ->
+        @inlineTemplate
+                cssid: id
+                height: '150px'
+                width: '500px'
+
+
+class JournalWrapper extends Backbone.View
+  @implements SwitchPane
+  className: 'dashboard-journal'
+  initialize: ->
+        @view = new JournalView
+                className: 'dashboard-journal'
+                model: window.MyTrials.models[0]
+                paging: true
+                pagesize: 5
+                editable: false
+        @
+
+  render: =>
+        $(@el).empty()
+        $(@el).append @view.render().el
+        @
+
+  finalize: ->
+
 class DashboardApp extends Backbone.View
   @implements TemplateView, SwitchPane
   model: window.User
   initialize: ->
         @model.bind('change', @render) if @model
-        @headerTemplate = @getTemplate '#dashboard-header'
-        @trialsTemplate = @getTemplate '#trial-table'
-#        @schedule = new ScheduleView
-        @journal = new JournalView
-                model: @model
-#        @discussions = new RecentDiscussionsView
-#        @background = new BackgroundDataView
+        @initTemplate '#dashboard-header'
+        @switcher = new PaneSwitcher
+                'overview': new SummaryView
+                'tracking': new TrackerView
+                'journal': new JournalWrapper
+        @switcher.switch('overview')
 
-  events: {}
+  dispatch: (path) ->
+        if $(@el).children().size() == 0
+           @render()
+        if path
+           ref = path.split("/") if path
+           @$('a.tab').removeClass('active-tab')
+           @$("a[href='/app/dashboard/#{path}']").addClass('active-tab')
+           @switcher.switch(ref[0])
+        else
+           window.appRouter.navigate "/app/dashboard/#{@switcher.active}", true
 
-  dispatch: ->
-        if $(@el).empty()
-                @render()
+
   render: =>
-        $(@el).append @headerTemplate @model.toJSON()
-        $(@el).append @trialsTemplate {trials: window.MyTrials.toJSON()}
+        @renderTemplate()
+        @switcher.render(@el)
+        @delegateEvents()
+        pane.finalize() for name,pane of @switcher.panes
         @
+
+  events:
+        'click a.tab': 'switch'
+
+  switch: (e) =>
+        e.preventDefault()
+        tabpath = $(e.target).attr('href')
+        window.appRouter.navigate tabpath, true
 
 class AdminApp extends Backbone.View
   @implements TemplateView, SwitchPane
@@ -639,7 +734,7 @@ class SearchItemView extends Backbone.View
         $(@el).html @template @model.toJSON()
         @
 
-  inspect: ->
+  inspect: =>
         window.socialView.setContext @model
 
   viewModel: =>
@@ -759,6 +854,7 @@ class ObjectView extends Backbone.View
         instrument: '#instrument-view'
   templateMap: {}
   initialize: ->
+        @dialog = @getTemplate '#basic-dialog'
         try
                 _.map @viewMap, (id, type) =>
                         @templateMap[type] = Handlebars.compile $(id).html()
@@ -768,6 +864,7 @@ class ObjectView extends Backbone.View
   # Actions
   show: ->
         $(@el).show()
+
   hide: ->
         $(@el).hide()
 
@@ -778,13 +875,46 @@ class ObjectView extends Backbone.View
   # Rendering
   render: =>
         $(@el).empty()
-        $(@el).append "<span class='breadcrumb'><a href='/app/search'>Search</a> -> #{ @model.attributes.type } -> <a href='/app/search/#{ @model.attributes.type }/#{ @model.attributes.id }'>#{ @model.attributes.name }</a></span>" if @model
+        $(@el).append "<span class='breadcrumb'><a href='/app/search'>Search</a> -> #{ @model.attributes.type } -> <a href='/app/search/#{ @model.attributes.type }/#{ @model.attributes.id }'>#{ @model.attributes.title }</a></span>" if @model
         $(@el).append "<span class='breadcrumb'><a  href='/app/search'>Search</a></span>" unless @model
         $(@el).append @templateMap[@model.get 'type'] @model.toJSON() if @model
+        message =
+                title: "Configure Experiment"
+                body: "Placeholder Dialog pending Forms Package"
+        $(@el).append @dialog message
         @
 
   finalize: =>
+        @delegateEvents()
 
+  # Events
+  event:
+        'click button.run': 'startExperiment'
+
+  openDialog: (d) =>
+        @container = d.container[0]
+        d.overlay.show()
+        d.container.show()
+        $('#osx-modal-content', @container).show()
+        title = $('#osx-modal-title', @container)
+        title.show()
+        h = $('#osx-modal-data', @container).height() + title.height() + 30
+        $('#osx-container').height(h)
+        $('div.close', @container).show()
+        $('#osx-modal-data', @container).show()
+
+  startExperiment: (e) =>
+        alert e
+        e.preventDefault()
+        $('#osx-modal-content').modal
+                overlayId: 'osx-overlay'
+                containerId: 'osx-container'
+                position: [100]
+                closeHTML: null
+                minHeight: 200
+                opacity: 40
+                overlayClose: true
+                onOpen: @openDialog
 
 # ----------------------------------------
 #   Main browser window - rarely refreshed
@@ -871,16 +1001,17 @@ class TrialApp extends Backbone.View
 
   dispatch: (path) ->
         if path
-           @model = model = findModel window.MyTrials, path
-           alert "no model found for #{ path }" unless model
+           @model = findModel window.MyTrials, path
+           alert "no model found for #{ path }" unless @model
            @journal = new JournalView
                 className: 'trial-journal'
-                model: model
+                type: 'Trial'
+                model: @model
                 paging: true
                 editable: true
                 page: 1
                 pagesize: 1
-           @viewModel model
+           @viewModel @model
         else
            window.socialView.setEdit false
            @model = null
@@ -937,7 +1068,7 @@ class TrialApp extends Backbone.View
   renderInstruments: (experiment) ->
         mydiv = $("<div class='trial-measures'/>")
         $(@el).append mydiv
-        mydiv.append '<h2>Tracking</h2>'
+        mydiv.append '<h2>Tracking Instruments</h2>'
         instruments = experiment.get('instruments')
         data = {instruments: _.map(instruments, (x) -> x.toJSON())}
         mydiv.append @instTableTemplate data
@@ -1050,7 +1181,6 @@ class MainMenu extends Backbone.View
         @
 
    setCurrent: (link) ->
-        window.testlink = link
         if link
                 @$('a.current').removeClass('current')
                 $(link).addClass 'current'
@@ -1098,6 +1228,7 @@ $(document).ready ->
    window.Instruments.resolveReferences()
    window.Experiments.resolveReferences()
    window.MyTrials.resolveReferences()
+   window.MyTrackers.resolveReferences()
    window.Treatments.resolveReferences()
    makeModelMap()
 

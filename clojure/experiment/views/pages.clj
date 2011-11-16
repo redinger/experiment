@@ -25,10 +25,11 @@
 ;; :tracking }
 
 (deftemplate dashboard-header
-  [:div
+  [:div.dashboard-header
    [:ul
-    [:li (%str "Number of Friends: " (% friends))]
-    [:li (%str "Active Experiments: " (% experiments))]]])
+    [:li [:a.tab.active-tab {:href "/app/dashboard/overview"} "Overview"]]
+    [:li [:a.tab {:href "/app/dashboard/tracking"} "Tracking"]]
+    [:li [:a.tab {:href "/app/dashboard/journal"} "Journal"]]]])
 
 ;; Application renders views of data   
 

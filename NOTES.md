@@ -75,9 +75,15 @@ Feature tasks
    
    x Journaling and Comment Creation
    x Tracking charts (basic)
-   - Dashboard
-   - Simple object views
+   - Dashboard placeholder
    - Run Trial from Experiment view
+   - Trial View needs treatment description
+     - I want to click on tracking to change data
+     - If click on calendar, show me data points for the day
+   - NO IE popup on login
+   - Social components
+   - Journal view disappears on redraw
+   - Simple object views
    - Object creation screens
    - Trial schedule and view
      - Handle schedule and reminders 

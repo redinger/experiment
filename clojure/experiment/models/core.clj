@@ -96,14 +96,16 @@
 (deftemplate experiment-view
   [:div.experiment-view
    [:h1.exp-title
-    (% title)]
-   [:span (%str (% trials) " trials")]
-   [:ul 
-    (%each instruments
-     [:li 
-      [:div.inst-name (% variable)]
-      [:div.inst-description (% description)]
-      [:div.inst-src (% src)]])]])
+      [:span "20 trials have been run, 5 are active"]]
+   [:button.run {:type "button"} "Run Experiment"]
+   [:div.instruments
+    [:h2 "Instruments used"]
+    [:ul 
+     (%each instruments
+	    [:li 
+	     [:div.inst-name (% variable)]
+	     [:div.inst-description (% description)]
+	     [:div.inst-src (% src)]])]]])
 
 ;; ===========================================================
 ;; TRIAL
@@ -231,4 +233,6 @@
 
 ;; ===========================================================
 ;; SCHEDULE
+
+;; Feeds
 

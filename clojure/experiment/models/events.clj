@@ -171,10 +171,7 @@
 		   ["Mon" "Tue" "Wed" "Thu" "Fri" "Sat" "Sun"])]]
 	[:tbody
 	 (cons (render-first-week start-pad (range 1 (- 8 start-pad)))
-	       (map render-week weeks))]
-	[:tfoot 
-	 [:tr (map (fn [day] [:th day])
-		   ["Mon" "Tue" "Wed" "Thu" "Fri" "Sat" "Sun"])]]]])))
+	       (map render-week weeks))]]])))
 
 ;;
 ;; Calendar Client API

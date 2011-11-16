@@ -32,7 +32,7 @@
 (defn- lookup-trackers [instrument start]
   (fetch-models :tracker :where {:instrument.$id (:_id instrument)
 				 :user.$id (:_id (session/current-user))
-				 :end {:$gt start}}))
+				 :start {:$gt start}}))
 
 (defn- get-instrument [inst]
   (fetch-model :instrument
@@ -77,4 +77,4 @@
 
 ;;(defn control-chart [experiment instrument]
 ;;  (let [
-  
+
