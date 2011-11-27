@@ -1,4 +1,4 @@
-(defproject experiment "0.1.0-SNAPSHOT"
+(defproject experiment "0.9.0-SNAPSHOT"
             :description "Evaluation platform of a new model for running, recording and sharing self-experiments"
 	    :url ""
 	    :source-path "clojure"
@@ -10,7 +10,9 @@
 			   ;; Backend
 			   [congomongo "0.1.7-SNAPSHOT"]
 			   ;; Utilities for libs
-			   [clj-http "0.2.1"]
+			   [quartz-clj "1.1.0-SNAPSHOT"]
+			   [clj-http "0.2.5"]
+			   [clj-logging-config "1.9.1"]
 			   [org.clojars.kovasb/clj-json "0.3.2-SNAPSHOT"]
 			   [clj-time "0.3.2"]]
 	    :dev-dependencies [[swank-clojure "1.3.0-SNAPSHOT"]

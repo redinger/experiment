@@ -75,7 +75,7 @@ Feature tasks
    
    x Journaling and Comment Creation
    x Tracking charts (basic)
-   - Dashboard placeholder
+   x Dashboard placeholder
    - Run Trial from Experiment view
    - Trial View needs treatment description
      - I want to click on tracking to change data
@@ -103,6 +103,7 @@ Feature tasks
 
 Architecture design tasks
 
+   - Google analytics integration
    - Proper support for dev/prod mode and versioning
    - Break coffeescript into multiple independent UI modules
    - Support proper logging through server and client side
