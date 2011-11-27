@@ -38,6 +38,22 @@
 	      "/js/vendor/jquery.simplemodal.1.4.1.min.js"
 	      "/js/home.js"))
 
+(defn render-analytics []
+  "<script type=\"text/javascript\">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-11911393-4']);
+  _gaq.push(['_setDomainName', 'none']);
+  _gaq.push(['_setAllowLinker', true]);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>")
 
 (defn include-vendor-libs []
   (include-vendor-libs-dev))
@@ -54,14 +70,16 @@
   [:head
    [:title "HealthCycle"]
    (include-standard-css)
-   head-content])
+   head-content
+   (render-analytics)])
 
 (defpartial standard-head [& head-content]
   [:head
    [:title "HealthCycle"]
    (include-standard-css)
    (include-vendor-libs)
-   head-content])
+   head-content
+   (render-analytics)])
 
 ;; Content layouts
 
