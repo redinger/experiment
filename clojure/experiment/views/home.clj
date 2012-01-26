@@ -31,7 +31,7 @@
     :link "/article/experiments"}
    {:header "Learn more..."
    :body "This project is an experiment to understand how ordinary
-   people can collaborate online to learn more about treatments"
+   people can collaborate online to learn more about treatments.  You can learn more by <a href=\"/study1\">joining our study...</a>"
    :link "/article/about"}])
 	 
 (defpartial render-home-detail [record]
@@ -48,17 +48,12 @@
   [:hr]
   [:div.home-details
    (map render-home-detail (drop 3 detail-records))])
-  
-  
 
- (defpage "/" {}
+(defpage "/" {}
 ;;   (if (session/logged-in?)
 ;;     (resp/redirect "/app")
-     (common/simple-layout
-      [:div.home-about
-       [:h2 "Experiment and share novel therapies for healthy living"]]
+   (common/simple-layout {}
+    [:div.home-about
+     [:h2 "Experiment and share novel therapies for healthy living"]]
 ;;	(link-to "/article/about" "Read more...")]
-      (render-home-details)))
-	
-
-
+    (render-home-details)))

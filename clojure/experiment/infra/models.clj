@@ -145,15 +145,21 @@
     (if keys (select-keys cmodel keys)
 	cmodel)))
 	
-(defn as-dbref [model]
-  (let [{:keys [type _id]} model]
-    (assert (and type _id))
-    (mongo/db-ref type _id)))
+(defn as-dbref
+  ([model]
+     (let [{:keys [type _id]} model]
+       (assert (and type _id))
+       (mongo/db-ref type _id)))
+  ([name id]
+     (mongo/db-ref name id)))
 
 (defn as-oid [id]
   (cond (objectid? id) id
 	(string? id) (mongo/object-id id)
 	true (assert (str "Unrecognized id: " id))))
+
+(defn oid? [id]
+  (objectid? id))
 
 (defn resolve-dbref [ref & [id]]
   (if id
@@ -161,6 +167,11 @@
 	(mongo/fetch-one ref :where {:_id (as-oid id)}))
     (do (assert (mongo/db-ref? ref))
 	(mongo/fetch-one (.getRef ref) :where {:_id (.getId ref)}))))
+
+;;(extend DBRef
+;;  clojure.lang.IDeref
+;;  {:deref resolve-dbref})
+
 
 ;; =================================
 ;; Model CRUD API
@@ -286,6 +297,23 @@
   (mongo/destroy! (model-collection {:type (:type model)})
 		  {:_id (:_id model)})
   true)
+
+;; Utilities
+
+(defn unset-collection-field 
+  ([type field]
+     (unset-collection-field type field {}))
+  ([type field criteria]
+     (mongo/update! (model-collection {:type type})
+		    criteria {:$unset {field 1}} :multiple true)))
+
+(defn set-collection-field
+  ([type field value]
+     (set-collection-field type field value {}))
+  ([type field value criteria]
+     (mongo/update! (model-collection {:type type})
+		    criteria {:$set {field value}} :multiple true)))
+
 
 ;;
 ;; Compact model definition macro

@@ -55,7 +55,7 @@
 (defn has-permission? [perm]
   ((set (:permissions (session/current-user))) perm))
 
-(defn admin? []
+(defn is-admin? []
   (has-permission? "admin"))
   
 ;;(defmethod client-keys :user [user]
@@ -63,16 +63,16 @@
 ;;   :weight :yob :units :default_privacy
 ;;   :background :acl])
 
-(defn make-user [username password email name]
-   (create-model!
-    (auth/set-user-password
-     {:type :user
-      :username username
-      :name name
-      :email email}
-     password)))
+(defn create-user! [username password email name]
+  (create-model!
+   (auth/set-user-password
+    {:type :user
+     :username username
+     :name name
+     :email email}
+    password)))
 
-(defn user
+(defn get-user
   "Model for reference"
   [reference]
   (cond (string? reference)
@@ -80,11 +80,11 @@
 	true
 	(resolve-dbref reference)))
 
-(defn user-dbref [reference]
+(defn get-user-dbref [reference]
   (cond (and (map? reference) (= (name (:type reference)) "user"))
 	(as-dbref reference)
 	true
-	(as-dbref (user reference))))
+	(as-dbref (get-user reference))))
      
 
 ;;

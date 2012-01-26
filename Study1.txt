@@ -1,0 +1,42 @@
+Introduction to single-subject experimentation (from C3N?)
+Discussion / Q&A page (?)
+Template
+Exit Survey at Qualtrics
+
+
+Template
+-----------------
+
+What are you trying to improve?  (Outcome Variable)
+How will you measure or track this? (Instrument)
+
+What is your treatment / treatment protocol? (Treatment)
+Describe a schedule for treatment
+	 - How long to try treatment before seeing an effect
+	 - How long to measure the effect
+	 - If the treatment is removed, how long before you return to your prior state?
+	 - How many cycles of treatment / baseline
+
+What co-variates would you want to track to identify common 'influencers' of your outcome measure?
+
+How will you know if the treatment 'works'?
+
+What factors might predict (based on your reading) why this treatment works?  What questions would you or a doctor ask to decide whether to try this experiment?
+
+
+Advanced:
+  Controls?  Blinding, etc.
+  Means of analysis?
+
+
+Questionnaire
+-----------------
+
+1) Would you consider running any one of these experiments in your own life?
+2) If yes, which treatments are of interest to you?
+3) Describe how a study may be 'counfounded' and at least one way in which you can avoid or work around confounding factors.
+4) What is a "wash-out" period and why is it important?
+5) Please describe your experience filling out the templates (easy, hard, why?)
+6) What did you find difficult to do or understand?
+7) Do you have any feedback on the user-interface?  What would make it easier to use?
+8) What information did you want to enter for which there werer no fields?     

@@ -29,7 +29,7 @@
    [:ul
     [:li [:a.tab.active-tab {:href "/app/dashboard/overview"} "Overview"]]
     [:li [:a.tab {:href "/app/dashboard/tracking"} "Tracking"]]
-    [:li [:a.tab {:href "/app/dashboard/journal"} "Journal"]]]])
+    [:li [:a.tab {:href "/app/dashboard/journal"} "Journal Log"]]]])
 
 ;; Application renders views of data   
 
@@ -50,15 +50,3 @@
 (deftemplate admin-main
   [:div [:h1 "This is the admin template"]])
 
-
-;; ===========================
-;; Dialogs
-
-(deftemplate basic-dialog
-  [:div#osx-modal-content 
-   [:div#.osx-modal-content "Help Dialog"]
-   [:div.close
-    [:a.simplemodal-close {:href "#"} "x"]]
-   [:div#osx-modal-data
-    [:h2 (% title)]
-    [:p (% body)]]])

@@ -65,7 +65,8 @@
 	    (models/fetch-models :trial :where {:user username})]
 	   ["window.Treatments" (models/fetch-models :treatment)]
 	   ["window.MyTrackers"
-	    (models/fetch-models :tracker :where {:user.$id (:_id user)})]])
+	    (models/fetch-models :tracker :where {:user.$id (:_id user)}
+				 :only [:start :user :instrument :type])]])
      (str "window.Suggestions.reset("
 	  (json/json-str (compute-suggestions))
 	  ");")]))
@@ -79,7 +80,7 @@
 		 (models/fetch-models :trial :where {:user (:username (session/current-user))})
 		 (range 1 10)))
     ["search" "Search"]
-    (when (user/admin?)
+    (when (user/is-admin?)
       ["admin" "Admin"])]
    (app-skeleton)
    (share-skeleton)

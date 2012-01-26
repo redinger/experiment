@@ -1,11 +1,12 @@
 (ns experiment.views.charts
   (:use
    experiment.libs.datetime
-   experiment.models.events
    experiment.infra.models
+   experiment.models.events
+   experiment.models.trackers
    handlebars.templates
-   noir.core
-   hiccup.page-helpers)
+   hiccup.page-helpers
+   noir.core)
   (:require
    [noir.response :as response]
    [experiment.infra.session :as session]
@@ -29,20 +30,25 @@
 ;;   :labels {:items [{:html "<div><p><b>Start</b></p></div>" :style {:left "100px" :top "100px"}}]}
    :series series})
 
-(defn- lookup-trackers [instrument start]
-  (fetch-models :tracker :where {:instrument.$id (:_id instrument)
-				 :user.$id (:_id (session/current-user))
-				 :start {:$gt start}}))
-
 (defn- get-instrument [inst]
   (fetch-model :instrument
 	       :where {:_id (mongo/object-id inst)}))
 
+(defn- get-trackers
+  "Lookup trackers for a given instrument and current user"
+  [instrument start]
+  (fetch-models :tracker :where {:instrument.$id (:_id instrument)
+				 :user.$id (:_id (session/current-user))
+				 :start {:$gt start}}))
+
 ;;(defmulti tracker-chart :measure)
 
 (defn tracker-chart [inst start end]
-  (let [trackers (lookup-trackers inst (or start 0))
-	series (sort-by first (apply concat (map :data trackers)))]
+  (let [trackers (get-trackers inst (or start 0))
+	series (if (empty? (:data (first trackers)))
+		 (get-series (session/current-user) inst start end)
+		 (sort-by first (apply concat (map :data trackers))))]
+    (println series)
     (timeseries-config (:variable inst) "spline"
       [{:name (:variable inst)
 	:data (vec series)}])))

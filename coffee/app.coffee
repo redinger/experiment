@@ -1,12 +1,13 @@
 #
 # Routes, Application and Initialization for
-#     InventHealth.com
+#     PersonalExperiments.org
 #
+
+root = exports ? this
 
 #
 # CoffeeScript Extensions
 #
-
 implements = (classes...) ->
     for klass in classes
         # static properties
@@ -164,7 +165,7 @@ window.Instruments = new Instruments
 
 # Experiments
 class Experiment extends Model
-  dbrefs: [ 'instruments' ]
+  dbrefs: [ 'instruments', 'treatment' ]
 
 class Experiments extends ModelCollection
   model: Experiment
@@ -505,12 +506,11 @@ class SummaryView extends Backbone.View
         @
 
   render: =>
-        $(@el).append '<h1>PLACEHOLDER PAGE</h1><br/><br/>'
-        $(@el).append '<h2>Active Trials</h2>'
+        $(@el).append '<h1>My Trials</h1>'
         $(@el).append view.render().el for view in @views
         view.finalize() for view in @views
-        $(@el).append '<div class="reminders"><h2>Reminders</h2></div>'
-        $(@el).append '<div class="feeds"><h2>Feeds</h2></div>'
+        $(@el).append '<div class="reminders"><h2>Reminders</h2><p>&nbsp;&nbsp;[Reminders are a list of upcoming measurement/treatment events]</p></div>'
+        $(@el).append '<div class="feeds"><h2>Feeds</h2><p>&nbsp;&nbsp;[Feeds are a list of comments / activity around experiments you are involved in or "watching"]</p></div>'
         @
 
   finalize: ->
@@ -650,7 +650,6 @@ class SearchFilterView extends Backbone.View
   initialize: ->
         @model = window.searchFilter or= new SearchFilterModel
         @initTemplate '#search-filter'
-        @dialog = @getTemplate '#basic-dialog'
 
   update: (elt) =>
         results = $('input.as-values').attr('value').split(',').filter( (x) ->
@@ -667,10 +666,6 @@ class SearchFilterView extends Backbone.View
   render: =>
         $(@el).empty()
         @inlineTemplate()
-        message =
-                title: "Search Help"
-                body: "Type 'show X' to filter by experiment"
-        $(@el).append @dialog message
         @
 
   finalize: =>
@@ -684,30 +679,9 @@ class SearchFilterView extends Backbone.View
   events:
         'click a.help-link': 'showHelpDialog'
 
-  openDialog: (d) =>
-        @container = d.container[0]
-        d.overlay.show()
-        d.container.show()
-        $('#osx-modal-content', @container).show()
-        title = $('#osx-modal-title', @container)
-        title.show()
-        h = $('#osx-modal-data', @container).height() + title.height() + 30
-        $('#osx-container').height(h)
-        $('div.close', @container).show()
-        $('#osx-modal-data', @container).show()
-
-
   showHelpDialog: (e) ->
         e.preventDefault()
-        $('#osx-modal-content').modal
-                overlayId: 'osx-overlay'
-                containerId: 'osx-container'
-                position: [100]
-                closeHTML: null
-                minHeight: 80
-                opacity: 40
-                overlayClose: true
-                onOpen: @openDialog
+        root.renderDialog "Search Help", "Type 'show X' to filter by experiment"
 
 
 # -----------------------------
@@ -854,7 +828,6 @@ class ObjectView extends Backbone.View
         instrument: '#instrument-view'
   templateMap: {}
   initialize: ->
-        @dialog = @getTemplate '#basic-dialog'
         try
                 _.map @viewMap, (id, type) =>
                         @templateMap[type] = Handlebars.compile $(id).html()
@@ -875,49 +848,27 @@ class ObjectView extends Backbone.View
   # Rendering
   render: =>
         $(@el).empty()
-        $(@el).append "<span class='breadcrumb'><a href='/app/search'>Search</a> -> #{ @model.attributes.type } -> <a href='/app/search/#{ @model.attributes.type }/#{ @model.attributes.id }'>#{ @model.attributes.title }</a></span>" if @model
+        $(@el).append "<span class='breadcrumb'><a href='/app/search'>Search</a> -> <a href='/app/search'>#{ @model.attributes.type }</a> -> <a href='/app/search/#{ @model.attributes.type }/#{ @model.attributes.id }'>#{ @model.attributes.name }</a></span>" if @model
         $(@el).append "<span class='breadcrumb'><a  href='/app/search'>Search</a></span>" unless @model
         $(@el).append @templateMap[@model.get 'type'] @model.toJSON() if @model
-        message =
-                title: "Configure Experiment"
-                body: "Placeholder Dialog pending Forms Package"
-        $(@el).append @dialog message
+        if @model
+            window.socialView.setContext @model
+            window.socialView.setEdit true
         @
 
   finalize: =>
         @delegateEvents()
 
   # Events
-  event:
-        'click button.run': 'startExperiment'
-
-  openDialog: (d) =>
-        @container = d.container[0]
-        d.overlay.show()
-        d.container.show()
-        $('#osx-modal-content', @container).show()
-        title = $('#osx-modal-title', @container)
-        title.show()
-        h = $('#osx-modal-data', @container).height() + title.height() + 30
-        $('#osx-container').height(h)
-        $('div.close', @container).show()
-        $('#osx-modal-data', @container).show()
+  events:
+        'click .run': 'startExperiment'
 
   startExperiment: (e) =>
-        alert e
         e.preventDefault()
-        $('#osx-modal-content').modal
-                overlayId: 'osx-overlay'
-                containerId: 'osx-container'
-                position: [100]
-                closeHTML: null
-                minHeight: 200
-                opacity: 40
-                overlayClose: true
-                onOpen: @openDialog
+        root.renderDialog "Configure Experiment", "Placeholder Dialog pending Forms Package"
 
 # ----------------------------------------
-#   Main browser window - rarely refreshed
+#  Main browser window - rarely refreshed
 # ----------------------------------------
 class SearchApp extends Backbone.View
   @implements TemplateView, SwitchPane
@@ -932,7 +883,7 @@ class SearchApp extends Backbone.View
            models = lookupModels [ ref ]
            if models.length > 0
                 @view.setModel models[0]
-                document.title = models[0].get 'title'
+                document.name = models[0].get 'name'
                 return true
            else
                 alert "no model found for #{ ref }" unless models
@@ -1109,7 +1060,7 @@ class SocialView extends Backbone.View
 
   render: =>
         $(@el).empty()
-        $(@el).append '<h1>Discussion</h1>'
+        $(@el).append '<h1>Public Comments</h1>'
         if @edit
                  $(@el).append "<textarea rows='5' cols='20'/><button class='comment' type='button'>Comment</button>"
         if @parent

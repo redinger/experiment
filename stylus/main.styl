@@ -1,10 +1,30 @@
 @import "functions"
 
+/* GENERIC STYLES */
+
+.hidden
+  display none
+
+.error
+  color red
+
+
 /* HOME PAGE AND STATIC CONTENT */
 
 .home-main
   width 920px     
+  min-height 400px
   margin 0 auto
+
+  h1 
+    margin-top 20px
+    margin-bottom 10px
+    font-size 20pt
+  h2
+    font-size 16pt
+  h3
+    font-size 14pt
+    margin-bottom 5px
 
 .home-header-wrap
   border-bottom medium none
@@ -139,4 +159,25 @@
     a
       color #838383
 
+/* DISCUSSION WIDGET */
+
+div.comment-form textarea
+  min-width 400px
+  min-height 100px
+
+div.discussion
+  margin-left 30px
+
+.discussion-byline
+  font-size 80%
+
+div.discussion-0
+  margin-left 0px
+  p 
+    font-weight bold
+    font-size 120%
+
+div.discussion-1 p
+  font-weight normal
+  font-size 100%
 

@@ -1,6 +1,9 @@
 (ns experiment.server
-  (:use [experiment.infra.middleware])
+  (:use [experiment.infra.middleware]
+	[clj-logging-config.log4j])
   (:require [noir.server :as server]
+	    [clojure.tools.logging :as log]
+	    [experiment.controller :as ctrl]
 	    [experiment.infra.session :as session]
 	    [clojure.data.json :as json]
 	    [somnium.congomongo :as mongo]
@@ -27,17 +30,28 @@
    :socketKeepAlive true
    :w 1))
 
-(defn start [& m]
+(defn start [& [mode]]
+  ;; Mongo Setup
   (mongo/set-connection!
    (mongo/make-connection
     :test {} mongo-options))
-  (let [mode (keyword (or (first m) :dev))
-        port (Integer. (get (System/getenv) "PORT" "8080"))
-	server (server/start
-		port {:mode mode
-		      :ns 'experiment
-		      :session-store (session/mongo-session-store)})]
-    (swap! *server* (fn [old] server))))
+  ;; Setup logging
+  (let [mode (keyword (or mode :dev))]
+    (if (= mode :dev)
+      (set-logger! "default"
+		   :level :debug
+		   :pattern "%d - %m%n")
+      (set-logger! "default"
+		   :level :warn
+		   :pattern "%d - %m%n"
+                   :out "experiment.log"))
+    ;; Start and save server
+    (let [port (Integer. (get (System/getenv) "PORT" "8080"))
+	  server (server/start
+		  port {:mode mode
+			:ns 'experiment
+			:session-store (session/mongo-session-store)})]
+      (swap! *server* (fn [old] server)))))
 
 (defn stop []
   (server/stop @*server*)

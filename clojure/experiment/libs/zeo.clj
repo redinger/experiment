@@ -17,7 +17,7 @@
 ;;  (json/parse-string
 ;   (:body
   (http/get (zeo-url action)
-	    {:query-params (assoc params :key *staging-key*)
-	       :basic-auth auth
-	       :content-type :json
-	       :accept :json}));;))
+	    {:query-params (assoc params :key *api-key*)
+	     :basic-auth auth
+	     :content-type :json
+	     :accept :json}));;))

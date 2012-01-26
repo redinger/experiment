@@ -41,7 +41,10 @@
 
 (deftemplate treatment-view
   [:div {:class "treatment-view"}
-   [:h1 (% name)]])
+   [:h1 (% name)]
+   [:p [:b "Description: "] (% description)]
+   [:p [:b "Tags: "] (% tags)]])
+	    
 
 ;; ===========================================================
 ;; INSTRUMENT [type ref]
@@ -53,7 +56,7 @@
 
 (deftemplate instrument-list-view
   [:div {:class "result instrument-list-view"}
-   [:h3 [:b "Instrument"] " for " (% variable) " via " (% src) " entry"]
+   [:h3 [:b "Instrument"] " for " (% name) " via " (% src) " entry"]
    [:p (% description)]])
 
 (deftemplate instrument-short-table
@@ -62,14 +65,18 @@
     (%each instruments
 	   [:li
 	    [:a {:href (%strcat "/app/search/instrument/" (% id))}
-	     [:span {:class "variable"} (% variable)]
+	     [:span {:class "variable"} (% name)]
 	     [:span {:class "type"} (% src)]]])
     ]])
 
 (deftemplate instrument-view
-  [:div {:class "instrument-view"}
-   [:h1 (% variable)]
-   [:p (% src)]])
+  [:div {:class "instrument-view object-view"}
+   [:h1 (% name)]
+   [:p [:b "Source: "] (% src)]
+   (%if nicknames [:p [:b "Nicknames: "] (% nicknames)])
+   [:p [:b "Description: "] (% description)]])
+
+   
 
 ;; ===========================================================
 ;; EXPERIMENT
@@ -87,25 +94,31 @@
 ;;  - op: rate (send to server, update average)
 
 (defmethod db-reference-params :experiment [model]
-  [:instruments])
+  [:instruments :treatment])
 
 (deftemplate experiment-list-view
   [:div {:class "result experiment-list-view"}
-   [:h3 [:b "Experiment: "] (% title)]])
+   [:h3 [:b "Experiment: "] (% name)]])
 
 (deftemplate experiment-view
   [:div.experiment-view
    [:h1.exp-title
-      [:span "20 trials have been run, 5 are active"]]
+      [:span (% name)]]
    [:button.run {:type "button"} "Run Experiment"]
-   [:div.instruments
-    [:h2 "Instruments used"]
-    [:ul 
-     (%each instruments
-	    [:li 
-	     [:div.inst-name (% variable)]
-	     [:div.inst-description (% description)]
-	     [:div.inst-src (% src)]])]]])
+   [:button.clone {:type "button"} "Modify Experiment"]
+   [:h2 "Treatment"]
+   (%with treatment
+	  [:p [:b "Name: "] (% name)]
+	  [:p [:b "Description: "] (% description)]
+	  [:p [:b "Tags: "] (% tags)])
+   [:h2 "Instruments used"]
+   [:div {:class "instrument-sublist"}
+    (%each instruments
+	   [:div {:class "instrument-sublist-view"}
+	    [:div.inst-name (% name) "&nbsp;(" (% src) ")"]
+	    [:div.inst-description (% description)]])]
+   [:h2 "Schedule"]
+   [:div.schedule "Schedule view TBD"]])
 
 ;; ===========================================================
 ;; TRIAL
@@ -143,7 +156,7 @@
   [:div {:class "result trial-list-view"}
    [:h3 (%with experiment (% title))]
    [:p (%with stats
-	 (%str "Run for " (% elapsed) " days with " (% remaining) " remaining"))]])
+	 (%str "Run for " (% elapsed) " days with " (% remaining) " days remaining"))]])
 
 (deftemplate trial-view-header
   [:div.trial-header
@@ -167,7 +180,7 @@
 	   [:li.trial-table-list-entry
 	    [:span.trial-title (% experiment.title)]
 	    [:p (%with stats
-		       (%str "Run for " (% elapsed) " days with " (% remaining) " remaining"))]])]])
+		       (%str "Run for " (% elapsed) " days with " (% remaining) " days remaining"))]])]])
 
 ;; ===========================================================
 ;; JOURNAL (embedded)

@@ -1,7 +1,57 @@
 (ns experiment.models.trackers
   (:use experiment.infra.models)
-  (:require [experiment.libs.datetime :as dt]
-	    [clj-time.core :as time]))
+  (:require [clj-time.core :as time]
+	    [experiment.models.samples :as data]
+	    [experiment.libs.datetime :as dt]
+	    [experiment.libs.rescuetime :as rt]))
+
+;;
+;; Working with Trackers
+;;
+
+(defn get-series
+  "Given a set of trackers, generate the filtered dataset"
+  [user inst start end]
+  (data/get-samples user inst start end))
+
+;;
+;; Rescuetime
+;;
+
+;;(defn update-tracker [tracker]
+;;  (let [user ( (:user tracker)
+;;	inst (:instrument tracker)
+;;	last-update (get-last-sample user inst)
+
+
+
+
+;; (defn rt-results-to-samples [results]
+;;   inst datetime value)
+
+;; (deftracker RTDailyProductivity []
+;;   (update [start end]
+;; 	  (rt/results-as-hours
+;; 	   (rt/productivity "day"
+;; 			    (dt/as-iso-8601 start)
+;; 			    (dt/as-iso-8601 end)))))
+
+;; (deftracker RTDailySocialNetworking [user id]
+;;   "RescueTime"
+;;   "Daily Social Network Use"
+;;   "This records the daily hours you spend on social networking sites according to the rescuetime service (primarily desktop machines)."
+;;   (update [tracker user start & end]
+;; 	  (rt-rows-to-samples
+;; 	   (rt/with-key (get-in user [:rescuetime :api-key])
+;; 	     (rt/results-as-hours
+;; 	      (rt/productivity "day"
+;; 			       (dt/as-iso-8601 start)
+;; 			       (dt/as-iso-8601 (or (first end) (dt/now))))))
+
+
+;;
+;; DEPRECATED: Testing
+;;
 
 (defn make-test-tracker [user instrument datapoints max-value]
   (let [now (dt/now)

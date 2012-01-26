@@ -7,64 +7,62 @@
 	    [clojure.data.json :as json]
 	    [somnium.congomongo :as mongo]
 	    [noir.response :as response]
-	    [noir.request :as request]))
+	    [noir.request :as request]
+	    [clojure.tools.logging :as log]))
 
+;;
 ;; An SMS gateway based on the grouptexting API
+;;
 
-;; {:user "username" :pw "password"}
+
+;; CREDENTIALS
+
 (defonce ^:dynamic *credentials* nil)
-
-;;
-;; Simple send interface
-;;
-
-(def ^:dynamic *send-url* "https://app.grouptexting.com/api/sending")
-
-(defn- url-encode [val] val)
-
-(defn- get-param [[key value]]
-  (format "%s=%s" (name key) (url-encode value)))
-
-(defn- compose-get-request [base argmap]
-  (apply str base
-	 (interleave
-	  (cons "?" (repeat (- (count argmap) 1) "&"))
-	  (map get-param argmap))))
-
-(defn- send-url [user pass number subject message]
-  (assert (< (count message) 160))
-  (assert (not (re-find #"[']" message))) 
-  (compose-get-request *send-url*
-		       {:user user
-			:pass pass
-			:phonenumber number
-			:subject subject
-			:message message}))
 
 (defn set-credentials [credentials]
   (assert (and (:user credentials) (:pw credentials)))
   (alter-var-root #'*credentials* (fn [a b] b) credentials))
 
-(defonce *send-agent* (agent {}))
-
-(defn- send [agent number subject message credentials]
-  (let [{user :user pw :pw} (or credentials *credentials*)]
-    (println user)
+(defn- inject-perms [map]
+  (let [{user :user pw :pw} *credentials*]
     (assert (and user pw))
-    (let [result (http/get (send-url user pw number subject message))]
-      (println (:body result))
-      (java.lang.Thread/sleep 500)
-      result)))
+    (merge map {:user user :pass pw})))
+
+(defmacro with-credentials [[creds] & body]
+  `(binding [*credentials* (or ~creds *credentials*)]
+     ~@body))
+
+;; BUILD REQUESTS
+
+(defn- compose-request-url
+  "Compose a map of args as key-value pairs on the base URL"
+  [base argmap]
+  (log/spy
+   (apply str base
+	  "?"
+	  (http/generate-query-string
+	   (inject-perms argmap)))))
+
+;;
+;; API: SEND MESSAGES
+;;
+
 
 (defn send-sms [number subject message & [credentials]]
-  (send-off *send-agent* send number subject message credentials)
-  nil)
+  (assert (< (count message) 160))
+  (assert (not (re-find #"[']" message)))
+  (with-credentials [credentials]
+    (http/get (compose-request-url
+	       "https://app.grouptexting.com/api/sending"
+	       {:phonenumber number
+		:subject subject
+		:message message}))))
 
 ;;
-;; Simple inbox handler
+;; API: INBOX HANDLER
 ;;
 
-(defonce *handler* nil)
+(defonce ^:dynamic *handler* nil)
 
 (defn set-reply-handler [handler]
   (alter-var-root #'*handler* (fn [a b] b) handler))
@@ -76,5 +74,16 @@
 (defpage inbox-url [:get "/sms/receive"] [{:as request}]
   (let [params (:params request)]
     (handle-reply (:from params) (:message params))
-    (-> (response "OK")
-	(status 200))))
+    (response/empty)))
+
+;;
+;; API: Account mgmt
+;;
+
+(defn account-balance [& [credentials]]
+  (with-credentials [credentials]
+    (http/get (compose-request-url
+	       "https://app.grouptexting.com/api/credits/check"
+	       {}))))
+	       
+	     

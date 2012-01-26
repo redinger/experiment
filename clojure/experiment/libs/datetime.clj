@@ -70,6 +70,32 @@
      (.appendLiteral " ")
      (.appendTimeZoneShortName))))
 
+(def ^:private iso-8601-date
+  (.toFormatter
+   (doto (DateTimeFormatterBuilder.)
+     (.appendYear 4 4)
+     (.appendLiteral "-")
+     (.appendMonthOfYear 2)
+     (.appendLiteral "-")
+     (.appendDayOfMonth 2))))
+
+(def ^:private iso-8601
+  (.toFormatter
+   (doto (DateTimeFormatterBuilder.)
+     (.appendYear 4 4)
+     (.appendLiteral "-")
+     (.appendMonthOfYear 2)
+     (.appendLiteral "-")
+     (.appendDayOfMonth 2)
+     (.appendLiteral "T")
+     (.appendHourOfDay 2)
+     (.appendLiteral ":")
+     (.appendMinuteOfHour 2)
+     (.appendSecondOfMinute 2))))
+
+(def ^:private time-fmt (fmt/formatter "h:mma" (time/default-time-zone)))
+(def ^:private date-fmt (fmt/formatter "MM/dd/yy" (time/default-time-zone)))
+
 (defn now
   "Returns a date-time"
   []
@@ -95,6 +121,9 @@
 (defn from-utc [utc]
   (coerce/from-long utc))
 
+(defn from-iso-8601 [string]
+  (fmt/parse string))
+
 (defn as-utc [dt]
   (condp = (type dt)
       java.lang.Long dt
@@ -112,4 +141,11 @@
   (when dt
     (.print short-date dt)))
 	
-	
+(defn as-iso-8601-date [dt]
+  (when dt
+    (.print iso-8601-date dt)))
+
+
+(defn to-default-tz [dt]
+  (time/to-time-zone dt (time/default-time-zone)))
+

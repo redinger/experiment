@@ -72,32 +72,31 @@ Architectural design tasks
    x Site navigation model using dispatch
 
 Feature tasks
-   
-   x Journaling and Comment Creation
-   x Tracking charts (basic)
-   x Dashboard placeholder
-   - Run Trial from Experiment view
+
+   - Style search object views
+   - Date range selection for tracker page / trial view
+   - Tracker backend services
+   - Dashboard main page
+   - Start trial from experiment view
+   - Illustrate missing data chart
    - Trial View needs treatment description
      - I want to click on tracking to change data
      - If click on calendar, show me data points for the day
-   - NO IE popup on login
-   - Social components
-   - Journal view disappears on redraw
-   - Simple object views
-   - Object creation screens
+
    - Trial schedule and view
      - Handle schedule and reminders 
-   - Outcome control chart
-   - Tracking View
-   - AH: Cover letter
-   - AH: Presentation
-   - AH: Screencast?
    - Profile editing / forms
      - Pretty forms CSS or JS
-   - Site auxilary content
-   - Styling interior pages
    - Generate content
 
+   - NO IE popup on login
+   - Outcome control chart
+
+   - Study registration
+   - Object create / edit screens
+   - Social components
+   - Site auxilary content
+   - Styling interior pages
 
 ### Tasks for v0.2 - Stability Release
 
