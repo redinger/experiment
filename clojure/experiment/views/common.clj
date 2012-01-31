@@ -8,6 +8,7 @@
 	    [experiment.infra.auth :as auth]
 	    [experiment.infra.session :as session]
 	    [experiment.infra.models :as models]
+            [clojure.tools.logging :as log]
 	    [clj-json.core :as json]
 	    [noir.request :as req]
 	    [noir.response :as resp]))
@@ -198,7 +199,7 @@
       "Login"]]))
 
 (defpartial simple-layout [{:as options :keys [header-menu] :or {header-menu true}}
-                           & content]
+                            & content]
   (html5
    (standard-head-nojs)
    [:body
@@ -207,8 +208,9 @@
      [:div.home-header-wrap
       [:div.home-header
        [:div.home-header-title
-	[:a {:class "header-link" :href "/"} "PersonalExperiments"]]
-       (when (:header-menu options)
+        [:a {:class "header-link" :href "/"} "Personal Experiments "
+         [:span {:style "color: red; font-style: italic;"} " {alpha} "]]]
+       (when header-menu
          (render-header-menu))]]
      [:div.home-main
       content]
@@ -314,7 +316,7 @@
    (standard-head-nojs)
    [:body
     [:div#wrapper
-     [:div#main
+     [:div#app-main
       (app-pane-layout app-pane)
       (nav-layout menu)
       (share-pane-layout share-pane)]
@@ -388,13 +390,18 @@
     (let [[valid message] (valid-registration-rec? user)]
       (if valid
         (do (user/create-user! (:username user) (:password user) (:email user) (:name user))
-            (auth/login user)
-            (resp/redirect (or (:target user) "/app/dashboard")))
+            (if-let [targ (:target user)]
+              (resp/redirect targ)
+              (simple-layout {}
+               [:h2 "Registration successful"]
+               [:p "You will be notified via your e-mail address when the site is ready for use.  You can then login to the site with the username and password your just selected."]
+               [:a {:href (or (:default user) "/")}
+                "Return to home page"])))
         (simple-layout {}
-         [:h2 "Registration failed"]
-         [:p message]
-         [:a {:href (or (:default user) "/")}
-          "Return to home page"])))))
+          [:h2 "Registration request failed"]
+          [:p message]
+          [:a {:href (or (:default user) "/")}
+           "Return to home page"])))))
 
 (defpage do-logout "/action/logout" {}
   (session/clear!)

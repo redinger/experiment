@@ -2,15 +2,56 @@
 @media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/functions\.styl}line{font-family:\000031}}
 
 @media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\000033}}
-/* HOME PAGE AND STATIC CONTENT */
+/* GENERIC STYLES */
 
 @media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\000035}}
+.hidden {
+  display: none;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\000038}}
+.error {
+  color: #f00;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\0000312}}
+/* HOME PAGE AND STATIC CONTENT */
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\0000314}}
 .home-main {
   width: 920px;
+  min-height: 400px;
   margin: 0 auto;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\000039}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\0000319}}
+.home-main h1 {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  line-height: 110%;
+  font-size: 20pt;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\0000325}}
+.home-main h2 {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  font-size: 16pt;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\0000330}}
+.home-main h3 {
+  margin-top: 5px;
+  margin-bottom: 5px;
+  font-size: 14pt;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\0000335}}
+.home-main p {
+  margin-top: 5px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\0000338}}
 .home-header-wrap {
   border-bottom: medium none;
   background: #eee;
@@ -19,14 +60,14 @@
   box-shadow: 0 1px 1px rgba(0,0,0,0.20);
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\0000316}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\0000345}}
 .home-header {
   width: 920px;
   height: 70px;
   margin: 0 auto;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\0000321}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\0000350}}
 .home-header-title {
   font: normal 28pt Impact;
   padding-left: 20px;
@@ -35,14 +76,14 @@
   float: left;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\0000328}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\0000357}}
 .home-header-title a {
   color: #222;
   text-decoration: none;
   outline: 0;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\0000333}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\0000362}}
 .header-menu-bar {
   float: right;
   padding: 8px 25px 8px 8px;
@@ -65,7 +106,7 @@
   text-shadow: 1px 1px 0 #fff;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\0000352}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\0000381}}
 .header-menu-bar span {
   float: left;
   padding: 0px 8px 0px 8px;
@@ -73,7 +114,7 @@
   text-shadow: none;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\0000358}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\0000387}}
 .header-menu-bar a {
   float: left;
   color: #4183c4;
@@ -81,14 +122,14 @@
   outline: 0;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\0000364}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\0000393}}
 .home-about {
-  margin: -12px 0px 15px -19px;
+  margin: -12px 0px 15px 0px;
   padding: 0;
   width: 920px;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\0000369}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\0000398}}
 .home-about h2 {
   height: auto;
   margin: 0 auto;
@@ -107,16 +148,43 @@
   background-image: linear-gradient(top, #839ba9 0%, #405a6a 100%);
   color: #fff;
   text-shadow: -1px -1px 0 rgba(0,0,0,0.20);
-  font: normal 24px "Georgia";
+  font: normal 20px "Georgia";
   letter-spacing: 0;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\0000388}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003116}}
+.home-about a {
+  color: #ddd;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003119}}
+.home-flash {
+  background-color: #eee;
+  position: relative;
+  text-align: center;
+  margin: 0 auto;
+  width: 80%;
+  padding: 10px 10px 10px 10px;
+  font-style: italic;
+  border: 1px solid;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003129}}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003131}}
+.home-logos img {
+  verticle-align: middle;
+  margin-left: 88px;
+  max-width: 200px;
+  max-height: 120px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003137}}
 .home-details {
   margin: 20px 20px 20px 0px;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\0000391}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003140}}
 .home-detail {
   float: left;
   width: 200px;
@@ -125,14 +193,14 @@
   color: #222;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\0000398}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003147}}
 .home-detail .home-detail-link {
   text-decoration: none;
   color: #222;
   outline: 0;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003103}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003152}}
 .home-detail h2 {
   width: 200px;
   padding: 0px 10px 10px 10px;
@@ -141,7 +209,7 @@
   font-style: normal;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003111}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003160}}
 .home-detail p {
   color: #666;
   background: #fff;
@@ -152,34 +220,91 @@
   font-weight: 400;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003120}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003169}}
 .footer {
   padding: 15px 0px 15px 0px;
   margin-top: 30px;
+  margin-bottom: 40px;
   background-color: #f6f6f6;
   border: 1px solid #ddd;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003126}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003176}}
 .footer-bar {
   text-align: center;
   vertical-align: middle;
   color: #838383;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003131}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003181}}
 .footer-bar a.footer-link {
   font-size: small;
   padding: 0px 8px 0px 8px;
   text-decoration: none;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003136}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003186}}
 .footer-bar p {
   font-size: x-small;
 }
 
-@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003139}}
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003189}}
 .footer-bar p a {
   color: #838383;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003192}}
+/* ARTICLES */
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003194}}
+.article {
+  width: 600px;
+  padding-bottom: 40px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003198}}
+.article h2 {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003201}}
+.article p {
+  margin-bottom: 5px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003205}}
+/* DISCUSSION WIDGET */
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003207}}
+div.comment-form textarea {
+  min-width: 400px;
+  min-height: 100px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003211}}
+div.discussion {
+  margin-left: 30px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003214}}
+.discussion-byline {
+  font-size: 80%;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003217}}
+div.discussion-0 {
+  margin-left: 0px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003219}}
+div.discussion-0 p {
+  font-weight: bold;
+  font-size: 120%;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/main\.styl}line{font-family:\00003223}}
+div.discussion-1 p {
+  font-weight: normal;
+  font-size: 100%;
 }

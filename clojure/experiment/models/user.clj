@@ -43,7 +43,6 @@
 ;;  :acl
 ;;  }
 ;; ===========================
- 
 
 ;;
 ;; Users
@@ -70,8 +69,11 @@
      :username username
      :name name
      :email email}
-    password)))
-
+    password))
+  (create-model!
+   {:type :profile
+    :username username}))
+    
 (defn get-user
   "Model for reference"
   [reference]
@@ -86,7 +88,6 @@
 	true
 	(as-dbref (get-user reference))))
      
-
 ;;
 ;; Test Users
 ;;

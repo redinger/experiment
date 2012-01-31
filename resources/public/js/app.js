@@ -1,5 +1,5 @@
 (function() {
-  var AdminApp, AppRouter, BrowserFilter, BrowserModel, DashboardApp, Experiment, Experiments, Instrument, Instruments, JournalView, JournalWrapper, MainMenu, Model, ModelCollection, ObjectView, PaneSwitcher, SearchApp, SearchFilterModel, SearchFilterView, SearchItemView, SearchListView, SearchView, SocialView, Suggestion, Suggestions, SummaryView, SwitchPane, TemplateView, Tracker, TrackerView, Trackers, Treatment, Treatments, Trial, TrialApp, TrialView, Trials, UserModel, calendarBehavior, findModel, implements, initCalendar, loadModels, makeModelMap, renderTrackerChart, resolveReference, returnUser, searchSuggestDefaults;
+  var AdminApp, AppRouter, BrowserFilter, BrowserModel, DashboardApp, Experiment, Experiments, Instrument, Instruments, JournalView, JournalWrapper, MainMenu, Model, ModelCollection, ObjectView, PaneSwitcher, SearchApp, SearchFilterModel, SearchFilterView, SearchItemView, SearchListView, SearchView, SocialView, Suggestion, Suggestions, SummaryView, SwitchPane, TemplateView, Tracker, TrackerView, Trackers, Treatment, Treatments, Trial, TrialApp, TrialView, Trials, UserModel, calendarBehavior, findModel, implements, initCalendar, loadModels, makeModelMap, renderTrackerChart, resolveReference, returnUser, root, searchSuggestDefaults;
   var __slice = Array.prototype.slice, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; }, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
     for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
     function ctor() { this.constructor = child; }
@@ -13,6 +13,7 @@
     }
     return -1;
   };
+  root = typeof exports !== "undefined" && exports !== null ? exports : this;
   implements = function() {
     var classes, getter, klass, prop, setter, _i, _len;
     classes = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
@@ -266,7 +267,7 @@
     function Experiment() {
       Experiment.__super__.constructor.apply(this, arguments);
     }
-    Experiment.prototype.dbrefs = ['instruments'];
+    Experiment.prototype.dbrefs = ['instruments', 'treatment'];
     return Experiment;
   })();
   Experiments = (function() {
@@ -720,8 +721,7 @@
     };
     SummaryView.prototype.render = function() {
       var view, _i, _j, _len, _len2, _ref, _ref2;
-      $(this.el).append('<h1>PLACEHOLDER PAGE</h1><br/><br/>');
-      $(this.el).append('<h2>Active Trials</h2>');
+      $(this.el).append('<h1>My Trials</h1>');
       _ref = this.views;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         view = _ref[_i];
@@ -732,8 +732,8 @@
         view = _ref2[_j];
         view.finalize();
       }
-      $(this.el).append('<div class="reminders"><h2>Reminders</h2></div>');
-      $(this.el).append('<div class="feeds"><h2>Feeds</h2></div>');
+      $(this.el).append('<div class="reminders"><h2>Reminders</h2><p>&nbsp;&nbsp;[Reminders are a list of upcoming measurement/treatment events]</p></div>');
+      $(this.el).append('<div class="feeds"><h2>Feeds</h2><p>&nbsp;&nbsp;[Feeds are a list of comments / activity around experiments you are involved in or "watching"]</p></div>');
       return this;
     };
     SummaryView.prototype.finalize = function() {};
@@ -916,7 +916,6 @@
   SearchFilterView = (function() {
     __extends(SearchFilterView, Backbone.View);
     function SearchFilterView() {
-      this.openDialog = __bind(this.openDialog, this);
       this.finalize = __bind(this.finalize, this);
       this.render = __bind(this.render, this);
       this.removeUpdate = __bind(this.removeUpdate, this);
@@ -926,8 +925,7 @@
     SearchFilterView.implements(TemplateView);
     SearchFilterView.prototype.initialize = function() {
       this.model = window.searchFilter || (window.searchFilter = new SearchFilterModel);
-      this.initTemplate('#search-filter');
-      return this.dialog = this.getTemplate('#basic-dialog');
+      return this.initTemplate('#search-filter');
     };
     SearchFilterView.prototype.update = function(elt) {
       var results;
@@ -946,14 +944,8 @@
       return window.Suggestions.toJSON();
     };
     SearchFilterView.prototype.render = function() {
-      var message;
       $(this.el).empty();
       this.inlineTemplate();
-      message = {
-        title: "Search Help",
-        body: "Type 'show X' to filter by experiment"
-      };
-      $(this.el).append(this.dialog(message));
       return this;
     };
     SearchFilterView.prototype.finalize = function() {
@@ -967,31 +959,9 @@
     SearchFilterView.prototype.events = {
       'click a.help-link': 'showHelpDialog'
     };
-    SearchFilterView.prototype.openDialog = function(d) {
-      var h, title;
-      this.container = d.container[0];
-      d.overlay.show();
-      d.container.show();
-      $('#osx-modal-content', this.container).show();
-      title = $('#osx-modal-title', this.container);
-      title.show();
-      h = $('#osx-modal-data', this.container).height() + title.height() + 30;
-      $('#osx-container').height(h);
-      $('div.close', this.container).show();
-      return $('#osx-modal-data', this.container).show();
-    };
     SearchFilterView.prototype.showHelpDialog = function(e) {
       e.preventDefault();
-      return $('#osx-modal-content').modal({
-        overlayId: 'osx-overlay',
-        containerId: 'osx-container',
-        position: [100],
-        closeHTML: null,
-        minHeight: 80,
-        opacity: 40,
-        overlayClose: true,
-        onOpen: this.openDialog
-      });
+      return root.renderDialog("Search Help", "Type 'show X' to filter by experiment");
     };
     return SearchFilterView;
   })();
@@ -1160,7 +1130,6 @@
     __extends(ObjectView, Backbone.View);
     function ObjectView() {
       this.startExperiment = __bind(this.startExperiment, this);
-      this.openDialog = __bind(this.openDialog, this);
       this.finalize = __bind(this.finalize, this);
       this.render = __bind(this.render, this);
       this.setModel = __bind(this.setModel, this);
@@ -1175,7 +1144,6 @@
     };
     ObjectView.prototype.templateMap = {};
     ObjectView.prototype.initialize = function() {
-      this.dialog = this.getTemplate('#basic-dialog');
       try {
         return _.map(this.viewMap, __bind(function(id, type) {
           return this.templateMap[type] = Handlebars.compile($(id).html());
@@ -1195,10 +1163,9 @@
       return this.render();
     };
     ObjectView.prototype.render = function() {
-      var message;
       $(this.el).empty();
       if (this.model) {
-        $(this.el).append("<span class='breadcrumb'><a href='/app/search'>Search</a> -> " + this.model.attributes.type + " -> <a href='/app/search/" + this.model.attributes.type + "/" + this.model.attributes.id + "'>" + this.model.attributes.title + "</a></span>");
+        $(this.el).append("<span class='breadcrumb'><a href='/app/search'>Search</a> -> <a href='/app/search'>" + this.model.attributes.type + "</a> -> <a href='/app/search/" + this.model.attributes.type + "/" + this.model.attributes.id + "'>" + this.model.attributes.name + "</a></span>");
       }
       if (!this.model) {
         $(this.el).append("<span class='breadcrumb'><a  href='/app/search'>Search</a></span>");
@@ -1206,45 +1173,21 @@
       if (this.model) {
         $(this.el).append(this.templateMap[this.model.get('type')](this.model.toJSON()));
       }
-      message = {
-        title: "Configure Experiment",
-        body: "Placeholder Dialog pending Forms Package"
-      };
-      $(this.el).append(this.dialog(message));
+      if (this.model) {
+        window.socialView.setContext(this.model);
+        window.socialView.setEdit(true);
+      }
       return this;
     };
     ObjectView.prototype.finalize = function() {
       return this.delegateEvents();
     };
-    ObjectView.prototype.event = {
-      'click button.run': 'startExperiment'
-    };
-    ObjectView.prototype.openDialog = function(d) {
-      var h, title;
-      this.container = d.container[0];
-      d.overlay.show();
-      d.container.show();
-      $('#osx-modal-content', this.container).show();
-      title = $('#osx-modal-title', this.container);
-      title.show();
-      h = $('#osx-modal-data', this.container).height() + title.height() + 30;
-      $('#osx-container').height(h);
-      $('div.close', this.container).show();
-      return $('#osx-modal-data', this.container).show();
+    ObjectView.prototype.events = {
+      'click .run': 'startExperiment'
     };
     ObjectView.prototype.startExperiment = function(e) {
-      alert(e);
       e.preventDefault();
-      return $('#osx-modal-content').modal({
-        overlayId: 'osx-overlay',
-        containerId: 'osx-container',
-        position: [100],
-        closeHTML: null,
-        minHeight: 200,
-        opacity: 40,
-        overlayClose: true,
-        onOpen: this.openDialog
-      });
+      return root.renderDialog("Configure Experiment", "Placeholder Dialog pending Forms Package");
     };
     return ObjectView;
   })();
@@ -1268,7 +1211,7 @@
       models = lookupModels([ref]);
       if (models.length > 0) {
         this.view.setModel(models[0]);
-        document.title = models[0].get('title');
+        document.name = models[0].get('name');
         return true;
       } else {
         if (!models) {
@@ -1487,7 +1430,7 @@
     SocialView.prototype.render = function() {
       var c, comments, _i, _len, _ref;
       $(this.el).empty();
-      $(this.el).append('<h1>Discussion</h1>');
+      $(this.el).append('<h1>Public Comments</h1>');
       if (this.edit) {
         $(this.el).append("<textarea rows='5' cols='20'/><button class='comment' type='button'>Comment</button>");
       }

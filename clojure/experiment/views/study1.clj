@@ -4,6 +4,7 @@
         hiccup.page-helpers
 	hiccup.form-helpers
 	experiment.infra.models
+	experiment.models.user
         experiment.views.discuss)
   (:require
    [clojure.tools.logging :as log]
@@ -24,23 +25,20 @@
 ;; Utilities
 
 (defpartial inline-login []
-  (form-to [:post "/action/login?target=/study1"]
-           (label "username" "Username")
-           (text-field "username")
-           (label "password" "Password")
-           (password-field "password")
-           (submit-button "Login")))
-
-(defn fetch-user-profile [user]
-  (fetch-model :profile :where {:username (:username user)}))
+  (if-let [user (session/current-user)]
+    [:span "Logged in as: " (:username user)]
+    (form-to [:post "/action/login?target=/study1"]
+             (label "username" "Username")
+             (text-field "username")
+             (label "password" "Password")
+             (password-field "password")
+             (submit-button "Login"))))
 
 (defn consent-patient! []
-  (let [profile (fetch-user-profile (session/current-user))]
-    (update-model! (assoc profile :study1-consented true))))
+  (set-user-property! :study1-consented true))
 
 (defn patient-consented? []
-  (let [profile (fetch-user-profile (session/current-user))]
-    (:study1-consented profile)))
+  (get-user-property :study1-consented))
 
 ;; Study home page
 
@@ -48,9 +46,7 @@
   (common/simple-layout {:header-menu false}
    [:div
     [:h2 "Welcome to the world of single-subject experimentation"]
-    (when (not (session/logged-in?))
-      (inline-login))
-
+    (inline-login)
     [:p "This research study seeks how we can better apply the
          scientific method to exploring the impact of the everyday
          decisions we make about our health."]
@@ -71,12 +67,15 @@
        [:li "Login or " [:a {:class "register-link" :href "/action/register?target=/study1"}
                          "Register"] " to get an account"])
      [:li (link-to "/study1/doc/study1-protocol" "Read the Study Protocol")]
-     [:li (link-to "/study1/doc/study1-background" "Introduction to Single-Subject Experimentation")]]
+     [:li (link-to "/study1/doc/study1-background" "Introduction to Single-Subject Experimentation")]
+     [:li (link-to "/study1/doc/study1-example" "Example Experiment")]]
     (when (patient-consented?)
       (list [:h3 "Actions"]
             [:ul
              [:li (link-to "/study1/discuss" "Online Q&A")]
+             [:li (link-to "/study1/doc/study1-suggestions" "Treatments to Explore")]
              [:li (link-to "/study1/doexp/" "Author a Study")]
+             [:li (link-to "http://qualtrics.com" "Take the Exit Survey")]
              [:li (link-to "/action/logout" "Logout")]]))]))
 
 (defpage "/study1" {}
@@ -96,7 +95,7 @@
 ;; Information pages
 
 (defn format-article [text]
-  (str/replace text #"\n" "<br>"))
+ (str/replace text #"\n" "<br>"))
 
 (defn get-article [name]
   (fetch-model :article :where {:name name}))
@@ -107,9 +106,9 @@
      (if article
        [:div#main
         (link-to "/study1" "Return to Study Page...")
-        [:h1 (:title article)]
-        [:br][:br]
-        (format-article (:body article))]
+        [:div.article
+         [:h1 (:title article)]
+         (:html article)]]
        [:div#main
         [:h1 "No Article named '" name "' found"]]))))
 
@@ -121,11 +120,10 @@
 (defpartial render-consent []
   (let [consent (get-article "study1-consent")]
     [:div#main
-     [:h1 (:title consent)]
-     [:br] [:br]
-     (format-article (:body consent))
-     [:br] [:br]
-     (render-consent-form)]))
+     [:div.article
+       [:h1 (:title consent)]
+       (:body consent)
+       (render-consent-form)]]))
      
 (defpage "/study1/consent" {}
   (common/simple-layout {:header-menu false}
@@ -133,7 +131,6 @@
 
 (defpage [:post "/study1/consent"] {}
   (let [req req/*request*]
-    (println req)
     (consent-patient!)
     (resp/redirect "/study1")))
 
@@ -154,8 +151,46 @@
       (discuss/with-submission data
         (render "/study1/discuss" data)))))
 
+;; ========================================
+;; Experiment Template
+;; ========================================
+
+(defn record-experiment [spec]
+  (create-model!
+   (assoc spec
+     :type :study1-experiment
+     :owner (:username (session/current-user))
+     :date (dt/as-utc (dt/now)))))
+
 ;; Study authoring page
 
+(defpartial experiment-fields [spec]
+  [:div])
 
+(defpartial experiment-form [spec]
+  [:div])
 
+(defpartial experiment-thank-you [title]
+  [:h1 "Submission Successful"]
+  [:p "Thank you for submitting the experiment '" title
+   "'.  We encourage you to research more possible treatments and provide additional submissions."]
+  [:a {:href "/study1"} "Return to Study Page"])
+
+(defpage "/study1/author" {:as spec}
+  (common/simple-layout {:header-menu false}
+    [:a {:href "/study1"} "Return to Study Page"]
+    (experiment-form spec)))
+
+(defn experiment-valid? [spec]
+  true)
+
+(defpage [:post "/study1/author"] {:as spec}
+  (common/simple-layout {:header-menu false}
+    (if (experiment-valid? spec)
+      (do
+        (record-experiment spec)
+        (experiment-thank-you (:title spec)))
+      (render "/study1/author"))))
+
+                        
 
