@@ -51,17 +51,6 @@
 (defmethod valid-model-params? :user [user]
   (and (:username user)))
 
-(defn has-permission? [perm]
-  ((set (:permissions (session/current-user))) perm))
-
-(defn is-admin? []
-  (has-permission? "admin"))
-  
-;;(defmethod client-keys :user [user]
-;;  [:name :avatar :bio :gender :country :state
-;;   :weight :yob :units :default_privacy
-;;   :background :acl])
-
 (defn create-user! [username password email name]
   (create-model!
    (auth/set-user-password
@@ -88,8 +77,13 @@
 	true
 	(as-dbref (get-user reference))))
 
+(defmethod client-keys :user [user]
+  [:name :avatar :bio :gender :country :state
+   :weight :yob :units :default_privacy
+   :background :acl])
+
 ;;
-;; Profile
+;; User Profile
 ;;
 
 (defn get-user-property
@@ -98,12 +92,23 @@
   ([property]
      (get-user-property (session/current-user) property)))
   
-(defn set-user-property! [user property value]
+(defn set-user-property! 
   ([user property value]
      (update-model!
       (assoc-in user [:profile property] value)))
   ([property value]
      (set-user-property! (session/current-user) property value)))
+
+;;
+;; User Permissions
+;;
+
+(defn has-permission? [perm]
+  ((set (:permissions (session/current-user))) perm))
+
+(defn is-admin? []
+  (has-permission? "admin"))
+  
 
 ;;
 ;; Test Users

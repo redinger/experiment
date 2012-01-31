@@ -73,6 +73,8 @@
 
 (defpartial standard-head-nojs [& head-content]
   [:head
+   [:link {:rel "shortcut icon"
+           :href "/img/favicon.ico"}]
    [:title "Personal Experiments"]
    (include-standard-css)
    head-content
@@ -80,6 +82,8 @@
 
 (defpartial standard-head [& head-content]
   [:head
+   [:link {:rel "shortcut icon"
+           :href "/img/favicon.ico"}]
    [:title "Personal Experiments"]
    (include-standard-css)
    (include-vendor-libs)
@@ -134,7 +138,7 @@
            (hidden-field "target" (% target))
            (hidden-field "default" (% default))
 	   [:div {:class "buttons"}
-	    [:input {:type "submit" :name "submit" :value "Login"}]
+	    [:input {:type "submit" :name "submit" :value "Register"}]
 	    [:input {:class "cancel-button" :type "submit" :name "cancel" :value "Cancel"}]]))
 
 
@@ -386,26 +390,26 @@
 
 (defpage do-register [:post "/action/register"] {:as user}
   (if (:cancel user)
-    (resp/redirect (or (:default user) "/"))
+    (resp/redirect "/")
     (let [[valid message] (valid-registration-rec? user)]
       (if valid
         (do (user/create-user! (:username user) (:password user) (:email user) (:name user))
             (if-let [targ (:target user)]
-              (resp/redirect targ)
+              (resp/redirect (or targ "/"))
               (simple-layout {}
                [:h2 "Registration successful"]
                [:p "You will be notified via your e-mail address when the site is ready for use.  You can then login to the site with the username and password your just selected."]
-               [:a {:href (or (:default user) "/")}
+               [:a {:href "/"}
                 "Return to home page"])))
         (simple-layout {}
           [:h2 "Registration request failed"]
-          [:p message]
-          [:a {:href (or (:default user) "/")}
+          [:p [:b "Cause: "] message]
+          [:a {:href "/"}
            "Return to home page"])))))
 
-(defpage do-logout "/action/logout" {}
+(defpage do-logout "/action/logout" {:as options}
   (session/clear!)
-  (resp/redirect "/"))
+  (resp/redirect (or (:target options) "/")))
 
 (defpage show-map "/util/show-request" {}
   (simple-layout {}

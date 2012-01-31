@@ -87,4 +87,16 @@
    (bootstrap-data)))
 
 
-     
+;;
+;; Pre-alpha transition page
+;;
+
+(pre-route "/app*" {}
+  (when (not (user/is-admin?))
+    (resp/redirect "/coming-soon")))
+
+(defpage "/coming-soon" {}
+  (common/simple-layout {}
+   [:div.main
+    [:h2 "Thank you for registering"]
+    [:p "PersonalExperiments.org will be available for use shortly.  We will send e-mails to all registered users when the site launches later in February.  In the meantime, your account enables you to participate in our first " [:a {:href "/study1"} "research study"] "."]]))

@@ -15,31 +15,31 @@
   [{:header "Find Treatments"
     :body "This site contains dozens of small lifestyle changes and
      alternative therapies you can try out on your own to see if they help."
-    :link "/article/experiments"}
+    :link "/article/treatment"}
    {:header "Experiment"
     :body "The site can help you try out new treatments by running
     structured, personal experiments that help you track your
     treatments, symptoms, and assess impact."
-    :link "/article/trials"}
-   {:header "Design your own"
-    :body "You can use a previously-defined experiment, or you can add
-    your own treatments and experiments. You can help this feature by <a
-    href=\"/study1\">participating in our study.</a>"
-    :link "/article/design"}
-   {:header "Share Outcomes"
-    :body "You can journal privately or publicly about your
-    experiences.  You can comment and discuss treatments or
-    experiments with other users or on social media"
-    :link "/article/sharing"}
+    :link "/article/experiment"}
    {:header "Simplify Tracking"
     :body "We integrate with the Zeo, Strava.com, your phone's SMS,
     and over e-mail to simplify your self discovery process.  More
     integrations are coming!"
-    :link "/article/experiments"}
+    :link "/article/track"}
+   {:header "Share Outcomes"
+    :body "You can journal privately or publicly about your
+    experiences.  You can comment and discuss treatments or
+    experiments with other users or on social media"
+    :link "/article/share"}
+   {:header "Design your own"
+    :body "You can use a previously-defined experiment, or you can add
+    your own treatments and experiments. You can help improve this
+    feature by <a href=\"/study1\">participating in our study.</a>"
+    :link "/article/design"}
    {:header "Learn more..."
    :body "This project is a work in progress to help us understand how
    ordinary people can collaborate to make personal discoveries about
-   treatments. See our <a href=\"/article/about\">demo</a>"
+   treatments." ;; See our <a href=\"/article/about\">demo</a>"
    :link "/article/about"}])
 	 
 (defpartial render-home-detail [record]
@@ -56,10 +56,6 @@
   [:hr]
   [:div.home-details
    (map render-home-detail (drop 3 detail-records))])
-
-(defpartial render-home-newsflash []
-  [:div.home-flash
-   [:h3 "This site was submitted to the Academy Health REACH contest last November and we are happy to announce that we were selected as one of two runners-up.  You can register now on the site and you will be notified when the site is open for general use later this month."]])
 
 (defn render-image-link [url imgurl & {:as styles}]
   [:a {:href url}
@@ -86,7 +82,7 @@
 ;;     (resp/redirect "/app")
    (common/simple-layout {}
 ;;    [:div.home-about
-                         ;;     [:h2 "Experiment and share novel therapies for healthy living"]]
+;;     [:h2 "Experiment and share novel therapies for healthy living"]]
     [:div.home-about
      [:h2 [:b "Newsflash: "] " PersonalExperiments.org wins " [:a {:href "http://academyhealth.org"} "runner-up"] " in " [:a {:href "http://academyhealth.org"} "Academy Health's"] [:br] [:a {:href "http://www.health2challenge.org/relevant-evidence-to-advance-care-and-health-reach/"} "REACH competition"] " under the entry 'Aggregated Self-Experiments'"]]
 ;;    (render-home-newsflash)

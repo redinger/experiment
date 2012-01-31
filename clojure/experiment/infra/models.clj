@@ -179,8 +179,10 @@
 
 (defmulti create-model! :type)
 (defmulti update-model! :type)
+(defmulti update-model-pre (comp str :type))
 (defmulti fetch-model (fn [type & options] type))
 (defmulti fetch-models (fn [type & options] type))
+(defmulti delete-model-pre (comp str :type))
 (defmulti delete-model! :type)
 (defmulti annotate-model! (fn [type field anno] type))
 
@@ -262,14 +264,19 @@
   (let [bare (dissoc model :_id :id :type)]
     {:$set bare}))
 
+(defmethod update-model-pre :default
+  [model]
+  model)
+
 (defmethod update-model! :default
   [model]
   (if (valid-model-params? model)
-    (.getError
-     (mongo/update! (model-collection model)
-		    {:_id (:_id model)}
-		    (update-by-modifiers model)
-		    :upsert false))
+    (let [model (update-model-pre model)]
+      (.getError
+       (mongo/update! (model-collection model)
+                      {:_id (:_id model)}
+                      (update-by-modifiers model)
+                      :upsert false)))
     "Error"))
 
 (defmethod annotate-model! :default
