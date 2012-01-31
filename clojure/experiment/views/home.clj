@@ -36,7 +36,7 @@
     and over e-mail to simplify your self discovery process.  More
     integrations are coming!"
     :link "/article/experiments"}
-   {:header "<a href=\"/article/about\">Learn more...</a>"
+   {:header "Learn more..."
    :body "This project is a work in progress to help us understand how
    ordinary people can collaborate to make personal discoveries about
    treatments. See our <a href=\"/article/about\">demo</a>"

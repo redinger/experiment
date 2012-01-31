@@ -87,7 +87,24 @@
 	(as-dbref reference)
 	true
 	(as-dbref (get-user reference))))
-     
+
+;;
+;; Profile
+;;
+
+(defn get-user-property
+  ([user property]
+     (get-in user [:profile property]))
+  ([property]
+     (get-user-property (session/current-user) property)))
+  
+(defn set-user-property! [user property value]
+  ([user property value]
+     (update-model!
+      (assoc-in user [:profile property] value)))
+  ([property value]
+     (set-user-property! (session/current-user) property value)))
+
 ;;
 ;; Test Users
 ;;
