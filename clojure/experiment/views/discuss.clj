@@ -9,6 +9,7 @@
    [noir.validation :as vali]
    [clodown.core :as md]
    [experiment.libs.datetime :as dt]
+   [experiment.infra.session :as session]
    [experiment.models.comment :as comment]))
 
 ;; Active forms
@@ -71,7 +72,8 @@
   ([base discussion level]
      [:div {:class (discussion-class level)}
       (comment-body discussion)
-      (comment-form base "Reply" (str (:_id discussion)))
+      (when (session/current-user)
+        (comment-form base "Reply" (str (:_id discussion))))
       (map #(discussion-thread base % (+ level 1)) (:children discussion))
       (if (= level 0) [:hr])])
   ([base discussion]
@@ -84,7 +86,9 @@
      (if (empty? discussions)
        [:h3 "No discussions found"]
        (map (partial discussion-thread base) discussions))
-     (comment-form base "New Discussion" nil))))
+     (if (session/current-user)
+       (comment-form base "New Discussion" nil)
+       [:h3 "You must be logged-in to add comments"]))))
    
     
 

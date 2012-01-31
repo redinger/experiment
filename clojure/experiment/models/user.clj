@@ -58,10 +58,7 @@
      :username username
      :name name
      :email email}
-    password))
-  (create-model!
-   {:type :profile
-    :username username}))
+    password)))
     
 (defn get-user
   "Model for reference"
