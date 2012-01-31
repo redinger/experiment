@@ -84,7 +84,7 @@
 ;;    [:div.home-about
 ;;     [:h2 "Experiment and share novel therapies for healthy living"]]
     [:div.home-about
-     [:h2 [:b "Newsflash: "] " PersonalExperiments.org wins " [:a {:href "http://academyhealth.org"} "runner-up"] " in " [:a {:href "http://academyhealth.org"} "Academy Health's"] [:br] [:a {:href "http://www.health2challenge.org/relevant-evidence-to-advance-care-and-health-reach/"} "REACH competition"] " under the entry 'Aggregated Self-Experiments'"]]
+     [:h2 [:b "Newsflash: "] " PersonalExperiments.org wins " [:a {:href "http://blog.academyhealth.org/?p=574"} "runner-up"] " in " [:a {:href "http://academyhealth.org"} "Academy Health's"] [:br] [:a {:href "http://www.health2challenge.org/relevant-evidence-to-advance-care-and-health-reach/"} "REACH competition"] " under the entry 'Aggregated Self-Experiments'"]]
 ;;    (render-home-newsflash)
     (render-home-details)
     [:div {:style "clear: both;"}]
