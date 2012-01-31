@@ -59,8 +59,9 @@
          participate in the study, register for an account.  This will
          enable you to login to the study page and consent to the
          study.  This registration will enable you to login to the
-         account as well.  To withdraw or have your account deleted,
-         please e-mail eslick@media.mit.edu"]
+         main personal experiments site when it launches.
+         To withdraw or have your account deleted, please e-mail
+         eslick@media.mit.edu"]
     [:h3 "Procedures"]
     [:ol
      [:li (link-to "/study1/doc/study1-protocol" "Review the Study Protocol")]

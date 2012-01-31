@@ -10,6 +10,7 @@
 	    [experiment.infra.models :as models]
             [clojure.tools.logging :as log]
 	    [clj-json.core :as json]
+            [experiment.libs.mail :as mail]
 	    [noir.request :as req]
 	    [noir.response :as resp]))
 
@@ -48,7 +49,7 @@
 
   var _gaq = _gaq || [];
   _gaq.push(['_setAccount', 'UA-11911393-4']);
-  _gaq.push(['_setDomainName', 'none']);
+  _gaq.push(['_setDomainName', 'personalexperiments.org']);
   _gaq.push(['_setAllowLinker', true]);
   _gaq.push(['_trackPageview']);
 
@@ -388,19 +389,25 @@
         true
         [true nil]))
 
+(def reg-notice-body "User '%s' (%s) just registered on personalexperiments.org")
+
+(defn register-new-user [user]
+  (user/create-user! (:username user) (:password user) (:email user) (:name user))
+  (mail/send-site-message
+   {:subject "New registration"
+    :body (format reg-notice-body (:username user) (:name user))}))
+
 (defpage do-register [:post "/action/register"] {:as user}
   (if (:cancel user)
     (resp/redirect "/")
     (let [[valid message] (valid-registration-rec? user)]
       (if valid
-        (do (user/create-user! (:username user) (:password user) (:email user) (:name user))
-            (if-let [targ (:target user)]
-              (resp/redirect (or targ "/"))
-              (simple-layout {}
-               [:h2 "Registration successful"]
-               [:p "You will be notified via your e-mail address when the site is ready for use.  You can then login to the site with the username and password your just selected."]
-               [:a {:href "/"}
-                "Return to home page"])))
+        (do (register-new-user user)
+            (simple-layout {}
+             [:h2 "Registration successful"]
+             [:p "You will be notified via your e-mail address when the site is ready for use.  You can then login to the site with the username and password your just selected."]
+             [:a {:href (or (:target user) "/")}
+              "Return to home page"]))
         (simple-layout {}
           [:h2 "Registration request failed"]
           [:p [:b "Cause: "] message]

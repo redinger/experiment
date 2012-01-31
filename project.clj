@@ -13,6 +13,7 @@
 			   [congomongo "0.1.7-SNAPSHOT"]
 			   [clojureql/clojureql "1.1.0-SNAPSHOT"]
 			   ;; Clojure Libs
+                           [com.draines/postal "1.7-SNAPSHOT"]
 			   [clj-http "0.2.5"]
 			   [org.clojars.kovasb/clj-json "0.3.2-SNAPSHOT"]
 			   [handlebars-clj "0.9-SNAPSHOT"]
