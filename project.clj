@@ -31,9 +31,9 @@
 			      :pidfile "./server.pid"}}
             ;; Development Libs
 	    :dev-dependencies [[lein-daemon "0.4.0"]
+                               [swank-clojure "1.4.0"]
                                [clojure-source "1.3.0"]
-	    		       [lein-multi "1.1.0-SNAPSHOT"]
-			       [lein-run "1.0.0-SNAPSHOT"]]
+	    		       [lein-multi "1.1.0-SNAPSHOT"]]
             ;; For CDT
             :jvm-opts ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
             :extra-classpath-dirs ["/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Classes/classes.jar"]
