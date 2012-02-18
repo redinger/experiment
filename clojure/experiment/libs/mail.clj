@@ -9,6 +9,12 @@
       :ssl true}
    message))
 
+(defn send-message-to [email message]
+  (assert (every? #(get message %) [:subject :body]))
+  (send-message (merge {:to email
+                        :from "ianeslick@gmail.com"}
+                       message)))
+
 (defn send-site-message [message]
   (assert (every? #(get message %) [:subject :body]))
   (send-message (merge {:to "ianeslick@gmail.com"

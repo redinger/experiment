@@ -38,25 +38,31 @@ else
 # - Load everything for now
 # - To scale, lazy-load base collections as needed (TBD)
 
+# NOTE: Roll this into the App object
+
 # Resolving references utility
 findModel = (models, id) ->
         models.find (mod) => mod.id == id
 
 returnUser = (id) ->
-        if id == window.User.get('id')
-                window.User
+        if id == App.User.get('id')
+           return App.User
         else
-                alert "Found object reference to another user #{ id }"
+           user = findModel App.Users, id
+           if not user
+              alert "Found object reference to another user #{ id }"
+           else
+              return user
 
 resolveReference = (ref) ->
         if ref
           alert "Bad Reference [#{ ref }]" if not _.isArray ref if ref
           switch ref[0]
-            when 'experiment' then findModel window.Experiments, ref[1]
-            when 'treatment' then findModel window.Treatments, ref[1]
-            when 'instrument' then findModel window.Instruments, ref[1]
-            when 'trial' then findModel window.MyTrials, ref[1]
-            when 'tracker' then findModel window.MyTrackers, ref[1]
+            when 'experiment' then findModel App.Experiments, ref[1]
+            when 'treatment' then findModel App.Treatments, ref[1]
+            when 'instrument' then findModel App.Instruments, ref[1]
+            when 'trial' then findModel App.MyTrials, ref[1]
+            when 'tracker' then findModel App.MyTrackers, ref[1]
             when 'user' then returnUser ref[1]
             else alert "Reference not found [#{ ref }]"
 
@@ -102,38 +108,6 @@ class ModelCollection extends Backbone.Collection
   resolveReferences: =>
         @map (mod) -> mod.resolveRefs()
 
-# MODEL INDEX
-
-makeModelMap = ->
-   map = {}
-   for inst in window.Instruments.models
-       map[inst.get 'id'] = inst
-   for exp in window.Experiments.models
-       map[exp.get 'id'] = exp
-   for treat in window.Treatments.models
-       map[treat.get 'id'] = treat
-   for trial in window.MyTrials.models
-       map[trial.get 'id'] = trial
-   for tracker in window.MyTrackers.models
-       map[trial.get 'id'] = tracker
-   window.modelMap = map
-
-window.lookupModels = (refs) ->
-   models = []
-   if _.isArray(refs) and _.isArray(refs[0])
-        for [type, id] in refs
-           model = window.modelMap[id]
-           if model
-                models.push model
-           else
-                alert "model not found #{ id }"
-   else if _.isArray(refs) and _.isArray.length == 2
-      model = window.modelMap[refs[1]]
-      if model
-          models.push window.modelMap[refs[1]]
-      else
-          alert "model not found #{ id }"
-   models
 
 #######################################################
 # CONCRETE MODELS
@@ -144,7 +118,6 @@ class Suggestion extends Backbone.Model
 class Suggestions extends Backbone.Collection
   model: Suggestion
 
-window.Suggestions = new Suggestions
 
 # Treatments
 class Treatment extends Model
@@ -154,14 +127,12 @@ class Treatment extends Model
 
 class Treatments extends ModelCollection
   model: Treatment
-window.Treatments = new Treatments
 
 # Instruments
 class Instrument extends Model
 
 class Instruments extends ModelCollection
   model: Instrument
-window.Instruments = new Instruments
 
 # Experiments
 class Experiment extends Model
@@ -169,7 +140,6 @@ class Experiment extends Model
 
 class Experiments extends ModelCollection
   model: Experiment
-window.Experiments = new Experiments
 
 # My Trials
 class Trial extends Model
@@ -177,23 +147,114 @@ class Trial extends Model
 
 class Trials extends ModelCollection
   model: Trial
-window.MyTrials = new Trials
 
-
-# User Object
-# - Always initialized by the server
-# - Singleton model, so use uppercase instance convention
-class UserModel extends Backbone.Model
-  username: -> @get('username')
-  adminp: -> 'admin' in @get('permissions')
-window.User = new UserModel
-
+# Trackers
 class Tracker extends Model
   dbrefs: ['user', 'instrument']
 
 class Trackers extends ModelCollection
   model: Tracker
-window.MyTrackers = new Trackers
+
+# User Object
+# - Always initialized by the server
+# - Singleton model, so use uppercase instance convention
+class UserModel extends Model
+  username: -> @get('username')
+  adminp: -> 'admin' in @get('permissions')
+
+class UserModels extends ModelCollection
+  model: UserModel
+
+#########################################################
+# Main Application Object
+
+class Application extends Backbone.View
+  el: $('#app-wrap')
+  Instruments: new Instruments
+  Treatments: new Treatments
+  Experiments: new Experiments
+  Suggestions: new Suggestions
+  MyTrials: new Trials
+  MyTrackers: new Trackers
+  User: new UserModel
+  Users: new UserModels
+
+  start: () ->
+    # Get the main user
+    if not @User
+       @User.fetch()
+
+    # Resolve bootstrapped references
+    @Instruments.resolveReferences()
+    @Experiments.resolveReferences()
+    @MyTrials.resolveReferences()
+    @MyTrackers.resolveReferences()
+    @Treatments.resolveReferences()
+    @makeModelMap()
+
+    # Populate and render main switcher panes
+    @switcher = new PaneSwitcher
+       id: 'app-tabs'
+       panes:
+           dashboard: new DashboardPane
+           search: new SearchPane
+           profile: new ProfilePane
+           admin: new AdminPane
+           trials: new TrialPane
+
+    @router = new AppRouter
+    @router.on 'route:selectApp', @switchApp
+
+    @render()
+    @
+
+  render: =>
+    @$el.append @switcher.render().el
+    @
+
+
+  # MODEL INDEX
+  makeModelMap: ->
+    map = {}
+    classes = [@Instruments, @Experiments, @Treatments, @MyTrials, @MyTrackers]
+    _(classes).each (c) -> for m in c.models
+                                 map[m.get 'id'] = m
+    @modelMap = map
+
+  switchApp: (pname, path) =>
+    if typeof path == 'undefined'
+        @menu.setMenu pname
+    else
+        @menu.setMenu pname + "/" + path
+    pane = @switcher.getPane(pname)
+    if pane
+        @switcher.hideOtherPanes()
+        pane.showPane()
+        pane.dispatch path
+    else
+        @switcher.hideOtherPanes()
+        $('#errorApp').show()
+
+  lookupModels: (refs) =>
+    models = []
+    if _.isArray(refs) and _.isArray(refs[0])
+         for [type, id] in refs
+            model = App.modelMap[id]
+            if model
+                 models.push model
+            else
+                 alert "model not found #{ id }"
+    else if _.isArray(refs) and _.isArray.length == 2
+       model = @modelMap[refs[1]]
+       if model
+           models.push @modelMap[refs[1]]
+       else
+           alert "model not found #{ id }"
+    models
+
+# Application instance and local/global aliases
+window.ExApp = new Application
+App = window.ExApp
 
 ###################################################
 # Local Models
@@ -262,17 +323,14 @@ renderTrackerChart = (id, instrument, start, extra, options) ->
 
         $.getJSON "/api/charts/tracker",
                 inst: instrument.get 'id'
-                start: start,
-                (config) ->
+                start: start, (config) ->
                         config = $.extend config, options
-                        window.chart_config = config
+                        App.chart_config = config
                         new Highcharts.Chart config
 
 
-
-
 ####################################################
-# Widgets and Base Classes                         #
+# View Widgets and Base Classes                    #
 ####################################################
 
 #
@@ -303,13 +361,13 @@ class TemplateView
   renderTemplate: (model, template) ->
         model = @resolveModel model
         template or= @template
-        $(@el).html template model.toJSON()
+        @$el.html template model.toJSON()
         @
 
   inlineTemplate: (model, template) ->
         model = @resolveModel model
         template or= @template
-        $(@el).append template model.toJSON()
+        @$el.append template model.toJSON()
 
 
 #
@@ -317,69 +375,47 @@ class TemplateView
 #
 class SwitchPane
   visiblep: =>
-        if $(@el).is(':visible')
+        if @$el.is(':visible')
            true
         else
            false
 
   hidePane: =>
         if @visiblep()
-           $(@el).hide()
+#           @$el.fadeOut('fast')
+           @$el.hide()
 #        promise = $.Deferred (dfd) => @el.fadeOut('fast', dfd.resolve)
 #        promise.promise()
 
   showPane: =>
         if not @visiblep()
-           $(@el).show()
+#           @$el.fadeIn('fast')
+           @$el.show()
 #        promise = $.Deferred (dfd) => @el.fadeIn('fast', dfd.resolve)
 #        promise.promise()
 
   dispatch: (path) =>
-        @render()
+         @
 
 
 #
 # PaneSwitcher - Manages a set of AppView objects, only one of which
 #    should be displayed at a time
 #
-class PaneSwitcher
+class PaneSwitcher extends Backbone.View
   # List of panes
   panes: {}
-  constructor: (panes) ->
-        if typeof panes == 'undefined'
-           return null
-        if typeof panes == 'object'
-           @panes = panes
-        else
-           alert 'Unrecognized format for panes ' + panes
+  initialize: ->
+        @panes = @options.panes
+        @
 
-  # Modify list
-  add: (name, pane) ->
-        @panes[name] = pane
-
-  remove: (ref) ->
-        if typeof ref == 'string'
-           delete @panes[ref]
-        else
-           name = _.detect @panes, (name, pane) ->
-                if (pane == ref)
-                        name
-           delete @panes[name]
-
-  get: (name) ->
-        pane = @panes[name]
-        if typeof pane == 'undefined'
-           alert 'Pane not found for name ' + name
-        pane
-
-  render: (target) =>
-        window.testpanes = @panes
-        console.log "#{ name }, #{ pane }" for name, pane of @panes
-        $(target).append pane.render().el for name,pane of @panes
+  render: =>
+        @$el.empty()
+        @$el.append pane.render().el for name,pane of @panes
+        @
 
   # Switch panes
   hideOtherPanes: (target) ->
-        console.log @panes
         if not target
            (pane.hidePane() if pane) for name, pane of @panes
         else if typeof target == 'string'
@@ -389,11 +425,37 @@ class PaneSwitcher
 
   switch: (name) =>
         @active = name
-        pane = @get name
+        pane = @getPane name
         if pane == null
           alert 'no pane for name ' + name
         @hideOtherPanes name
         pane.showPane()
+
+  # Modify list
+  addPane: (name, pane) ->
+        @panes[name] = pane
+        @trigger('switcher:add')
+        @render()
+        @
+
+  removePane: (ref) ->
+        if typeof ref == 'string'
+           delete @panes[ref]
+        else
+           name = _.detect @panes, (name, pane) ->
+                if (pane == ref)
+                        name
+           delete @panes[name]
+        @trigger('switcher:remove')
+        @render()
+        @
+
+  getPane: (name) ->
+        pane = @panes[name]
+        if typeof pane == 'undefined'
+           alert 'Pane not found for name ' + name
+        pane
+
 
 #
 # JOURNAL VIEW
@@ -402,7 +464,7 @@ class JournalView extends Backbone.View
   @implements TemplateView
   initialize: ->
         @initTemplate '#journal-viewer'
-        @model.bind('change', @render)
+        @model.on('change', @render) if @model
         @mtype = @options.type
         @paging = @options.paging
         @page = @options.page or 1
@@ -411,26 +473,31 @@ class JournalView extends Backbone.View
         @editing = false
 
   render: =>
-        entries = @model.get('journal')
-        entries = _.sortBy(entries, (x) -> x.date).reverse() if entries
-        if @options.paging
-                base = (@page - 1) * @size
-                bounds = @page * @size
-                entries = _.toArray(entries).slice(base, bounds)
-        $(@el).empty()
-
-        args =
-                page: @page
-                total: Math.ceil @model.get('journal').length / @size
-                entries: entries
-        if @mtype
-                args['type'] = @mtype
-                args['context'] = " " #@model.get('experiment').get('title')
-        @inlineTemplate args
-        if @editing
-           @editView()
+        if not @model
+                @$el.html("<h3>No Journal Entries Found</h3>")
+                return @
         else
-           @journalView()
+                entries = @model.get('journal')
+                entries = _.sortBy(entries, (x) -> x.date).reverse() if entries
+                if @options.paging
+                        base = (@page - 1) * @size
+                        bounds = @page * @size
+                        entries = _.toArray(entries).slice(base, bounds)
+                @$el.empty()
+
+                args =
+                        page: @page
+                        total: Math.ceil @model.get('journal').length / @size
+                        entries: entries
+                if @mtype
+                        args['type'] = @mtype
+                        args['context'] = " " #@model.get('experiment').get('title')
+                @inlineTemplate args
+
+        if @editing
+                @editView()
+        else
+                @journalView()
         @$('button.prev').attr('disabled', true) if @page == 1
         @$('button.next').attr('disabled', true) if (@page * @size) >= @model.get('journal').length
         @
@@ -493,24 +560,28 @@ class JournalView extends Backbone.View
 
 class SummaryView extends Backbone.View
   @implements SwitchPane, TemplateView
+  id: 'dashboard-summary'
   className: 'dashboard-summary'
   initialize: ->
         @trialsTemplate = @getTemplate '#trial-table'
-  newTrial: (trial) ->
-        new TrialView
-                model: trial
+        @views = App.MyTrials.map @newTrial
+        App.MyTrials.on('change', @render)
+        @render()
 
-  initialize: (exp) ->
-        @views = window.MyTrials.map (trial) -> new TrialView
+  newTrial: (trial) =>
+        new TrialSummaryView
                 model: trial
-        @
 
   render: =>
-        $(@el).append '<h1>My Trials</h1>'
-        $(@el).append view.render().el for view in @views
-        view.finalize() for view in @views
-        $(@el).append '<div class="reminders"><h2>Reminders</h2><p>&nbsp;&nbsp;[Reminders are a list of upcoming measurement/treatment events]</p></div>'
-        $(@el).append '<div class="feeds"><h2>Feeds</h2><p>&nbsp;&nbsp;[Feeds are a list of comments / activity around experiments you are involved in or "watching"]</p></div>'
+        @$el.empty()
+        @$el.append '<h1>My Trials</h1>'
+        if _.isEmpty @views
+                @$el.append "<h3>No Active Trials</h3>"
+        else
+                @$el.append view.render().el for view in @views
+                view.finalize() for view in @views
+        @$el.append '<div class="reminders"><h2>Reminders</h2><p>&nbsp;&nbsp;[Reminders are a list of upcoming measurement/treatment events]</p></div>'
+        @$el.append '<div class="feeds"><h2>Feeds</h2><p>&nbsp;&nbsp;[Feeds are a list of comments / activity around experiments you are involved in or "watching"]</p></div>'
         @
 
   finalize: ->
@@ -525,12 +596,16 @@ class TrackerView extends Backbone.View
 
   initialize: ->
         @initTemplate '#highchart-div'
-        @trackers = window.MyTrackers.models
+        @trackers = App.MyTrackers.models
         @
 
   render: =>
-        $(@el).append '<h1>Tracker Summary</h1>'
-        @renderChart @getID tracker for tracker in @trackers
+        @$el.empty()
+        @$el.append '<h1>Tracking Data</h1>'
+        if _.isEmpty @trackers
+                @$el.append '<h3>No Tracking Data Found</h3>'
+        else
+                @renderChart @getID tracker for tracker in @trackers
         @
 
   finalize: ->
@@ -558,47 +633,48 @@ class JournalWrapper extends Backbone.View
   initialize: ->
         @view = new JournalView
                 className: 'dashboard-journal'
-                model: window.MyTrials.models[0]
+                model: App.MyTrials.models[0]
                 paging: true
                 pagesize: 5
                 editable: false
         @
 
   render: =>
-        $(@el).empty()
-        $(@el).append @view.render().el
+        @$el.empty()
+        @$el.append @view.render().el if @view
         @
 
   finalize: ->
 
-class DashboardApp extends Backbone.View
+class DashboardPane extends Backbone.View
   @implements TemplateView, SwitchPane
-  model: window.User
+  id: 'dashboard'
+  model: App.User
   initialize: ->
-        @model.bind('change', @render) if @model
         @initTemplate '#dashboard-header'
         @switcher = new PaneSwitcher
-                'overview': new SummaryView
-                'tracking': new TrackerView
-                'journal': new JournalWrapper
+                id: 'dashboard-switcher'
+                panes:
+                   overview: new SummaryView
+                   journal: new JournalWrapper
+                   tracking: new TrackerView
         @switcher.switch('overview')
+        @
 
   dispatch: (path) ->
-        if $(@el).children().size() == 0
+        if @$el.children().size() == 0
            @render()
         if path
            ref = path.split("/") if path
            @$('a.tab').removeClass('active-tab')
-           @$("a[href='/app/dashboard/#{path}']").addClass('active-tab')
+           @$("a[href='dashboard/#{path}']").addClass('active-tab')
            @switcher.switch(ref[0])
         else
-           window.appRouter.navigate "/app/dashboard/#{@switcher.active}", true
-
+           App.router.navigate "dashboard/#{@switcher.active}", true
 
   render: =>
         @renderTemplate()
-        @switcher.render(@el)
-        @delegateEvents()
+        @$el.append @switcher.render().el
         pane.finalize() for name,pane of @switcher.panes
         @
 
@@ -608,13 +684,18 @@ class DashboardApp extends Backbone.View
   switch: (e) =>
         e.preventDefault()
         tabpath = $(e.target).attr('href')
-        window.appRouter.navigate tabpath, true
+        App.router.navigate tabpath, true
 
-class AdminApp extends Backbone.View
+# ++++++++++++++++++++++++++++++
+# Admin App
+# ++++++++++++++++++++++++++++++
+
+class AdminPane extends Backbone.View
   @implements TemplateView, SwitchPane
-  model: window.User
+  id: 'admin'
+  model: App.User
   initialize: ->
-        @model.bind('change', @render) if @model
+        @model.on('change', @render) if @model
         @initTemplate '#admin-main'
 
   render: =>
@@ -648,7 +729,7 @@ searchSuggestDefaults =
 class SearchFilterView extends Backbone.View
   @implements TemplateView
   initialize: ->
-        @model = window.searchFilter or= new SearchFilterModel
+        @model = App.searchFilter or= new SearchFilterModel
         @initTemplate '#search-filter'
 
   update: (elt) =>
@@ -661,10 +742,10 @@ class SearchFilterView extends Backbone.View
         @update()
 
   allObjects: ->
-        window.Suggestions.toJSON()
+        App.Suggestions.toJSON()
 
   render: =>
-        $(@el).empty()
+        @$el.empty()
         @inlineTemplate()
         @
 
@@ -672,7 +753,7 @@ class SearchFilterView extends Backbone.View
         defaults = searchSuggestDefaults
         defaults.selectionAdded = @update
         defaults.selectionRemoved = @removeUpdate
-        $(@el).find('#search-filter-input').autoSuggest @allObjects(), defaults
+        @$el.find('#search-filter-input').autoSuggest @allObjects(), defaults
         $('input.as-values').attr('value', ',')
 
   # Help Dialog
@@ -705,17 +786,17 @@ class SearchItemView extends Backbone.View
         'click': 'viewModel'
 
   render: =>
-        $(@el).html @template @model.toJSON()
+        @$el.html @template @model.toJSON()
         @
 
   inspect: =>
-        window.socialView.setContext @model
+        App.socialView.setContext @model
 
   viewModel: =>
-        window.socialView.setContext @model
+        App.socialView.setContext @model
         type = @model.get 'type'
         id = @model.get 'id'
-        window.appRouter.navigate "/app/search/#{ type }/#{ id }", true
+        App.router.navigate "search/#{ type }/#{ id }", true
 
 #
 # The UI View for the filtered object set
@@ -746,16 +827,16 @@ class SearchListView extends Backbone.View
         @views = []
         @templates = @buildTemplates()
         # Handle search bar changes
-        @model.bind('change', @updateModels)
+        @model.on('change', @updateModels)
         # Handle new models
         @models = new Backbone.Collection
-        @models.bind('reset', @updateView)
+        @models.on('reset', @updateView)
         @updateModels() # called when new filters added
         @
 
   # Handling changes
   allModels: ->
-         window.Experiments.models.concat window.Treatments.models.concat window.Instruments.models
+         App.Experiments.models.concat App.Treatments.models.concat App.Instruments.models
 
   selectModels: (selects) ->
         selects or= []
@@ -766,7 +847,7 @@ class SearchListView extends Backbone.View
                 $.get "/api/fsearch?query=#{ selects }&limit=#{ @limit }",
                       {},
                       ( refs, status, jqxhr ) =>
-                          @models.reset window.lookupModels refs
+                          @models.reset App.lookupModels refs
 
   updateModels: =>
         filters = @model.get 'filters'
@@ -785,8 +866,8 @@ class SearchListView extends Backbone.View
         @render()
 
   render: =>
-        $(@el).empty()
-        $(@el).append view.render().el for view in @views
+        @$el.empty()
+        @$el.append view.render().el for view in @views
         @
 
   finalize: ->
@@ -803,13 +884,13 @@ class SearchView extends Backbone.View
         @listView.render()
 
   show: ->
-        $(@el).show()
+        @$el.show()
   hide: ->
-        $(@el).hide()
+        @$el.hide()
 
   render: =>
-        $(@el).append @filterView.el
-        $(@el).append @listView.el
+        @$el.append @filterView.el
+        @$el.append @listView.el
         @
 
   finalize: =>
@@ -836,10 +917,10 @@ class ObjectView extends Backbone.View
 
   # Actions
   show: ->
-        $(@el).show()
+        @$el.show()
 
   hide: ->
-        $(@el).hide()
+        @$el.hide()
 
   setModel: (model) =>
         @model = model
@@ -847,13 +928,13 @@ class ObjectView extends Backbone.View
 
   # Rendering
   render: =>
-        $(@el).empty()
-        $(@el).append "<span class='breadcrumb'><a href='/app/search'>Search</a> -> <a href='/app/search'>#{ @model.attributes.type }</a> -> <a href='/app/search/#{ @model.attributes.type }/#{ @model.attributes.id }'>#{ @model.attributes.name }</a></span>" if @model
-        $(@el).append "<span class='breadcrumb'><a  href='/app/search'>Search</a></span>" unless @model
-        $(@el).append @templateMap[@model.get 'type'] @model.toJSON() if @model
+        @$el.empty()
+        @$el.append "<span class='breadcrumb'><a href='search'>Search</a> -> <a href='search'>#{ @model.attributes.type }</a> -> <a href='search/#{ @model.attributes.type }/#{ @model.attributes.id }'>#{ @model.attributes.name }</a></span>" if @model
+        @$el.append "<span class='breadcrumb'><a  href='search'>Search</a></span>" unless @model
+        @$el.append @templateMap[@model.get 'type'] @model.toJSON() if @model
         if @model
-            window.socialView.setContext @model
-            window.socialView.setEdit true
+            App.socialView.setContext @model
+            App.socialView.setEdit true
         @
 
   finalize: =>
@@ -870,8 +951,9 @@ class ObjectView extends Backbone.View
 # ----------------------------------------
 #  Main browser window - rarely refreshed
 # ----------------------------------------
-class SearchApp extends Backbone.View
+class SearchPane extends Backbone.View
   @implements TemplateView, SwitchPane
+  id: 'search'
   initialize: ->
         @search = new SearchView
         @search.render()
@@ -880,19 +962,19 @@ class SearchApp extends Backbone.View
 
   # Dispatch object
   dispatchObject: (ref) =>
-           models = lookupModels [ ref ]
+           models = App.lookupModels [ ref ]
            if models.length > 0
                 @view.setModel models[0]
                 document.name = models[0].get 'name'
                 return true
            else
                 alert "no model found for #{ ref }" unless models
-                window.appRouter.navigate "/app/search", true
+                App.router.navigate "search", true
                 return false
 
   # Dispatch view type
   dispatch: (path) =>
-        if $(@el).children().size() == 0
+        if @$el.children().size() == 0
            @render()
 
         ref = path.split("/") if path
@@ -906,9 +988,9 @@ class SearchApp extends Backbone.View
         @
 
   render: =>
-        $(@el).empty()
-        $(@el).append @search.render().el
-        $(@el).append @view.render().el
+        @$el.empty()
+        @$el.append @search.render().el
+        @$el.append @view.render().el
         @search.finalize()
         @view.finalize()
         @
@@ -916,7 +998,7 @@ class SearchApp extends Backbone.View
 # ---------------------------------
 #   Trial Viewer
 # ---------------------------------
-class TrialView extends Backbone.View
+class TrialSummaryView extends Backbone.View
   @implements TemplateView
   initialize: (exp) ->
         @initTemplate '#trial-list-view'
@@ -931,19 +1013,20 @@ class TrialView extends Backbone.View
         @delegateEvents()
 
   viewModel: =>
-        window.socialView.setContext model.get 'experiment'
-        window.socialView.setEdit true
+        App.socialView.setContext model.get 'experiment'
+        App.socialView.setEdit true
         id = @model.get('id')
-        window.appRouter.navigate "/app/trials/#{id}", true
+        App.router.navigate "trials/#{id}", true
 
-class TrialApp extends Backbone.View
+class TrialPane extends Backbone.View
   @implements TemplateView, SwitchPane
+  id: 'trial'
   newTrial: (trial) ->
-        new TrialView
+        new TrialSummaryView
                 model: trial
 
   initialize: (exp) ->
-        @views = window.MyTrials.map @newTrial
+        @views = App.MyTrials.map @newTrial
         @initTemplate '#trial-view-header'
         @chartTemplate = @getTemplate '#highchart-div'
         @calendarTemplate = @getTemplate '#small-calendar'
@@ -952,7 +1035,7 @@ class TrialApp extends Backbone.View
 
   dispatch: (path) ->
         if path
-           @model = findModel window.MyTrials, path
+           @model = findModel App.MyTrials, path
            alert "no model found for #{ path }" unless @model
            @journal = new JournalView
                 className: 'trial-journal'
@@ -964,7 +1047,7 @@ class TrialApp extends Backbone.View
                 pagesize: 1
            @viewModel @model
         else
-           window.socialView.setEdit false
+           App.socialView.setEdit false
            @model = null
         @render()
 
@@ -976,20 +1059,20 @@ class TrialApp extends Backbone.View
         @
 
   viewModel: (model) =>
-        window.socialView.setContext model.get 'experiment'
-        window.socialView.setEdit true
+        App.socialView.setContext model.get 'experiment'
+        App.socialView.setEdit true
 
   renderModel: ->
         experiment = @model.get 'experiment'
         treatment = experiment.get 'treatment'
         outcome = experiment.get 'outcome'
-        $(@el).empty()
+        @$el.empty()
         @inlineTemplate()
         @renderCalendar(experiment)
         @renderInstruments(experiment)
-        $(@el).append "<div class='clear'/>"
+        @$el.append "<div class='clear'/>"
         @renderOutcome(experiment) # TODO: outcome)
-        $(@el).append @journal.render().el
+        @$el.append @journal.render().el
         @journal.finalize()
         @
 
@@ -999,7 +1082,7 @@ class TrialApp extends Backbone.View
         # Make sure template renders correctly
         # Ensure that javascript renders in place
         outcome = outcome.get('instruments')[0]
-        $(@el).append '<h1>Results</h1>'
+        @$el.append '<h1>Results</h1>'
         @inlineTemplate
                 cssid: 'chart1'
                 height: '150px'
@@ -1009,7 +1092,7 @@ class TrialApp extends Backbone.View
 
   renderCalendar: (experiment) ->
         mydiv = $("<div class='trial-calendar-wrap'/>")
-        $(@el).append mydiv
+        @$el.append mydiv
         mydiv.append '<h2>Schedule</h2>'
         id = experiment.get 'id'
         month = "now"
@@ -1018,17 +1101,23 @@ class TrialApp extends Backbone.View
 
   renderInstruments: (experiment) ->
         mydiv = $("<div class='trial-measures'/>")
-        $(@el).append mydiv
+        @$el.append mydiv
         mydiv.append '<h2>Tracking Instruments</h2>'
         instruments = experiment.get('instruments')
         data = {instruments: _.map(instruments, (x) -> x.toJSON())}
         mydiv.append @instTableTemplate data
 
-  renderList: =>
-        $(@el).empty()
-        $(@el).append '<h1>My Trials</h1>'
-        $(@el).append view.render().el for view in @views
+  renderTrials: (trialViews) ->
+        mydiv = $("<div class='trial-views'/>")
+        mydiv.append '<h1>My Trials</h1>'
+        mydiv.append view.render().el for view in @views
         view.finalize() for view in @views
+        @$el.append mydiv
+        @
+
+  renderList: =>
+        @$el.empty()
+        @renderTrials()
         @
 
 
@@ -1042,15 +1131,16 @@ class TrialApp extends Backbone.View
 
 class SocialView extends Backbone.View
   @implements TemplateView
-  initialize: (id) ->
-        @el = $('#social' ? id)[0]
+  initialize: () ->
         @initTemplate '#comment-short-view'
         @edit = false
-        @render()
+        @render() if @model
+        @
 
   setContext: (model) ->
-        @parent = model
-        @parent.bind('change', @render)
+        @model.off('change') if @model
+        @model = model
+        @model.on('change', @render)
         @edit = false
         @render()
 
@@ -1059,13 +1149,13 @@ class SocialView extends Backbone.View
         @render()
 
   render: =>
-        $(@el).empty()
-        $(@el).append '<h1>Public Comments</h1>'
+        @$el.empty()
+        @$el.append '<h1>Public Comments</h1>'
         if @edit
-                 $(@el).append "<textarea rows='5' cols='20'/><button class='comment' type='button'>Comment</button>"
+           @$el.append "<textarea rows='5' cols='20'/><button class='comment' type='button'>Comment</button>"
         if @parent
-                comments = @parent.get 'comments'
-                @inlineTemplate c for c in _.sortBy(comments, (x) -> x.date).reverse() if comments
+           comments = @parent.get 'comments'
+           @inlineTemplate c for c in _.sortBy(comments, (x) -> x.date).reverse() if comments
         @delegateEvents()
         @
 
@@ -1074,7 +1164,32 @@ class SocialView extends Backbone.View
         'click button.comment': 'addComment'
 
   addComment: =>
-        @parent.annotate 'comment', $('#social textarea').val()
+        @parent.annotate 'comment', @$('textarea').val()
+
+# ++++++++++++++++++++++++++++++
+# Profile App
+# ++++++++++++++++++++++++++++++
+
+class ProfilePane extends Backbone.View
+  @implements TemplateView, SwitchPane
+  id: 'profile'
+  model: App.User
+  initialize: ->
+#        @model.on('change', @render) if @model
+        @initTemplate '#profile-edit-view'
+
+  events:
+        'change': 'updateModel'
+
+  updateModel: (e) =>
+        e.preventDefault()
+        target = $(e.target)
+        name = target.prop 'name'
+        @model.set name, target.val()
+        @
+
+  render: =>
+        @renderTemplate @model.get 'prefs'
 
 ##################################################################
 # APPLICATION
@@ -1085,49 +1200,21 @@ class SocialView extends Backbone.View
 # AppRouter dispatches the main URL, creates and/or activates the
 #
 class AppRouter extends Backbone.Router
-  initialize: ->
-        @switcher = new PaneSwitcher
-                'dashboard': new DashboardApp
-                        el: $('#dashboardApp').first()
-                'trials': new TrialApp
-                        el: $('#trialApp').first()
-                'search': new SearchApp
-                        el: $('#searchApp').first()
-                'admin': new AdminApp
-                        el: $('#adminApp').first()
-
   # Routing
   routes:
-        '/app/:app/*path': 'activate'
-        '/app/:app/':      'activate'
-        '/app/:app':       'activate'
+        ':app/*path': 'select'
+        ':app':       'select'
 
   # Activate an app
-  activate: (pname, path) =>
-        console.log 'Activating ' + pname + ' with ' + path
-        if typeof path == 'undefined'
-            window.mainMenu.setMenu pname
-        else
-            window.mainMenu.setMenu pname + "/" + path
-        pane = @switcher.get(pname)
-        if pane
-           @switcher.hideOtherPanes()
-           pane.showPane()
-           pane.dispatch path
-        else
-           @switcher.hideOtherPanes()
-           $('#errorApp').show()
-        @
+  select: (pname, path) =>
+        @trigger "route:selectApp", pname, path
 
 #
-# Main Menu Viewer
+# Main Menu View
 #
 class MainMenu extends Backbone.View
-   root: 'app'
-
+   urlBase: '/app/'
    initialize: ->
-        @root = @options.root ? @root
-        @el = $(@options.elid).first()
         @delegateEvents()
         @
 
@@ -1138,12 +1225,10 @@ class MainMenu extends Backbone.View
 
    setMenu: (base, path) ->
         if path
-           link = $("a[href='/#{@root}/#{base}/#{path}']").first()
+           link = $("a[href='#{this.urlBase}/#{base}/#{path}']").first()
            link.parents('ul.submenu').show()
-           console.log(link)
         else
-           link = $("a[href='/#{@root}/#{base}']").first()
-           console.log(link)
+           link = $("a[href='#{this.urlBase}/#{base}']").first()
         if link
            @setCurrent link
 
@@ -1161,35 +1246,21 @@ class MainMenu extends Backbone.View
         newLink = event.target
         @setCurrent newLink
         target = $(newLink).attr 'href'
-        window.appRouter.navigate target, true
+        App.router.navigate target, true
         @
 
-# After the page is loaded, we have the skeleton in place
-# and just need to dispatch to the app we need based on the
-# rest of the URL.  Any other top-level initialization can be
-# done here too
-
-loadModels = ->
-   if not window.User
-      window.User.fetch()
-
 $(document).ready ->
-   loadModels()
-   # Fix up internal references
-   window.Instruments.resolveReferences()
-   window.Experiments.resolveReferences()
-   window.MyTrials.resolveReferences()
-   window.MyTrackers.resolveReferences()
-   window.Treatments.resolveReferences()
-   makeModelMap()
+   # Instantiate the SocialView
+   App.socialView = new SocialView {el: $('#share-pane')}
 
-   # Setup top level views
-   window.socialView = new SocialView '#social'
-   window.appRouter = new AppRouter
-   window.mainMenu = new MainMenu {elid: '#main-menu'}
+   # Attach menu logic separately
+   App.menu = new MainMenu {el: $('#main-menu')}
+
+   # Create the main app body
+   App.start()
 
    # Initialize navigation, resolve URL
    match = Backbone.history.start
+        root: '/app/'
         pushState: true
-        root: ''
-   window.appRouter.navigate document.location.pathname, true
+        silent: false

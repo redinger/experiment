@@ -80,19 +80,19 @@
    :background :acl])
 
 ;;
-;; User Profile
+;; User Properties
 ;;
 
 (defn get-user-property
   ([user property]
-     (get-in user [:profile property]))
+     (get-in user [:prefs property]))
   ([property]
      (get-user-property (session/current-user) property)))
   
 (defn set-user-property! 
   ([user property value]
      (update-model!
-      (assoc-in user [:profile property] value)))
+      (assoc-in user [:prefs property] value)))
   ([property value]
      (set-user-property! (session/current-user) property value)))
 
@@ -107,9 +107,9 @@
   (has-permission? "admin"))
   
 
-;;
+;; =========================================
 ;; Test Users
-;;
+;; =========================================
 
 (defn gen-first [] (rand-nth ["Joe" "Larry" "Curly" "Mo"]))
 (defn gen-last [] (rand-nth ["Smith" "Carvey" "Kolluri" "Kramlich"]))

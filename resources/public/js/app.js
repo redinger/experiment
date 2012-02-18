@@ -1,5 +1,5 @@
 (function() {
-  var AdminApp, AppRouter, BrowserFilter, BrowserModel, DashboardApp, Experiment, Experiments, Instrument, Instruments, JournalView, JournalWrapper, MainMenu, Model, ModelCollection, ObjectView, PaneSwitcher, SearchApp, SearchFilterModel, SearchFilterView, SearchItemView, SearchListView, SearchView, SocialView, Suggestion, Suggestions, SummaryView, SwitchPane, TemplateView, Tracker, TrackerView, Trackers, Treatment, Treatments, Trial, TrialApp, TrialView, Trials, UserModel, calendarBehavior, findModel, implements, initCalendar, loadModels, makeModelMap, renderTrackerChart, resolveReference, returnUser, root, searchSuggestDefaults;
+  var AdminPane, App, AppRouter, Application, BrowserFilter, BrowserModel, DashboardPane, Experiment, Experiments, Instrument, Instruments, JournalView, JournalWrapper, MainMenu, Model, ModelCollection, ObjectView, PaneSwitcher, ProfilePane, SearchFilterModel, SearchFilterView, SearchItemView, SearchListView, SearchPane, SearchView, SocialView, Suggestion, Suggestions, SummaryView, SwitchPane, TemplateView, Tracker, TrackerView, Trackers, Treatment, Treatments, Trial, TrialPane, TrialSummaryView, Trials, UserModel, UserModels, calendarBehavior, findModel, implements, initCalendar, renderTrackerChart, resolveReference, returnUser, root, searchSuggestDefaults;
   var __slice = Array.prototype.slice, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; }, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
     for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
     function ctor() { this.constructor = child; }
@@ -52,10 +52,16 @@
     }, this));
   };
   returnUser = function(id) {
-    if (id === window.User.get('id')) {
-      return window.User;
+    var user;
+    if (id === App.User.get('id')) {
+      return App.User;
     } else {
-      return alert("Found object reference to another user " + id);
+      user = findModel(App.Users, id);
+      if (!user) {
+        return alert("Found object reference to another user " + id);
+      } else {
+        return user;
+      }
     }
   };
   resolveReference = function(ref) {
@@ -65,15 +71,15 @@
       }
       switch (ref[0]) {
         case 'experiment':
-          return findModel(window.Experiments, ref[1]);
+          return findModel(App.Experiments, ref[1]);
         case 'treatment':
-          return findModel(window.Treatments, ref[1]);
+          return findModel(App.Treatments, ref[1]);
         case 'instrument':
-          return findModel(window.Instruments, ref[1]);
+          return findModel(App.Instruments, ref[1]);
         case 'trial':
-          return findModel(window.MyTrials, ref[1]);
+          return findModel(App.MyTrials, ref[1]);
         case 'tracker':
-          return findModel(window.MyTrackers, ref[1]);
+          return findModel(App.MyTrackers, ref[1]);
         case 'user':
           return returnUser(ref[1]);
         default:
@@ -157,59 +163,6 @@
     };
     return ModelCollection;
   })();
-  makeModelMap = function() {
-    var exp, inst, map, tracker, treat, trial, _i, _j, _k, _l, _len, _len2, _len3, _len4, _len5, _m, _ref, _ref2, _ref3, _ref4, _ref5;
-    map = {};
-    _ref = window.Instruments.models;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      inst = _ref[_i];
-      map[inst.get('id')] = inst;
-    }
-    _ref2 = window.Experiments.models;
-    for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
-      exp = _ref2[_j];
-      map[exp.get('id')] = exp;
-    }
-    _ref3 = window.Treatments.models;
-    for (_k = 0, _len3 = _ref3.length; _k < _len3; _k++) {
-      treat = _ref3[_k];
-      map[treat.get('id')] = treat;
-    }
-    _ref4 = window.MyTrials.models;
-    for (_l = 0, _len4 = _ref4.length; _l < _len4; _l++) {
-      trial = _ref4[_l];
-      map[trial.get('id')] = trial;
-    }
-    _ref5 = window.MyTrackers.models;
-    for (_m = 0, _len5 = _ref5.length; _m < _len5; _m++) {
-      tracker = _ref5[_m];
-      map[trial.get('id')] = tracker;
-    }
-    return window.modelMap = map;
-  };
-  window.lookupModels = function(refs) {
-    var id, model, models, type, _i, _len, _ref;
-    models = [];
-    if (_.isArray(refs) && _.isArray(refs[0])) {
-      for (_i = 0, _len = refs.length; _i < _len; _i++) {
-        _ref = refs[_i], type = _ref[0], id = _ref[1];
-        model = window.modelMap[id];
-        if (model) {
-          models.push(model);
-        } else {
-          alert("model not found " + id);
-        }
-      }
-    } else if (_.isArray(refs) && _.isArray.length === 2) {
-      model = window.modelMap[refs[1]];
-      if (model) {
-        models.push(window.modelMap[refs[1]]);
-      } else {
-        alert("model not found " + id);
-      }
-    }
-    return models;
-  };
   Suggestion = (function() {
     __extends(Suggestion, Backbone.Model);
     function Suggestion() {
@@ -225,7 +178,6 @@
     Suggestions.prototype.model = Suggestion;
     return Suggestions;
   })();
-  window.Suggestions = new Suggestions;
   Treatment = (function() {
     __extends(Treatment, Model);
     function Treatment() {
@@ -245,7 +197,6 @@
     Treatments.prototype.model = Treatment;
     return Treatments;
   })();
-  window.Treatments = new Treatments;
   Instrument = (function() {
     __extends(Instrument, Model);
     function Instrument() {
@@ -261,7 +212,6 @@
     Instruments.prototype.model = Instrument;
     return Instruments;
   })();
-  window.Instruments = new Instruments;
   Experiment = (function() {
     __extends(Experiment, Model);
     function Experiment() {
@@ -278,7 +228,6 @@
     Experiments.prototype.model = Experiment;
     return Experiments;
   })();
-  window.Experiments = new Experiments;
   Trial = (function() {
     __extends(Trial, Model);
     function Trial() {
@@ -295,21 +244,6 @@
     Trials.prototype.model = Trial;
     return Trials;
   })();
-  window.MyTrials = new Trials;
-  UserModel = (function() {
-    __extends(UserModel, Backbone.Model);
-    function UserModel() {
-      UserModel.__super__.constructor.apply(this, arguments);
-    }
-    UserModel.prototype.username = function() {
-      return this.get('username');
-    };
-    UserModel.prototype.adminp = function() {
-      return __indexOf.call(this.get('permissions'), 'admin') >= 0;
-    };
-    return UserModel;
-  })();
-  window.User = new UserModel;
   Tracker = (function() {
     __extends(Tracker, Model);
     function Tracker() {
@@ -326,7 +260,133 @@
     Trackers.prototype.model = Tracker;
     return Trackers;
   })();
-  window.MyTrackers = new Trackers;
+  UserModel = (function() {
+    __extends(UserModel, Model);
+    function UserModel() {
+      UserModel.__super__.constructor.apply(this, arguments);
+    }
+    UserModel.prototype.username = function() {
+      return this.get('username');
+    };
+    UserModel.prototype.adminp = function() {
+      return __indexOf.call(this.get('permissions'), 'admin') >= 0;
+    };
+    return UserModel;
+  })();
+  UserModels = (function() {
+    __extends(UserModels, ModelCollection);
+    function UserModels() {
+      UserModels.__super__.constructor.apply(this, arguments);
+    }
+    UserModels.prototype.model = UserModel;
+    return UserModels;
+  })();
+  Application = (function() {
+    __extends(Application, Backbone.View);
+    function Application() {
+      this.lookupModels = __bind(this.lookupModels, this);
+      this.switchApp = __bind(this.switchApp, this);
+      this.render = __bind(this.render, this);
+      Application.__super__.constructor.apply(this, arguments);
+    }
+    Application.prototype.el = $('#app-wrap');
+    Application.prototype.Instruments = new Instruments;
+    Application.prototype.Treatments = new Treatments;
+    Application.prototype.Experiments = new Experiments;
+    Application.prototype.Suggestions = new Suggestions;
+    Application.prototype.MyTrials = new Trials;
+    Application.prototype.MyTrackers = new Trackers;
+    Application.prototype.User = new UserModel;
+    Application.prototype.Users = new UserModels;
+    Application.prototype.start = function() {
+      if (!this.User) {
+        this.User.fetch();
+      }
+      this.Instruments.resolveReferences();
+      this.Experiments.resolveReferences();
+      this.MyTrials.resolveReferences();
+      this.MyTrackers.resolveReferences();
+      this.Treatments.resolveReferences();
+      this.makeModelMap();
+      this.switcher = new PaneSwitcher({
+        id: 'app-tabs',
+        panes: {
+          dashboard: new DashboardPane,
+          search: new SearchPane,
+          profile: new ProfilePane,
+          admin: new AdminPane,
+          trials: new TrialPane
+        }
+      });
+      this.router = new AppRouter;
+      this.router.on('route:selectApp', this.switchApp);
+      this.render();
+      return this;
+    };
+    Application.prototype.render = function() {
+      this.$el.append(this.switcher.render().el);
+      return this;
+    };
+    Application.prototype.makeModelMap = function() {
+      var classes, map;
+      map = {};
+      classes = [this.Instruments, this.Experiments, this.Treatments, this.MyTrials, this.MyTrackers];
+      _(classes).each(function(c) {
+        var m, _i, _len, _ref, _results;
+        _ref = c.models;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          m = _ref[_i];
+          _results.push(map[m.get('id')] = m);
+        }
+        return _results;
+      });
+      return this.modelMap = map;
+    };
+    Application.prototype.switchApp = function(pname, path) {
+      var pane;
+      if (typeof path === 'undefined') {
+        this.menu.setMenu(pname);
+      } else {
+        this.menu.setMenu(pname + "/" + path);
+      }
+      pane = this.switcher.getPane(pname);
+      if (pane) {
+        this.switcher.hideOtherPanes();
+        pane.showPane();
+        return pane.dispatch(path);
+      } else {
+        this.switcher.hideOtherPanes();
+        return $('#errorApp').show();
+      }
+    };
+    Application.prototype.lookupModels = function(refs) {
+      var id, model, models, type, _i, _len, _ref;
+      models = [];
+      if (_.isArray(refs) && _.isArray(refs[0])) {
+        for (_i = 0, _len = refs.length; _i < _len; _i++) {
+          _ref = refs[_i], type = _ref[0], id = _ref[1];
+          model = App.modelMap[id];
+          if (model) {
+            models.push(model);
+          } else {
+            alert("model not found " + id);
+          }
+        }
+      } else if (_.isArray(refs) && _.isArray.length === 2) {
+        model = this.modelMap[refs[1]];
+        if (model) {
+          models.push(this.modelMap[refs[1]]);
+        } else {
+          alert("model not found " + id);
+        }
+      }
+      return models;
+    };
+    return Application;
+  })();
+  window.ExApp = new Application;
+  App = window.ExApp;
   BrowserFilter = (function() {
     __extends(BrowserFilter, Backbone.Model);
     function BrowserFilter() {
@@ -411,7 +471,7 @@
       start: start
     }, function(config) {
       config = $.extend(config, options);
-      window.chart_config = config;
+      App.chart_config = config;
       return new Highcharts.Chart(config);
     });
   };
@@ -448,13 +508,13 @@
     TemplateView.prototype.renderTemplate = function(model, template) {
       model = this.resolveModel(model);
       template || (template = this.template);
-      $(this.el).html(template(model.toJSON()));
+      this.$el.html(template(model.toJSON()));
       return this;
     };
     TemplateView.prototype.inlineTemplate = function(model, template) {
       model = this.resolveModel(model);
       template || (template = this.template);
-      return $(this.el).append(template(model.toJSON()));
+      return this.$el.append(template(model.toJSON()));
     };
     return TemplateView;
   })();
@@ -466,7 +526,7 @@
       this.visiblep = __bind(this.visiblep, this);
     }
     SwitchPane.prototype.visiblep = function() {
-      if ($(this.el).is(':visible')) {
+      if (this.$el.is(':visible')) {
         return true;
       } else {
         return false;
@@ -474,75 +534,43 @@
     };
     SwitchPane.prototype.hidePane = function() {
       if (this.visiblep()) {
-        return $(this.el).hide();
+        return this.$el.hide();
       }
     };
     SwitchPane.prototype.showPane = function() {
       if (!this.visiblep()) {
-        return $(this.el).show();
+        return this.$el.show();
       }
     };
     SwitchPane.prototype.dispatch = function(path) {
-      return this.render();
+      return this;
     };
     return SwitchPane;
   })();
   PaneSwitcher = (function() {
-    PaneSwitcher.prototype.panes = {};
-    function PaneSwitcher(panes) {
+    __extends(PaneSwitcher, Backbone.View);
+    function PaneSwitcher() {
       this["switch"] = __bind(this["switch"], this);
-      this.render = __bind(this.render, this);      if (typeof panes === 'undefined') {
-        return null;
-      }
-      if (typeof panes === 'object') {
-        this.panes = panes;
-      } else {
-        alert('Unrecognized format for panes ' + panes);
-      }
+      this.render = __bind(this.render, this);
+      PaneSwitcher.__super__.constructor.apply(this, arguments);
     }
-    PaneSwitcher.prototype.add = function(name, pane) {
-      return this.panes[name] = pane;
+    PaneSwitcher.prototype.panes = {};
+    PaneSwitcher.prototype.initialize = function() {
+      this.panes = this.options.panes;
+      return this;
     };
-    PaneSwitcher.prototype.remove = function(ref) {
-      var name;
-      if (typeof ref === 'string') {
-        return delete this.panes[ref];
-      } else {
-        name = _.detect(this.panes, function(name, pane) {
-          if (pane === ref) {
-            return name;
-          }
-        });
-        return delete this.panes[name];
-      }
-    };
-    PaneSwitcher.prototype.get = function(name) {
-      var pane;
-      pane = this.panes[name];
-      if (typeof pane === 'undefined') {
-        alert('Pane not found for name ' + name);
-      }
-      return pane;
-    };
-    PaneSwitcher.prototype.render = function(target) {
-      var name, pane, _ref, _ref2, _results;
-      window.testpanes = this.panes;
+    PaneSwitcher.prototype.render = function() {
+      var name, pane, _ref;
+      this.$el.empty();
       _ref = this.panes;
       for (name in _ref) {
         pane = _ref[name];
-        console.log("" + name + ", " + pane);
+        this.$el.append(pane.render().el);
       }
-      _ref2 = this.panes;
-      _results = [];
-      for (name in _ref2) {
-        pane = _ref2[name];
-        _results.push($(target).append(pane.render().el));
-      }
-      return _results;
+      return this;
     };
     PaneSwitcher.prototype.hideOtherPanes = function(target) {
       var name, pane, _ref, _ref2, _ref3, _results, _results2, _results3;
-      console.log(this.panes);
       if (!target) {
         _ref = this.panes;
         _results = [];
@@ -574,12 +602,42 @@
     PaneSwitcher.prototype["switch"] = function(name) {
       var pane;
       this.active = name;
-      pane = this.get(name);
+      pane = this.getPane(name);
       if (pane === null) {
         alert('no pane for name ' + name);
       }
       this.hideOtherPanes(name);
       return pane.showPane();
+    };
+    PaneSwitcher.prototype.addPane = function(name, pane) {
+      this.panes[name] = pane;
+      this.trigger('switcher:add');
+      this.render();
+      return this;
+    };
+    PaneSwitcher.prototype.removePane = function(ref) {
+      var name;
+      if (typeof ref === 'string') {
+        delete this.panes[ref];
+      } else {
+        name = _.detect(this.panes, function(name, pane) {
+          if (pane === ref) {
+            return name;
+          }
+        });
+        delete this.panes[name];
+      }
+      this.trigger('switcher:remove');
+      this.render();
+      return this;
+    };
+    PaneSwitcher.prototype.getPane = function(name) {
+      var pane;
+      pane = this.panes[name];
+      if (typeof pane === 'undefined') {
+        alert('Pane not found for name ' + name);
+      }
+      return pane;
     };
     return PaneSwitcher;
   })();
@@ -597,7 +655,9 @@
     JournalView.implements(TemplateView);
     JournalView.prototype.initialize = function() {
       this.initTemplate('#journal-viewer');
-      this.model.bind('change', this.render);
+      if (this.model) {
+        this.model.on('change', this.render);
+      }
       this.mtype = this.options.type;
       this.paging = this.options.paging;
       this.page = this.options.page || 1;
@@ -607,28 +667,33 @@
     };
     JournalView.prototype.render = function() {
       var args, base, bounds, entries;
-      entries = this.model.get('journal');
-      if (entries) {
-        entries = _.sortBy(entries, function(x) {
-          return x.date;
-        }).reverse();
+      if (!this.model) {
+        this.$el.html("<h3>No Journal Entries Found</h3>");
+        return this;
+      } else {
+        entries = this.model.get('journal');
+        if (entries) {
+          entries = _.sortBy(entries, function(x) {
+            return x.date;
+          }).reverse();
+        }
+        if (this.options.paging) {
+          base = (this.page - 1) * this.size;
+          bounds = this.page * this.size;
+          entries = _.toArray(entries).slice(base, bounds);
+        }
+        this.$el.empty();
+        args = {
+          page: this.page,
+          total: Math.ceil(this.model.get('journal').length / this.size),
+          entries: entries
+        };
+        if (this.mtype) {
+          args['type'] = this.mtype;
+          args['context'] = " ";
+        }
+        this.inlineTemplate(args);
       }
-      if (this.options.paging) {
-        base = (this.page - 1) * this.size;
-        bounds = this.page * this.size;
-        entries = _.toArray(entries).slice(base, bounds);
-      }
-      $(this.el).empty();
-      args = {
-        page: this.page,
-        total: Math.ceil(this.model.get('journal').length / this.size),
-        entries: entries
-      };
-      if (this.mtype) {
-        args['type'] = this.mtype;
-        args['context'] = " ";
-      }
-      this.inlineTemplate(args);
       if (this.editing) {
         this.editView();
       } else {
@@ -699,41 +764,43 @@
     __extends(SummaryView, Backbone.View);
     function SummaryView() {
       this.render = __bind(this.render, this);
+      this.newTrial = __bind(this.newTrial, this);
       SummaryView.__super__.constructor.apply(this, arguments);
     }
     SummaryView.implements(SwitchPane, TemplateView);
+    SummaryView.prototype.id = 'dashboard-summary';
     SummaryView.prototype.className = 'dashboard-summary';
     SummaryView.prototype.initialize = function() {
-      return this.trialsTemplate = this.getTemplate('#trial-table');
+      this.trialsTemplate = this.getTemplate('#trial-table');
+      this.views = App.MyTrials.map(this.newTrial);
+      App.MyTrials.on('change', this.render);
+      return this.render();
     };
     SummaryView.prototype.newTrial = function(trial) {
-      return new TrialView({
+      return new TrialSummaryView({
         model: trial
       });
     };
-    SummaryView.prototype.initialize = function(exp) {
-      this.views = window.MyTrials.map(function(trial) {
-        return new TrialView({
-          model: trial
-        });
-      });
-      return this;
-    };
     SummaryView.prototype.render = function() {
       var view, _i, _j, _len, _len2, _ref, _ref2;
-      $(this.el).append('<h1>My Trials</h1>');
-      _ref = this.views;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        view = _ref[_i];
-        $(this.el).append(view.render().el);
+      this.$el.empty();
+      this.$el.append('<h1>My Trials</h1>');
+      if (_.isEmpty(this.views)) {
+        this.$el.append("<h3>No Active Trials</h3>");
+      } else {
+        _ref = this.views;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          view = _ref[_i];
+          this.$el.append(view.render().el);
+        }
+        _ref2 = this.views;
+        for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
+          view = _ref2[_j];
+          view.finalize();
+        }
       }
-      _ref2 = this.views;
-      for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
-        view = _ref2[_j];
-        view.finalize();
-      }
-      $(this.el).append('<div class="reminders"><h2>Reminders</h2><p>&nbsp;&nbsp;[Reminders are a list of upcoming measurement/treatment events]</p></div>');
-      $(this.el).append('<div class="feeds"><h2>Feeds</h2><p>&nbsp;&nbsp;[Feeds are a list of comments / activity around experiments you are involved in or "watching"]</p></div>');
+      this.$el.append('<div class="reminders"><h2>Reminders</h2><p>&nbsp;&nbsp;[Reminders are a list of upcoming measurement/treatment events]</p></div>');
+      this.$el.append('<div class="feeds"><h2>Feeds</h2><p>&nbsp;&nbsp;[Feeds are a list of comments / activity around experiments you are involved in or "watching"]</p></div>');
       return this;
     };
     SummaryView.prototype.finalize = function() {};
@@ -749,16 +816,21 @@
     TrackerView.prototype.className = 'dashboard-tracker';
     TrackerView.prototype.initialize = function() {
       this.initTemplate('#highchart-div');
-      this.trackers = window.MyTrackers.models;
+      this.trackers = App.MyTrackers.models;
       return this;
     };
     TrackerView.prototype.render = function() {
       var tracker, _i, _len, _ref;
-      $(this.el).append('<h1>Tracker Summary</h1>');
-      _ref = this.trackers;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        tracker = _ref[_i];
-        this.renderChart(this.getID(tracker));
+      this.$el.empty();
+      this.$el.append('<h1>Tracking Data</h1>');
+      if (_.isEmpty(this.trackers)) {
+        this.$el.append('<h3>No Tracking Data Found</h3>');
+      } else {
+        _ref = this.trackers;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          tracker = _ref[_i];
+          this.renderChart(this.getID(tracker));
+        }
       }
       return this;
     };
@@ -801,7 +873,7 @@
     JournalWrapper.prototype.initialize = function() {
       this.view = new JournalView({
         className: 'dashboard-journal',
-        model: window.MyTrials.models[0],
+        model: App.MyTrials.models[0],
         paging: true,
         pagesize: 5,
         editable: false
@@ -809,37 +881,41 @@
       return this;
     };
     JournalWrapper.prototype.render = function() {
-      $(this.el).empty();
-      $(this.el).append(this.view.render().el);
+      this.$el.empty();
+      if (this.view) {
+        this.$el.append(this.view.render().el);
+      }
       return this;
     };
     JournalWrapper.prototype.finalize = function() {};
     return JournalWrapper;
   })();
-  DashboardApp = (function() {
-    __extends(DashboardApp, Backbone.View);
-    function DashboardApp() {
+  DashboardPane = (function() {
+    __extends(DashboardPane, Backbone.View);
+    function DashboardPane() {
       this["switch"] = __bind(this["switch"], this);
       this.render = __bind(this.render, this);
-      DashboardApp.__super__.constructor.apply(this, arguments);
+      DashboardPane.__super__.constructor.apply(this, arguments);
     }
-    DashboardApp.implements(TemplateView, SwitchPane);
-    DashboardApp.prototype.model = window.User;
-    DashboardApp.prototype.initialize = function() {
-      if (this.model) {
-        this.model.bind('change', this.render);
-      }
+    DashboardPane.implements(TemplateView, SwitchPane);
+    DashboardPane.prototype.id = 'dashboard';
+    DashboardPane.prototype.model = App.User;
+    DashboardPane.prototype.initialize = function() {
       this.initTemplate('#dashboard-header');
       this.switcher = new PaneSwitcher({
-        'overview': new SummaryView,
-        'tracking': new TrackerView,
-        'journal': new JournalWrapper
+        id: 'dashboard-switcher',
+        panes: {
+          overview: new SummaryView,
+          journal: new JournalWrapper,
+          tracking: new TrackerView
+        }
       });
-      return this.switcher["switch"]('overview');
+      this.switcher["switch"]('overview');
+      return this;
     };
-    DashboardApp.prototype.dispatch = function(path) {
+    DashboardPane.prototype.dispatch = function(path) {
       var ref;
-      if ($(this.el).children().size() === 0) {
+      if (this.$el.children().size() === 0) {
         this.render();
       }
       if (path) {
@@ -847,17 +923,16 @@
           ref = path.split("/");
         }
         this.$('a.tab').removeClass('active-tab');
-        this.$("a[href='/app/dashboard/" + path + "']").addClass('active-tab');
+        this.$("a[href='dashboard/" + path + "']").addClass('active-tab');
         return this.switcher["switch"](ref[0]);
       } else {
-        return window.appRouter.navigate("/app/dashboard/" + this.switcher.active, true);
+        return App.router.navigate("dashboard/" + this.switcher.active, true);
       }
     };
-    DashboardApp.prototype.render = function() {
+    DashboardPane.prototype.render = function() {
       var name, pane, _ref;
       this.renderTemplate();
-      this.switcher.render(this.el);
-      this.delegateEvents();
+      this.$el.append(this.switcher.render().el);
       _ref = this.switcher.panes;
       for (name in _ref) {
         pane = _ref[name];
@@ -865,35 +940,36 @@
       }
       return this;
     };
-    DashboardApp.prototype.events = {
+    DashboardPane.prototype.events = {
       'click a.tab': 'switch'
     };
-    DashboardApp.prototype["switch"] = function(e) {
+    DashboardPane.prototype["switch"] = function(e) {
       var tabpath;
       e.preventDefault();
       tabpath = $(e.target).attr('href');
-      return window.appRouter.navigate(tabpath, true);
+      return App.router.navigate(tabpath, true);
     };
-    return DashboardApp;
+    return DashboardPane;
   })();
-  AdminApp = (function() {
-    __extends(AdminApp, Backbone.View);
-    function AdminApp() {
+  AdminPane = (function() {
+    __extends(AdminPane, Backbone.View);
+    function AdminPane() {
       this.render = __bind(this.render, this);
-      AdminApp.__super__.constructor.apply(this, arguments);
+      AdminPane.__super__.constructor.apply(this, arguments);
     }
-    AdminApp.implements(TemplateView, SwitchPane);
-    AdminApp.prototype.model = window.User;
-    AdminApp.prototype.initialize = function() {
+    AdminPane.implements(TemplateView, SwitchPane);
+    AdminPane.prototype.id = 'admin';
+    AdminPane.prototype.model = App.User;
+    AdminPane.prototype.initialize = function() {
       if (this.model) {
-        this.model.bind('change', this.render);
+        this.model.on('change', this.render);
       }
       return this.initTemplate('#admin-main');
     };
-    AdminApp.prototype.render = function() {
+    AdminPane.prototype.render = function() {
       return this.renderTemplate();
     };
-    return AdminApp;
+    return AdminPane;
   })();
   SearchFilterModel = (function() {
     __extends(SearchFilterModel, Backbone.Model);
@@ -924,7 +1000,7 @@
     }
     SearchFilterView.implements(TemplateView);
     SearchFilterView.prototype.initialize = function() {
-      this.model = window.searchFilter || (window.searchFilter = new SearchFilterModel);
+      this.model = App.searchFilter || (App.searchFilter = new SearchFilterModel);
       return this.initTemplate('#search-filter');
     };
     SearchFilterView.prototype.update = function(elt) {
@@ -941,10 +1017,10 @@
       return this.update();
     };
     SearchFilterView.prototype.allObjects = function() {
-      return window.Suggestions.toJSON();
+      return App.Suggestions.toJSON();
     };
     SearchFilterView.prototype.render = function() {
-      $(this.el).empty();
+      this.$el.empty();
       this.inlineTemplate();
       return this;
     };
@@ -953,7 +1029,7 @@
       defaults = searchSuggestDefaults;
       defaults.selectionAdded = this.update;
       defaults.selectionRemoved = this.removeUpdate;
-      $(this.el).find('#search-filter-input').autoSuggest(this.allObjects(), defaults);
+      this.$el.find('#search-filter-input').autoSuggest(this.allObjects(), defaults);
       return $('input.as-values').attr('value', ',');
     };
     SearchFilterView.prototype.events = {
@@ -987,18 +1063,18 @@
       'click': 'viewModel'
     };
     SearchItemView.prototype.render = function() {
-      $(this.el).html(this.template(this.model.toJSON()));
+      this.$el.html(this.template(this.model.toJSON()));
       return this;
     };
     SearchItemView.prototype.inspect = function() {
-      return window.socialView.setContext(this.model);
+      return App.socialView.setContext(this.model);
     };
     SearchItemView.prototype.viewModel = function() {
       var id, type;
-      window.socialView.setContext(this.model);
+      App.socialView.setContext(this.model);
       type = this.model.get('type');
       id = this.model.get('id');
-      return window.appRouter.navigate("/app/search/" + type + "/" + id, true);
+      return App.router.navigate("search/" + type + "/" + id, true);
     };
     return SearchItemView;
   })();
@@ -1034,14 +1110,14 @@
     SearchListView.prototype.initialize = function() {
       this.views = [];
       this.templates = this.buildTemplates();
-      this.model.bind('change', this.updateModels);
+      this.model.on('change', this.updateModels);
       this.models = new Backbone.Collection;
-      this.models.bind('reset', this.updateView);
+      this.models.on('reset', this.updateView);
       this.updateModels();
       return this;
     };
     SearchListView.prototype.allModels = function() {
-      return window.Experiments.models.concat(window.Treatments.models.concat(window.Instruments.models));
+      return App.Experiments.models.concat(App.Treatments.models.concat(App.Instruments.models));
     };
     SearchListView.prototype.selectModels = function(selects) {
       var models;
@@ -1051,7 +1127,7 @@
         return this.models.reset(models);
       } else {
         return $.get("/api/fsearch?query=" + selects + "&limit=" + this.limit, {}, __bind(function(refs, status, jqxhr) {
-          return this.models.reset(window.lookupModels(refs));
+          return this.models.reset(App.lookupModels(refs));
         }, this));
       }
     };
@@ -1072,11 +1148,11 @@
     };
     SearchListView.prototype.render = function() {
       var view, _i, _len, _ref;
-      $(this.el).empty();
+      this.$el.empty();
       _ref = this.views;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         view = _ref[_i];
-        $(this.el).append(view.render().el);
+        this.$el.append(view.render().el);
       }
       return this;
     };
@@ -1110,14 +1186,14 @@
       return this.listView.render();
     };
     SearchView.prototype.show = function() {
-      return $(this.el).show();
+      return this.$el.show();
     };
     SearchView.prototype.hide = function() {
-      return $(this.el).hide();
+      return this.$el.hide();
     };
     SearchView.prototype.render = function() {
-      $(this.el).append(this.filterView.el);
-      $(this.el).append(this.listView.el);
+      this.$el.append(this.filterView.el);
+      this.$el.append(this.listView.el);
       return this;
     };
     SearchView.prototype.finalize = function() {
@@ -1153,29 +1229,29 @@
       }
     };
     ObjectView.prototype.show = function() {
-      return $(this.el).show();
+      return this.$el.show();
     };
     ObjectView.prototype.hide = function() {
-      return $(this.el).hide();
+      return this.$el.hide();
     };
     ObjectView.prototype.setModel = function(model) {
       this.model = model;
       return this.render();
     };
     ObjectView.prototype.render = function() {
-      $(this.el).empty();
+      this.$el.empty();
       if (this.model) {
-        $(this.el).append("<span class='breadcrumb'><a href='/app/search'>Search</a> -> <a href='/app/search'>" + this.model.attributes.type + "</a> -> <a href='/app/search/" + this.model.attributes.type + "/" + this.model.attributes.id + "'>" + this.model.attributes.name + "</a></span>");
+        this.$el.append("<span class='breadcrumb'><a href='search'>Search</a> -> <a href='search'>" + this.model.attributes.type + "</a> -> <a href='search/" + this.model.attributes.type + "/" + this.model.attributes.id + "'>" + this.model.attributes.name + "</a></span>");
       }
       if (!this.model) {
-        $(this.el).append("<span class='breadcrumb'><a  href='/app/search'>Search</a></span>");
+        this.$el.append("<span class='breadcrumb'><a  href='search'>Search</a></span>");
       }
       if (this.model) {
-        $(this.el).append(this.templateMap[this.model.get('type')](this.model.toJSON()));
+        this.$el.append(this.templateMap[this.model.get('type')](this.model.toJSON()));
       }
       if (this.model) {
-        window.socialView.setContext(this.model);
-        window.socialView.setEdit(true);
+        App.socialView.setContext(this.model);
+        App.socialView.setEdit(true);
       }
       return this;
     };
@@ -1191,24 +1267,25 @@
     };
     return ObjectView;
   })();
-  SearchApp = (function() {
-    __extends(SearchApp, Backbone.View);
-    function SearchApp() {
+  SearchPane = (function() {
+    __extends(SearchPane, Backbone.View);
+    function SearchPane() {
       this.render = __bind(this.render, this);
       this.dispatch = __bind(this.dispatch, this);
       this.dispatchObject = __bind(this.dispatchObject, this);
-      SearchApp.__super__.constructor.apply(this, arguments);
+      SearchPane.__super__.constructor.apply(this, arguments);
     }
-    SearchApp.implements(TemplateView, SwitchPane);
-    SearchApp.prototype.initialize = function() {
+    SearchPane.implements(TemplateView, SwitchPane);
+    SearchPane.prototype.id = 'search';
+    SearchPane.prototype.initialize = function() {
       this.search = new SearchView;
       this.search.render();
       this.view = new ObjectView;
       return this;
     };
-    SearchApp.prototype.dispatchObject = function(ref) {
+    SearchPane.prototype.dispatchObject = function(ref) {
       var models;
-      models = lookupModels([ref]);
+      models = App.lookupModels([ref]);
       if (models.length > 0) {
         this.view.setModel(models[0]);
         document.name = models[0].get('name');
@@ -1217,13 +1294,13 @@
         if (!models) {
           alert("no model found for " + ref);
         }
-        window.appRouter.navigate("/app/search", true);
+        App.router.navigate("search", true);
         return false;
       }
     };
-    SearchApp.prototype.dispatch = function(path) {
+    SearchPane.prototype.dispatch = function(path) {
       var ref;
-      if ($(this.el).children().size() === 0) {
+      if (this.$el.children().size() === 0) {
         this.render();
       }
       if (path) {
@@ -1240,70 +1317,71 @@
       }
       return this;
     };
-    SearchApp.prototype.render = function() {
-      $(this.el).empty();
-      $(this.el).append(this.search.render().el);
-      $(this.el).append(this.view.render().el);
+    SearchPane.prototype.render = function() {
+      this.$el.empty();
+      this.$el.append(this.search.render().el);
+      this.$el.append(this.view.render().el);
       this.search.finalize();
       this.view.finalize();
       return this;
     };
-    return SearchApp;
+    return SearchPane;
   })();
-  TrialView = (function() {
-    __extends(TrialView, Backbone.View);
-    function TrialView() {
+  TrialSummaryView = (function() {
+    __extends(TrialSummaryView, Backbone.View);
+    function TrialSummaryView() {
       this.viewModel = __bind(this.viewModel, this);
       this.render = __bind(this.render, this);
-      TrialView.__super__.constructor.apply(this, arguments);
+      TrialSummaryView.__super__.constructor.apply(this, arguments);
     }
-    TrialView.implements(TemplateView);
-    TrialView.prototype.initialize = function(exp) {
+    TrialSummaryView.implements(TemplateView);
+    TrialSummaryView.prototype.initialize = function(exp) {
       return this.initTemplate('#trial-list-view');
     };
-    TrialView.prototype.render = function() {
+    TrialSummaryView.prototype.render = function() {
       return this.renderTemplate();
     };
-    TrialView.prototype.events = {
+    TrialSummaryView.prototype.events = {
       'click': 'viewModel'
     };
-    TrialView.prototype.finalize = function() {
+    TrialSummaryView.prototype.finalize = function() {
       return this.delegateEvents();
     };
-    TrialView.prototype.viewModel = function() {
+    TrialSummaryView.prototype.viewModel = function() {
       var id;
-      window.socialView.setContext(model.get('experiment'));
-      window.socialView.setEdit(true);
+      App.socialView.setContext(model.get('experiment'));
+      App.socialView.setEdit(true);
       id = this.model.get('id');
-      return window.appRouter.navigate("/app/trials/" + id, true);
+      return App.router.navigate("trials/" + id, true);
     };
-    return TrialView;
+    return TrialSummaryView;
   })();
-  TrialApp = (function() {
-    __extends(TrialApp, Backbone.View);
-    function TrialApp() {
+  TrialPane = (function() {
+    __extends(TrialPane, Backbone.View);
+    function TrialPane() {
       this.renderList = __bind(this.renderList, this);
       this.viewModel = __bind(this.viewModel, this);
       this.render = __bind(this.render, this);
-      TrialApp.__super__.constructor.apply(this, arguments);
+      TrialPane.__super__.constructor.apply(this, arguments);
     }
-    TrialApp.implements(TemplateView, SwitchPane);
-    TrialApp.prototype.newTrial = function(trial) {
-      return new TrialView({
+    TrialPane.implements(TemplateView, SwitchPane);
+    TrialPane.prototype.id = 'trial';
+    TrialPane.prototype.newTrial = function(trial) {
+      return new TrialSummaryView({
         model: trial
       });
     };
-    TrialApp.prototype.initialize = function(exp) {
-      this.views = window.MyTrials.map(this.newTrial);
+    TrialPane.prototype.initialize = function(exp) {
+      this.views = App.MyTrials.map(this.newTrial);
       this.initTemplate('#trial-view-header');
       this.chartTemplate = this.getTemplate('#highchart-div');
       this.calendarTemplate = this.getTemplate('#small-calendar');
       this.instTableTemplate = this.getTemplate('#instrument-short-table');
       return this;
     };
-    TrialApp.prototype.dispatch = function(path) {
+    TrialPane.prototype.dispatch = function(path) {
       if (path) {
-        this.model = findModel(window.MyTrials, path);
+        this.model = findModel(App.MyTrials, path);
         if (!this.model) {
           alert("no model found for " + path);
         }
@@ -1318,12 +1396,12 @@
         });
         this.viewModel(this.model);
       } else {
-        window.socialView.setEdit(false);
+        App.socialView.setEdit(false);
         this.model = null;
       }
       return this.render();
     };
-    TrialApp.prototype.render = function() {
+    TrialPane.prototype.render = function() {
       if (this.model) {
         this.renderModel();
       } else {
@@ -1331,28 +1409,28 @@
       }
       return this;
     };
-    TrialApp.prototype.viewModel = function(model) {
-      window.socialView.setContext(model.get('experiment'));
-      return window.socialView.setEdit(true);
+    TrialPane.prototype.viewModel = function(model) {
+      App.socialView.setContext(model.get('experiment'));
+      return App.socialView.setEdit(true);
     };
-    TrialApp.prototype.renderModel = function() {
+    TrialPane.prototype.renderModel = function() {
       var experiment, outcome, treatment;
       experiment = this.model.get('experiment');
       treatment = experiment.get('treatment');
       outcome = experiment.get('outcome');
-      $(this.el).empty();
+      this.$el.empty();
       this.inlineTemplate();
       this.renderCalendar(experiment);
       this.renderInstruments(experiment);
-      $(this.el).append("<div class='clear'/>");
+      this.$el.append("<div class='clear'/>");
       this.renderOutcome(experiment);
-      $(this.el).append(this.journal.render().el);
+      this.$el.append(this.journal.render().el);
       this.journal.finalize();
       return this;
     };
-    TrialApp.prototype.renderOutcome = function(outcome) {
+    TrialPane.prototype.renderOutcome = function(outcome) {
       outcome = outcome.get('instruments')[0];
-      $(this.el).append('<h1>Results</h1>');
+      this.$el.append('<h1>Results</h1>');
       this.inlineTemplate({
         cssid: 'chart1',
         height: '150px',
@@ -1360,10 +1438,10 @@
       }, this.chartTemplate);
       return renderTrackerChart('chart1', outcome, 0);
     };
-    TrialApp.prototype.renderCalendar = function(experiment) {
+    TrialPane.prototype.renderCalendar = function(experiment) {
       var id, month, mydiv;
       mydiv = $("<div class='trial-calendar-wrap'/>");
-      $(this.el).append(mydiv);
+      this.$el.append(mydiv);
       mydiv.append('<h2>Schedule</h2>');
       id = experiment.get('id');
       month = "now";
@@ -1372,10 +1450,10 @@
       }));
       return initCalendar("/api/calendar/experiment/" + id, '#trial-cal', month);
     };
-    TrialApp.prototype.renderInstruments = function(experiment) {
+    TrialPane.prototype.renderInstruments = function(experiment) {
       var data, instruments, mydiv;
       mydiv = $("<div class='trial-measures'/>");
-      $(this.el).append(mydiv);
+      this.$el.append(mydiv);
       mydiv.append('<h2>Tracking Instruments</h2>');
       instruments = experiment.get('instruments');
       data = {
@@ -1385,23 +1463,29 @@
       };
       return mydiv.append(this.instTableTemplate(data));
     };
-    TrialApp.prototype.renderList = function() {
-      var view, _i, _j, _len, _len2, _ref, _ref2;
-      $(this.el).empty();
-      $(this.el).append('<h1>My Trials</h1>');
+    TrialPane.prototype.renderTrials = function(trialViews) {
+      var mydiv, view, _i, _j, _len, _len2, _ref, _ref2;
+      mydiv = $("<div class='trial-views'/>");
+      mydiv.append('<h1>My Trials</h1>');
       _ref = this.views;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         view = _ref[_i];
-        $(this.el).append(view.render().el);
+        mydiv.append(view.render().el);
       }
       _ref2 = this.views;
       for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
         view = _ref2[_j];
         view.finalize();
       }
+      this.$el.append(mydiv);
       return this;
     };
-    return TrialApp;
+    TrialPane.prototype.renderList = function() {
+      this.$el.empty();
+      this.renderTrials();
+      return this;
+    };
+    return TrialPane;
   })();
   SocialView = (function() {
     __extends(SocialView, Backbone.View);
@@ -1411,15 +1495,20 @@
       SocialView.__super__.constructor.apply(this, arguments);
     }
     SocialView.implements(TemplateView);
-    SocialView.prototype.initialize = function(id) {
-      this.el = $('#social' != null ? '#social' : id)[0];
+    SocialView.prototype.initialize = function() {
       this.initTemplate('#comment-short-view');
       this.edit = false;
-      return this.render();
+      if (this.model) {
+        this.render();
+      }
+      return this;
     };
     SocialView.prototype.setContext = function(model) {
-      this.parent = model;
-      this.parent.bind('change', this.render);
+      if (this.model) {
+        this.model.off('change');
+      }
+      this.model = model;
+      this.model.on('change', this.render);
       this.edit = false;
       return this.render();
     };
@@ -1429,10 +1518,10 @@
     };
     SocialView.prototype.render = function() {
       var c, comments, _i, _len, _ref;
-      $(this.el).empty();
-      $(this.el).append('<h1>Public Comments</h1>');
+      this.$el.empty();
+      this.$el.append('<h1>Public Comments</h1>');
       if (this.edit) {
-        $(this.el).append("<textarea rows='5' cols='20'/><button class='comment' type='button'>Comment</button>");
+        this.$el.append("<textarea rows='5' cols='20'/><button class='comment' type='button'>Comment</button>");
       }
       if (this.parent) {
         comments = this.parent.get('comments');
@@ -1453,55 +1542,51 @@
       'click button.comment': 'addComment'
     };
     SocialView.prototype.addComment = function() {
-      return this.parent.annotate('comment', $('#social textarea').val());
+      return this.parent.annotate('comment', this.$('textarea').val());
     };
     return SocialView;
+  })();
+  ProfilePane = (function() {
+    __extends(ProfilePane, Backbone.View);
+    function ProfilePane() {
+      this.render = __bind(this.render, this);
+      this.updateModel = __bind(this.updateModel, this);
+      ProfilePane.__super__.constructor.apply(this, arguments);
+    }
+    ProfilePane.implements(TemplateView, SwitchPane);
+    ProfilePane.prototype.id = 'profile';
+    ProfilePane.prototype.model = App.User;
+    ProfilePane.prototype.initialize = function() {
+      return this.initTemplate('#profile-edit-view');
+    };
+    ProfilePane.prototype.events = {
+      'change': 'updateModel'
+    };
+    ProfilePane.prototype.updateModel = function(e) {
+      var name, target;
+      e.preventDefault();
+      target = $(e.target);
+      name = target.prop('name');
+      this.model.set(name, target.val());
+      return this;
+    };
+    ProfilePane.prototype.render = function() {
+      return this.renderTemplate(this.model.get('prefs'));
+    };
+    return ProfilePane;
   })();
   AppRouter = (function() {
     __extends(AppRouter, Backbone.Router);
     function AppRouter() {
-      this.activate = __bind(this.activate, this);
+      this.select = __bind(this.select, this);
       AppRouter.__super__.constructor.apply(this, arguments);
     }
-    AppRouter.prototype.initialize = function() {
-      return this.switcher = new PaneSwitcher({
-        'dashboard': new DashboardApp({
-          el: $('#dashboardApp').first()
-        }),
-        'trials': new TrialApp({
-          el: $('#trialApp').first()
-        }),
-        'search': new SearchApp({
-          el: $('#searchApp').first()
-        }),
-        'admin': new AdminApp({
-          el: $('#adminApp').first()
-        })
-      });
-    };
     AppRouter.prototype.routes = {
-      '/app/:app/*path': 'activate',
-      '/app/:app/': 'activate',
-      '/app/:app': 'activate'
+      ':app/*path': 'select',
+      ':app': 'select'
     };
-    AppRouter.prototype.activate = function(pname, path) {
-      var pane;
-      console.log('Activating ' + pname + ' with ' + path);
-      if (typeof path === 'undefined') {
-        window.mainMenu.setMenu(pname);
-      } else {
-        window.mainMenu.setMenu(pname + "/" + path);
-      }
-      pane = this.switcher.get(pname);
-      if (pane) {
-        this.switcher.hideOtherPanes();
-        pane.showPane();
-        pane.dispatch(path);
-      } else {
-        this.switcher.hideOtherPanes();
-        $('#errorApp').show();
-      }
-      return this;
+    AppRouter.prototype.select = function(pname, path) {
+      return this.trigger("route:selectApp", pname, path);
     };
     return AppRouter;
   })();
@@ -1512,11 +1597,8 @@
       this.expand = __bind(this.expand, this);
       MainMenu.__super__.constructor.apply(this, arguments);
     }
-    MainMenu.prototype.root = 'app';
+    MainMenu.prototype.urlBase = '/app/';
     MainMenu.prototype.initialize = function() {
-      var _ref;
-      this.root = (_ref = this.options.root) != null ? _ref : this.root;
-      this.el = $(this.options.elid).first();
       this.delegateEvents();
       return this;
     };
@@ -1529,12 +1611,10 @@
     MainMenu.prototype.setMenu = function(base, path) {
       var link;
       if (path) {
-        link = $("a[href='/" + this.root + "/" + base + "/" + path + "']").first();
+        link = $("a[href='" + this.urlBase + "/" + base + "/" + path + "']").first();
         link.parents('ul.submenu').show();
-        console.log(link);
       } else {
-        link = $("a[href='/" + this.root + "/" + base + "']").first();
-        console.log(link);
+        link = $("a[href='" + this.urlBase + "/" + base + "']").first();
       }
       if (link) {
         return this.setCurrent(link);
@@ -1556,34 +1636,24 @@
       newLink = event.target;
       this.setCurrent(newLink);
       target = $(newLink).attr('href');
-      window.appRouter.navigate(target, true);
+      App.router.navigate(target, true);
       return this;
     };
     return MainMenu;
   })();
-  loadModels = function() {
-    if (!window.User) {
-      return window.User.fetch();
-    }
-  };
   $(document).ready(function() {
     var match;
-    loadModels();
-    window.Instruments.resolveReferences();
-    window.Experiments.resolveReferences();
-    window.MyTrials.resolveReferences();
-    window.MyTrackers.resolveReferences();
-    window.Treatments.resolveReferences();
-    makeModelMap();
-    window.socialView = new SocialView('#social');
-    window.appRouter = new AppRouter;
-    window.mainMenu = new MainMenu({
-      elid: '#main-menu'
+    App.socialView = new SocialView({
+      el: $('#share-pane')
     });
-    match = Backbone.history.start({
+    App.menu = new MainMenu({
+      el: $('#main-menu')
+    });
+    App.start();
+    return match = Backbone.history.start({
+      root: '/app/',
       pushState: true,
-      root: ''
+      silent: false
     });
-    return window.appRouter.navigate(document.location.pathname, true);
   });
 }).call(this);

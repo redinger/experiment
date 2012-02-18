@@ -5,6 +5,7 @@
 	    [clojure.contrib.string :as string]
 	    [clj-time.core :as time]
 	    [clojure.data.json :as json]
+            [clojure.tools.logging :as log]
 	    [somnium.congomongo :as mongo]
 	    [noir.response :as response]
 	    [noir.request :as request]
@@ -44,23 +45,49 @@
 	   (inject-perms argmap)))))
 
 ;;
+;; Message log
+;;
+
+(defn log-message! [message]
+  (assert (and (:from message) (:message message)))
+  (mongo/insert! :sms (assoc message
+                        :date (clj-time.coerce/to-long (time/now))
+                        :type :sms)))
+
+(defn get-messages
+  ([from]
+     (mongo/fetch :sms :where {:from from}))
+  ([start end]
+     (mongo/fetch :sms :where {:date {:$gte start :$lte end}}
+                  :sort {:date 1})))
+
+(defn get-latest-message [from]
+  (first
+   (mongo/fetch :sms :where {:from from}
+                :sort {:date -1}
+                :limit 1)))
+                
+
+
+;;
 ;; API: SEND MESSAGES
 ;;
 
 
-(defn send-sms [number subject message & [credentials]]
+(defn send-sms [number message & [credentials]]
   (assert (< (count message) 160))
   (assert (not (re-find #"[']" message)))
   (with-credentials [credentials]
     (http/get (compose-request-url
 	       "https://app.grouptexting.com/api/sending"
 	       {:phonenumber number
-		:subject subject
 		:message message}))))
 
 ;;
 ;; API: INBOX HANDLER
 ;;
+
+(defn default-handler [from message]
 
 (defonce ^:dynamic *handler* nil)
 
@@ -68,13 +95,15 @@
   (alter-var-root #'*handler* (fn [a b] b) handler))
 
 (defn- handle-reply [from message]
+  (let [msg {:from message :message message}]
+    (log-message! msg))
   (when (or (fn? *handler*) (var? *handler*))
     (*handler* from message)))
   
-(defpage inbox-url [:get "/sms/receive"] [{:as request}]
+(defpage inbox-url [:get "/sms/receive"] {:as request}
   (let [params (:params request)]
-    (handle-reply (:from params) (:message params))
-    (response/empty)))
+    (handle-reply (:from params) (:message response))
+    (params/empty)))
 
 ;;
 ;; API: Account mgmt
@@ -83,7 +112,7 @@
 (defn account-balance [& [credentials]]
   (with-credentials [credentials]
     (http/get (compose-request-url
-	       "https://app.grouptexting.com/api/credits/check"
+	       "https://app.grouptexting.com/api/credits/check/"
 	       {}))))
 	       
 	     

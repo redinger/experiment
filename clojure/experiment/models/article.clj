@@ -9,7 +9,8 @@
   (let [new {:type "article"
              :name (str name)
              :title title
-             :body body}]
+             :body body
+             :html (md/md body)}]
     (if-let [old (fetch-model :article :where {:name name})]
       (update-model! (merge old new))
       (create-model! (assoc new :type "article")))))

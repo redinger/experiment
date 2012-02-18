@@ -18,7 +18,6 @@
 
 (defpage "/article/:name" {:keys [name] :as options}
   (let [article (get-article name)]
-    (log/spy article)
     (common/simple-layout {}
      (if article
        [:div.article

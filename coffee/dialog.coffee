@@ -46,8 +46,17 @@ showRegisterDialog = (e) ->
                 "target": $(e).attr('href')
                 "default": window.location.pathname
 
+showForgotPasswordDialog = (e) ->
+        e.preventDefault()
+        regBody = $('#forgot-password-body').html()
+        template = Handlebars.compile regBody
+        root.renderDialog "Forgot Password", template,
+                "target": $(e).attr('href')
+                "default": window.location.pathname
+
 $(document).ready ->
         $('.login-link').bind 'click', showLoginDialog
+        $('.forgot-password').bind 'click', showForgotPasswordDialog
         $('.register-link').bind 'click', showRegisterDialog
         $('.cancel-button').bind 'click', cancelDialog
 
