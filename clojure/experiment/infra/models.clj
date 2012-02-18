@@ -5,6 +5,7 @@
    [noir.request :as request]
    [somnium.congomongo :as mongo]
    [clojure.walk :as walk]
+   [clojure.string :as str]
    [clojure.tools.logging :as log])
   (:import [org.bson.types ObjectId]
 	   [com.mongodb DBRef]))
@@ -38,7 +39,9 @@
   "Maps a model to a mongodb collection.  Embedded models
    are TBD, but I imagine we'll return a vector that includes
    the parent's collection + id + path"
-  (fn [model] (keyword (:type model))))
+  (fn [model] (when-let [type (:type model)]
+                (keyword type))))
+
 
 (defmulti client-keys 
   "Performs a select-keys on client data so we don't store
@@ -172,6 +175,16 @@
 ;;  clojure.lang.IDeref
 ;;  {:deref resolve-dbref})
 
+(defn lookup-location
+  "Resolve string or keyword location and indirect into
+   a model object so we can extract sub-content from the results
+   of a mongo query using said location"
+  [model location]
+  (cond (string? location)
+        (let [fields (str/split location #"\.")]
+          (get-in model (map keyword fields)))
+        (keyword? location)
+        (model location)))
 
 ;; =================================
 ;; Model CRUD API
@@ -229,8 +242,11 @@
 
 (defmethod model-collection :default
   [model]
-  (assert (:type model))
-  (name (:type model)))
+  (if (map? model)
+    (do (assert (:type model))
+        (name (:type model)))
+    (do (assert (or (string? model) (keyword? model)))
+        (model-collection {:type type}))))
 
 (defmethod db-reference-params :default
   [model]
@@ -256,7 +272,7 @@
   [model]
   (assert (not (model? model)))
   (if (valid-model-params? model)
-    (mongo/insert! (model-collection model) model)
+    (mongo/insert! (model-collection model) (update-model-pre model))
     "Error"))
 
 (defn- update-by-modifiers
@@ -271,23 +287,32 @@
 (defmethod update-model! :default
   [model]
   (if (valid-model-params? model)
-    (let [model (update-model-pre model)]
-      (.getError
-       (mongo/update! (model-collection model)
-                      {:_id (:_id model)}
-                      (update-by-modifiers model)
-                      :upsert false)))
+    (.getError
+     (mongo/update! (model-collection model)
+                    {:_id (:_id model)}
+                    (update-by-modifiers (update-model-pre model))
+                    :upsert false))
     "Error"))
 
 (defmethod annotate-model! :default
   [model location annotation]
-  (if (valid-model-params? model)
-    (.getError
-     (mongo/update! (model-collection model)
-		    {:_id (:_id model)}
-		    {:$push { location annotation }}
-		    :upsert false))
-    "Error"))
+  (.getError
+   (mongo/update! (model-collection model)
+                  {:_id (:_id model)}
+                  {:$push { location annotation }}
+                  :upsert false)))
+
+(defn set-submodel! [model location data]
+  (.getError
+   (mongo/update! (model-collection model)
+                  {:_id (:_id model)}
+                  {:$set { location data }})))
+
+(defn get-submodel [model location]
+  (lookup-location
+   (mongo/fetch (model-collection model)
+                :where {:_id (:_id model)}
+                :only [location])))
 
 (defmethod fetch-model :default [type & options]
   (apply mongo/fetch-one

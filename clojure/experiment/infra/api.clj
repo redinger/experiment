@@ -24,14 +24,14 @@
 
 ;; Update - PUT
 (defpage backbone-api-update [:put "/api/bone/:type"] {:keys [type json-payload]}
-;;  (println "Handling Put")
+  (println "Handling Put")
   (assert (sequential? json-payload))
   (response/json
    (export-model 
     (update-model! (map import-model json-payload)))))
 
 (defpage backbone-api-update [:put "/api/bone/:type/:id"] {:keys [type id json-payload]}
-;;  (println "Handling Put w/ ID")
+  (println "Handling Put w/ ID")
   (let [model (import-model json-payload)]
     (assert (= (deserialize-id id) (:_id model)))
     (response/json
@@ -39,7 +39,7 @@
       (update-model! model)))))
 
 ;; Read - GET
-(defpage backbone-api-read-all "/api/bone/:type" {:keys [type options json-payload] :as params}
+(defpage backbone-api-read-all "/api/bone/:type" {:keys [type options] :as params}
   (println "GET " params)
   (response/json
    (vec
@@ -67,16 +67,26 @@
    (export-model
     (delete-model! (import-model json-payload)))))
 
-;; Convenience method for annotating major objects with subobjects
 
-(defpage backbone-api-annotate [:post "/api/annotate/:mtype/:id/:type"]
-  {:keys [mtype id type] :as args}
+;; Update - UPDATE (update submodel)
+;; Sub-objects (replace existing)
+
+(defpage backbone-api-set [:put "/api/set/:mtype/:mid/:loc"]
+  {:keys [mtype mid loc json-payload] :as args}
+  (response/json
+   (set-submodel! {:type mtype :_id (deserialize-id mid)}
+                  loc json-payload)))
+
+;; Update - UPDATE (insert submodel)
+;; Sub-objects (insert into place)
+;; (Convenience method for annotating major objects with subobjects)
+(defpage backbone-api-annotate [:put "/api/annotate/:mtype/:id/:location"]
+  {:keys [mtype id location json-payload] :as args}
   (let [object (resolve-dbref mtype id)]
     (response/json
-     (when-let [anno (and object (make-annotation (dissoc args :mtype :id)))]
-       (annotate-model! object (model-collection {:type type}) anno)
+     (when-let [anno (and object (make-annotation json-payload))]
+       (annotate-model! object location anno)
        true))))
-			
 			
 
 

@@ -21,8 +21,8 @@
 	      "/js/vendor/jquery.sparkline.min.js"
 	      "/js/vendor/highcharts.src.js"
 	      "/js/vendor/handlebars.1.0.0.beta.3.js"
-	      "/js/vendor/underscore.js"
-	      "/js/vendor/backbone.js"
+	      "/js/vendor/underscore-131.js"
+	      "/js/vendor/backbone-091.js"
 	      "/js/dialog.js"
 	      ))
 	      
@@ -33,8 +33,8 @@
 	      "/js/vendor/jquery.sparkline.min.js"
 	      "/js/vendor/highcharts.js"
 	      "/js/vendor/handlebars.1.0.0.beta.3.js"
-	      "/js/vendor/underscore-min.js"
-	      "/js/vendor/backbone-min.js"
+	      "/js/vendor/underscore-min-131.js"
+	      "/js/vendor/backbone-min-091.js"
 	      "/js/dialog.js"
 	      ))
 
@@ -91,6 +91,35 @@
    head-content
    (render-analytics)])
 
+(defpartial facebook-jsapi []
+  [:div#fb-root]
+  [:script
+   "window.fbAsyncInit = function () {
+      FB.init({
+            appId      : '250581648351839',
+            status     : true, 
+            cookie     : true,
+            xfbml      : true,
+            oauth      : true,
+          });
+        };
+        (function(d) {
+           var js, id = 'facebook-jssdk'; if (d.getElementById(id)) {return;}
+           js = d.createElement('script'); js.id = id; js.async = true;
+           js.src = \"//connect.facebook.net/en_US/all.js\";
+           d.getElementsByTagName('head')[0].appendChild(js);
+         }(document));"])
+
+(defpartial facebook-login [title]
+  [:div.fb-login-button {:data-scope "email"} title])
+
+(defpartial facebook-registration []
+  [:div
+   {:class "fb-registration"
+    :data-scope "email"
+    :data-fields "[{'name':'name'}, {'name':'email'}]"
+    :data-redirect-uri "http://personalexperiments.org/app/dashboard"}])
+
 ;; Simple Layout
 
 (defpartial layout [& content]
@@ -142,6 +171,13 @@
 	    [:input {:type "submit" :name "submit" :value "Register"}]
 	    [:input {:class "cancel-button" :type "submit" :name "cancel" :value "Cancel"}]]))
 
+(deftemplate forgot-password-body
+  (form-to [:post "/action/forgotpw"]
+	   [:div {:class "form-pair username-field"}
+	    (label "username" "Username or Email") (text-field "username")]
+	   [:div {:class "buttons"}
+	    [:input {:type "submit" :name "submit" :value "Lookup"}]
+	    [:input {:type "submit" :name "cancel" :value "Cancel"}]]))
 
 (defpartial render-dialog-templates []
   [:div.templates {:style "display: none;"}
@@ -201,7 +237,11 @@
      [:span {:class "separator"} "|"]
      [:a {:class "header-link login-link"
           :href "/action/login"}
-      "Login"]]))
+      "Login"]
+     [:span {:clas "separator"} "|"]
+     [:a {:class "header-link"
+          :href ""}
+      (facebook-login "Connect")]]))
 
 (defpartial simple-layout [{:as options :keys [header-menu] :or {header-menu true}}
                             & content]
@@ -209,6 +249,7 @@
    (standard-head-nojs)
    [:body
     ;; Main page content
+    (facebook-jsapi)
     [:div#wrapper
      [:div.home-header-wrap
       [:div.home-header
@@ -226,26 +267,10 @@
     ;; Home javascript
     (simple-js)]))
 
-;; ====================================
-;; Rich application layout
-;; ====================================
 
-(defpartial render-profile-summary []
-  (let [user (session/current-user)]
-    (if (session/logged-in?)
-      (list [:img {:src "/img/generic_headshot.jpg"}]
-		   ;; "https://gp1.wac.edgecastcdn.net/801245/socialcast.s3.amazonaws.com/tenants/6255/profile_photos/499368/Ian_Headshot_Zoom_square70.jpg"}]
-	    [:h1 (or (:username user) "NO NAME!")]
-	    (link-to "/app/profile" "Edit Profile")
-	    [:br]
-	    (link-to "/action/logout" "Logout")
-	    [:br]
-	    [:a {:class "help" :href "#"} "Help"])
-      (list [:span
-	     [:a {:class "login-link" :href "/action/login"}
-	      "Login"]]
-	    [:a {:class "help" :href "#"} "Help"]))))
-
+;;
+;; Menu Utils
+;;
 
 (defpartial render-submenu [parent menu]
   [:ul {:class "submenu" :style "display: none;"}
@@ -260,42 +285,16 @@
   [:ul ;; {:class "menulist"}
    (map (fn [[name content & subitems]]
 	  (when name
-	    (let [base (str "/app/" name)]
+	    (let [base (str name)]
 	      [:li {:class "menuitem"}
 	       [:a {:href base :class (if subitems "expand" "action")}
 		content]
 	       (when subitems (render-submenu base subitems))])))
 	menu)])
 
-
-(defpartial nav-layout [menu-content]
-  [:div#nav-pane.left-side-bar
-   [:div.profile-summary
-    (render-profile-summary)]
-   [:hr]
-   [:div#main-menu.main-menu
-    (render-menu menu-content)]
-   [:div.nav-footer
-    (image "/img/c3ntheme_logo.png" "C3N Logo")
-    [:br]
-    [:div {:style "text-align: center"}
-     (link-to "/article/terms" "Terms of Use")
-     "&nbsp; | &nbsp;"
-     (link-to "/article/privacy" "Privacy")
-     "&nbsp;"]]])
-
-
-(defpartial app-pane-layout [app-pane]
-  [:div.app-pane-wrap
-   [:div#app-pane.app-pane
-    [:div.inner-pad
-     app-pane]]])
-
-
-(defpartial share-pane-layout [share-pane]
-  [:div#share-pane.right-side-bar
-   share-pane])
-
+;;
+;; Bootstrapping
+;;
 
 (defn bootstrap-collection-expr [name coll]
   (str name ".reset("
@@ -303,34 +302,34 @@
 	(models/export-model coll))
        ");"))
 
-
 (defn bootstrap-instance-expr [name coll]
   (str name ".set("
        (json/generate-string
 	(models/export-model coll))
        ");"))
 
-
 (defpartial send-user []
   [:script {:type "text/javascript"}
-   (bootstrap-instance-expr "window.User" (session/current-user))])
+   (bootstrap-instance-expr "window.ExApp.User" (session/current-user))])
 
 
-(defpartial app-layout [menu app-pane share-pane bootstrap-data]
-  (html5
-   (standard-head-nojs)
-   [:body
-    [:div#wrapper
-     [:div#app-main
-      (app-pane-layout app-pane)
-      (nav-layout menu)
-      (share-pane-layout share-pane)]
-     [:div#footer]]
-    (render-modal-dialog-skeleton)
-    (include-vendor-libs)
-    (include-js "/js/app.js")
-    (send-user)
-    bootstrap-data]))
+;;
+;; Rendering all templates
+;;
+
+(defn render-template [id template]
+  (inline-template
+   id template "text/x-jquery-html"))
+
+(defn render-all-templates
+  ([]
+     (map (fn [[name template]]
+	    (render-template name template))
+	  (all-templates)))
+  ([names]
+     (map (fn [[name template]]
+	    (render-template name template))
+	  (select-keys (all-templates) list))))
 
       
 
@@ -417,6 +416,19 @@
 (defpage do-logout "/action/logout" {:as options}
   (session/clear!)
   (resp/redirect (or (:target options) "/")))
+
+(defpage do-forgot-password [:post "/action/forgotpw"] {:as options}
+  (if (:cancel options)
+    (resp/redirect (or (:target options) "/"))
+    (if-let [user (user/get-user (:username options))]
+      (do (mail/send-message-to (:email user)
+                       {:subject "Forgot Password Reminder"
+                        :body "Sorry, we can only reset your password manually for now.  Please reply to this e-mail with a suggested password.  Shortly we'll allow profile editing and can fix your forgotten password more easily."})
+          (resp/redirect (or (:target options) "/")))
+      (simple-layout {}
+        [:h2 "Did not recognize your username or e-mail address"]
+        [:a {:href (or (:target options) "/")} "Return to the home page"]))))
+      
 
 (defpage show-map "/util/show-request" {}
   (simple-layout {}

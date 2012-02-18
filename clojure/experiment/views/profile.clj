@@ -13,5 +13,4 @@
     (common/simple-layout
      [:h1 "About Me"]
      [:p (session/get :test)])))
-     
 

@@ -4,14 +4,25 @@
 	hiccup.page-helpers
 	hiccup.form-helpers)
   (:require
-   [noir.session :as session]
    [noir.validation :as vali]
    [noir.response :as resp]
    [clojure.string :as string]
    [experiment.models.user :as users]
+   [experiment.infra.session :as sess]
    [experiment.views.common :as common]))
 
-;;(pre-route "/admin*" {}
-;;           (when-not (users/admin?)
-;;             (resp/redirect "/actions/login")))
+(pre-route
+ "/admin*" {}
+ (if (sess/current-user)
+   (when-not (users/is-admin?)
+     (resp/redirect "/"))
+   (resp/redirect "/actions/login")))
+
+(defpage "/admin/hideme" {}
+  (html5
+   (common/standard-head-nojs)
+   (:body {:onLoad "javascript:pageTracker._setVar('dev_view');"}
+          [:h1 "You are now hidden from Google Analytics"])))
+
+
 
