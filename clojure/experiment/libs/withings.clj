@@ -24,7 +24,7 @@
    name])
 
 (defpage [:get "/api/withings/oauth"] {:keys [target json-payload]}
-  
+  nil)
 
 (defn wi-user [user]
   (:wi-userid user))
@@ -85,7 +85,7 @@
 (defn user-measures
   ([user startdate]
      (assert (number? startdate))
-     (filter-measures
+     (filter-records
       (wi-action user "measure" "getmeas"
                  {:startdate startdate :devtype 1})))
   ([user]

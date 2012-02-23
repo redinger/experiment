@@ -91,7 +91,7 @@
 	   ["window.ExApp.Treatments" (models/fetch-models :treatment)]
 	   ["window.ExApp.MyTrackers"
 	    (models/fetch-models :tracker :where {:user.$id (:_id user)}
-				 :only [:start :user :instrument :type])]
+				 :only [:user :instrument :type :state])]
            ["window.ExApp.Users"
             (models/fetch-models :user :only [:username :type])]])
      (str "window.ExApp.Suggestions.reset("

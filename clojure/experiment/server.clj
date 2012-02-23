@@ -5,6 +5,7 @@
 	    [clojure.tools.logging :as log]
 	    [experiment.controller :as ctrl]
 	    [experiment.infra.session :as session]
+            [experiment.libs.sms :as sms]
 	    [clojure.data.json :as json]
 	    [somnium.congomongo :as mongo]
 	    [experiment.infra.api]))
@@ -45,6 +46,8 @@
 		   :level :warn
 		   :pattern "%d - %m%n"
                    :out "experiment.log"))
+    ;; Setup SMS subsystem
+    (sms/set-credentials {:user "ianeslick" :pw "az5ure"})
     ;; Start and save server
     (let [port (Integer. (get (System/getenv) "PORT" "8080"))
 	  server (server/start

@@ -70,7 +70,6 @@
 
 ;; Update - UPDATE (update submodel)
 ;; Sub-objects (replace existing)
-
 (defpage backbone-api-set [:put "/api/set/:mtype/:mid/:loc"]
   {:keys [mtype mid loc json-payload] :as args}
   (response/json

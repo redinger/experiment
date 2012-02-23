@@ -1,5 +1,6 @@
 (ns experiment.libs.rescuetime
   (:require [clj-http.client :as http]
+            [experiment.libs.datetime :as dt]
 	    [clojure.data.json :as json]))
 
 (def ^:dynamic *api-key* "B63Je4umeLnCdqF974NyTpILpTpQLOMBs7mHC3G3")
@@ -15,13 +16,12 @@
 	       (merge
 		params
 		{:key *api-key*
-		 :format "json"
-		 :ru "eslick@media.mit.edu"})
-	       :content-type :json
-	       :accept :json}))))
+		 :format "json"})
+               :content-type :json
+               :accept :json}))))
 
 (defmacro with-key [value & body]
-  `(binding [*api-key* (or ~value *api-key)]
+  `(binding [*api-key* (or ~value *api-key*)]
      ~@body))
 
 (defn index-at
@@ -36,7 +36,7 @@
 
 (defn column-index [results column]
   (index-at #(= % column) (results :row_headers)))
-
+  
 (defn- seconds-to-hours [column row]
   (assoc row column (float (/ (nth row column) 3600))))
 
@@ -46,65 +46,96 @@
     (update-in results [:rows]
 	       #(map (partial seconds-to-hours pos) %))))
 
-    
-
 (defn- matching-row-p [column pattern row]
   (re-find pattern (nth row column)))
 
-(defn select-rows-by-name [name type results]
-  (let [pos (column-index results type)
-	pattern (re-pattern name)]
-    (update-in results [:rows]
-	       #(filter (partial matching-row-p pos pattern) %))))
+(defn filter-rows-by-name
+  ([name type results]
+     (let [pos (column-index results type)
+           pattern (re-pattern name)]
+       (assoc
+           (update-in results [:rows]
+                      #(filter (partial matching-row-p pos pattern) %))))))
 
+(defonce ^:dynamic *test* nil)
+
+(defn aggregate-rows
+  [group]
+  [(first group)
+   (apply + (map second (second group)))])
+
+(defn aggregate-results
+  ([results]
+     (alter-var-root #'*test* (fn [a] (:rows results)))
+     (assoc results
+       :row_headers (take 2 (:row_headers results))
+       :rows (map aggregate-rows
+                  (group-by first (:rows results))))))
+   
 (defn efficiency
   ([interval start end]
      (assert (#{"week" "day" "month"} interval))
-     (assert (and (string? start) (string? end)))
      (api-request
       {:restrict_kind "efficiency"
-       :restrict_begin start
-       :restrict_end end
+       :restrict_begin (dt/as-iso-8601-date start)
+       :restrict_end (dt/as-iso-8601-date end)
        :perspective "interval"
        :resolution_time interval})))
+
+;;(defn- parse-productivity [result]
+;;  (assoc result :rows
+;;         (map (fn [[ts score 
 
 (defn productivity
   ([interval start end]
      (assert (#{"week" "day" "month"} interval))
-     (assert (and (string? start) (string? end)))
-     (api-request
-      {:restrict_kind "productivity"
-       :restrict_begin start
-       :restrict_end end
-       :perspective "interval"
-       :resolution_time interval})))
-;;  ([interval start end name]
-     
+;;     (parse-productivity
+      (api-request
+       {:restrict_kind "productivity"
+        :restrict_begin (dt/as-iso-8601-date start)
+        :restrict_end (dt/as-iso-8601-date end)
+        :perspective "interval"
+        :resolution_time interval})))
 
 (defn categories
   ([interval start end]
      (assert (#{"week" "day" "month"} interval))
-     (assert (and (string? start) (string? end)))
      (api-request
       {:restrict_kind "category"
-       :restrict_begin start
-       :restrict_end end
+       :restrict_begin (dt/as-iso-8601-date start)
+       :restrict_end (dt/as-iso-8601-date end)
        :perspective "interval"
        :resolution_time interval}))
   ([interval start end name]
-     (select-rows-by-name name "Category" (categories interval start end))))
+     (filter-rows-by-name name "Category" (categories interval start end))))
   
 (defn activities
   ([interval start end]
      (assert (#{"week" "day" "month"} interval))
-     (assert (and (string? start) (string? end)))
      (api-request
       {:restrict_kind "activity"
-       :restrict_begin start
-       :restrict_end end
+       :restrict_begin (dt/as-iso-8601-date start)
+       :restrict_end (dt/as-iso-8601-date end)
        :perspective "interval"
        :resolution_time interval}))
   ([interval start end name]
-     (select-rows-by-name name (activities interval start end))))
+     (assert (#{"week" "day" "month"} interval))
+     (api-request
+      {:restrict_kind "activity"
+       :restrict_begin (dt/as-iso-8601-date start)
+       :restrict_end (dt/as-iso-8601-date end)
+       :perspective "interval"
+       :restrict_thing name
+       :resolution_time interval})))
 
+;; Specific interfaces
 
+(defn facebook
+  ([interval start end]
+     (aggregate-results
+      (activities interval start end "facebook.com"))))
+
+(defn social-media
+  ([interval start end]
+     (categories interval start end "General Social Networking")))
+      

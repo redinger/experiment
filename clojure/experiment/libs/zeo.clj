@@ -1,7 +1,12 @@
 (ns experiment.libs.zeo
   (:use experiment.infra.models)
   (:require [clj-http.client :as http]
+            [experiment.libs.datetime :as dt]
 	    [clojure.data.json :as json]))
+
+
+;; "ACE41D854610E84DAF16419E087C2ADF" ;; mit.edu
+;; "6B58F54966A8A9632A68EBBFF0192D4C" ;; media.mit.edu
 
 (def ^:dynamic *std-key* "ACE41D854610E84DAF16419E087C2ADF")
 (def ^:dynamic *std-base* "https://api.myzeo.com:8443/zeows/api/v1/json/sleeperService/%s")
@@ -9,8 +14,8 @@
 (def ^:dynamic *staging-key* "6B58F54966A8A9632A68EBBFF0192D4C")
 (def ^:dynamic *staging-base* "https://staging.myzeo.com:8443/zeows/api/v1/json/sleeperService/%s")
   
-(def zeo-mode :staging)
-(def ^:dynamic *auth* nil)
+(def zeo-mode :standard)
+(defonce ^:dynamic *auth* nil)
 
 (defn- zeo-key []
   (if (= zeo-mode :staging)
@@ -32,7 +37,7 @@
 
 (defn set-default-auth [auth]
   (assert (valid-auth? auth))
-  (alter-var-root default-auth* auth))
+  (alter-var-root #'*auth* (fn [orig] auth)))
   
 (defn get-default-auth []
   *auth*)
@@ -57,9 +62,12 @@
      (zeo-request *auth* action {})))
 
 (defn zeo-date [date]
-  (cond (string? date)
+  (cond org.joda.time.DateTime
+        (dt/as-iso-8601-date date)
+        (string? date)
         (do (assert (re-matches #"(\d\d\d\d)-(\d\d)-(\d\d)" date))
             date)))
+        
          
 
 ;;

@@ -318,12 +318,11 @@ initCalendar = (url, id, month) ->
 renderTrackerChart = (id, instrument, start, extra, options) ->
         options = $(options).extend
                 chart:
-                        type: 'spline'
+                        type: 'line'
                         renderTo: id
 
         $.getJSON "/api/charts/tracker",
-                inst: instrument.get 'id'
-                start: start, (config) ->
+                inst: instrument.get 'id', (config) ->
                         config = $.extend config, options
                         App.chart_config = config
                         new Highcharts.Chart config

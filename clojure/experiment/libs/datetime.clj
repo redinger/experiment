@@ -118,11 +118,15 @@
 		(within-period-ago? dt cur period))
 	      short-fmt-intervals)))))
 
-(defn from-utc [utc]
-  (coerce/from-long utc))
+;; Canonicalize
 
-(defn from-iso-8601 [string]
-  (fmt/parse string))
+(defn from-utc
+  ([utc] (when utc (coerce/from-long utc)))
+  ([utc tz] (when utc (time/to-time-zone (coerce/from-long utc) tz))))
+  
+(defn from-iso-8601 [string] (fmt/parse string))
+
+;; Export formats
 
 (defn as-utc [dt]
   (condp = (type dt)
@@ -144,7 +148,6 @@
 (defn as-iso-8601-date [dt]
   (when dt
     (.print iso-8601-date dt)))
-
 
 (defn to-default-tz [dt]
   (time/to-time-zone dt (time/default-time-zone)))

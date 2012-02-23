@@ -88,8 +88,9 @@
 ;;
 
 (defn default-handler [from message]
+  (log/spy [from message]))
 
-(defonce ^:dynamic *handler* nil)
+(defonce ^:dynamic *handler* #'default-handler)
 
 (defn set-reply-handler [handler]
   (alter-var-root #'*handler* (fn [a b] b) handler))
@@ -100,10 +101,9 @@
   (when (or (fn? *handler*) (var? *handler*))
     (*handler* from message)))
   
-(defpage inbox-url [:get "/sms/receive"] {:as request}
-  (let [params (:params request)]
-    (handle-reply (:from params) (:message response))
-    (params/empty)))
+(defpage inbox-url [:get "/sms/receive"] {:keys [from message]}
+  (handle-reply from message)
+  (response/empty))
 
 ;;
 ;; API: Account mgmt

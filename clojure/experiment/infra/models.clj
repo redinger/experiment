@@ -186,6 +186,11 @@
         (keyword? location)
         (model location)))
 
+(defmacro nil-on-empty [body]
+  `(let [result# ~body]
+     (when (not (empty? result#))
+       result#)))
+
 ;; =================================
 ;; Model CRUD API
 ;; =================================
@@ -315,9 +320,10 @@
                 :only [location])))
 
 (defmethod fetch-model :default [type & options]
-  (apply mongo/fetch-one
-	 (model-collection {:type type})
-	 (translate-options options)))
+  (nil-on-empty
+   (apply mongo/fetch-one
+          (model-collection {:type type})
+          (translate-options options))))
 
 (defmethod fetch-models :default [type & options]
   (apply mongo/fetch
