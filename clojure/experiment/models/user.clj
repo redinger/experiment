@@ -75,9 +75,8 @@
 	(as-dbref (get-user reference))))
 
 (defmethod client-keys :user [user]
-  [:name :avatar :bio :gender :country :state
-   :weight :yob :units :default_privacy
-   :background :acl])
+  (keys (apply dissoc user
+               [:updates :permissions :password :salt :dataid :state])))
 
 ;;
 ;; User Properties

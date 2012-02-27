@@ -3,6 +3,7 @@
    experiment.infra.models
    experiment.models.events
    experiment.models.instruments
+   clojure.math.numeric-tower
    handlebars.templates
    hiccup.page-helpers
    noir.core)
@@ -19,28 +20,40 @@
    [:div {:class "highchart"}
    (%strcat "<div id='" (% cssid) "' style='height:" (% height) ";width:" (% width) ";'/>")]
    [:div {:class "d3chart"}]])
-   
+
+
+(defn- compute-limits [numbers]
+  (let [min (apply min numbers)
+        max (apply max numbers)
+        fudge (* (- max min) 0.02)]
+    [(- min fudge)
+     (+ max fudge)]))
     
 (defn- timeseries-config [title type series]
-;;  (let [[min max] (compute-limits series)]
+  (let [numbers (map second (:data (first series)))
+        [min max] (if (empty? numbers)
+                    [1 10]
+                    (compute-limits numbers))]
     {:chart {:type type}
      :legend {:enabled false}
      :plotOptions {:series {:animation false
                             :marker {:enabled false}}}
      :xAxis {:type "datetime"
              :dateTimeLabelFormats {:month "%e. %b" :year "%b"}}
-     :yAxis {:type "linear" :title {:text title} :min 0 :max 7}
+     :yAxis {:type "linear" :title {:text title} :min min :max max}
      :title {:text ""}
      :credits {:enabled false}
      ;;   :labels {:items [{:html "<div><p><b>Start</b></p></div>" :style {:left "100px" :top "100px"}}]}
-     :series series})
+     :series series}))
 
-(defn tracker-chart [inst start end]
-  (let [series (time-series inst (session/current-user) start end false)]
-    (clojure.tools.logging/spy series)
-    (timeseries-config (:variable inst) "spline"
-      [{:name (:variable inst)
-	:data (vec series)}])))
+(defn tracker-chart
+  ([inst start end user]
+     (let [series (time-series inst user start end false)]
+       (timeseries-config (:variable inst) "spline"
+                          [{:name (:variable inst)
+                            :data (vec series)}])))
+  ([inst start end]
+     (tracker-chart inst start end (session/current-user))))
 
 (defn as-int [value]
   (try
@@ -48,15 +61,12 @@
     (catch java.lang.Throwable e
       nil)))
 
-(defn- a-month-ago []
-  (time/minus (dt/now) (time/months 1)))
-
 (defpage event-chart-api [:get "/api/charts/tracker"] {:keys [inst start end] :as options}
   (let [instrument (get-instrument (deserialize-id inst))]
     (response/json
      (tracker-chart instrument
-                    (or (as-int start) (as-utc (a-month-ago)))
-                    (or (as-int end) (as-utc (now)))))))
+                    (or (as-int start) (dt/as-utc (dt/a-month-ago)))
+                    (or (as-int end) (dt/as-utc (dt/now)))))))
 
 
 ;; =========================
@@ -77,4 +87,3 @@
 
 ;;(defn control-chart [experiment instrument]
 ;;  (let [
-

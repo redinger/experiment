@@ -60,14 +60,17 @@
 ;; NOTE: A hack to get around the fact that models aren't defined
 ;; yet in the infra directory
 
+(defn active? []
+  (not (= (type (noir.request/ring-request)) clojure.lang.Var$Unbound)))
+
 (defn current-user []
   (try 
-    (if (not (= (type (noir.request/ring-request)) clojure.lang.Var$Unbound)) ;; active request?
+    (if (active?)
       (and (get :logged-in?)
 	   mid/*current-user*)
       (fetch-one :user :where {:username "eslick"}))
     (catch java.lang.Throwable e
-      (println "Get User from Session Error: " e)
+      (clojure.tools.logging/error "Get User from Session Error: " e)
       nil)))
 	
 (defn logged-in? []

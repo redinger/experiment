@@ -28,12 +28,14 @@
    creation and updating both must satisfy this test for
    mutation to proceed.  Test that appropriate values
    exist and have coherent values."
-  :type)
+  (fn [model] (when-let [type (:type model)]
+                (keyword type))))
 
 (defmulti db-reference-params
   "Which parameters coming from a client are the IDs of
    foreign objects that should be stored as DB refs?"
-  :type)
+  (fn [model] (when-let [type (:type model)]
+                (keyword type))))
 
 (defmulti model-collection 
   "Maps a model to a mongodb collection.  Embedded models
@@ -47,7 +49,8 @@
   "Performs a select-keys on client data so we don't store
    illegal client-side slots on the server or send server-side
    slots to the client.  Default is to be permissive."
-  :type)
+  (fn [model] (when-let [type (:type model)]
+                (keyword type))))
 
 (defmulti export-hook
   "An optional function that is the identity fn by default which
@@ -197,6 +200,7 @@
 
 (defmulti create-model! :type)
 (defmulti update-model! :type)
+(defmulti modify-model! :type)
 (defmulti update-model-pre (comp str :type))
 (defmulti fetch-model (fn [type & options] type))
 (defmulti fetch-models (fn [type & options] type))
@@ -298,6 +302,15 @@
                     (update-by-modifiers (update-model-pre model))
                     :upsert false))
     "Error"))
+
+(defmethod modify-model! :default
+  [model modifier]
+  (assert (map? modifier))
+  (mongo/update! (model-collection model)
+                 {:_id (:_id model)}
+                 modifier
+                 :upsert false))
+                 
 
 (defmethod annotate-model! :default
   [model location annotation]

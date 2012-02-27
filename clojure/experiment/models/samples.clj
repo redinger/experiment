@@ -71,8 +71,8 @@
 (def samples (cql/table db :samples))
 (def records (cql/table db :records))
 
-(defn numeric-data? [instrument]
-  (:numeric? instrument))
+(defn generic-data? [instrument]
+  (:generic-values? instrument))
 
 ;;
 ;; Manage identity
@@ -108,9 +108,9 @@
 	    (as-sql-instrument model))))))
 
 (defn instrument-table [user instrument]
-  (-> (if (numeric-data? instrument)
-        samples
-        records)
+  (-> (if (generic-data? instrument)
+        records
+        samples)
       (cql/select (cql/where (= :user (as-sql-user user))))
       (cql/select (cql/where (= :inst (as-sql-instrument instrument))))))
 
@@ -133,9 +133,8 @@
   "data is a sequence of date-value pairs"
   [user instrument data]
   (assert (valid-instrument? instrument))
-  (clojure.tools.logging/spy data)
   @(cql/conj! (instrument-table user instrument)
-              (vec (map (partial as-sample user instrument) data))))
+              (clojure.tools.logging/spy (vec (map (partial as-sample user instrument) data)))))
 
 (defn reset-samples [user instrument]
   @(cql/disj! (instrument-table user instrument)

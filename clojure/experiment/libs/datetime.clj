@@ -118,13 +118,24 @@
 		(within-period-ago? dt cur period))
 	      short-fmt-intervals)))))
 
+(defn a-month-ago []
+  (time/minus (time/now) (time/months 1)))
+
 ;; Canonicalize
 
 (defn from-utc
   ([utc] (when utc (coerce/from-long utc)))
-  ([utc tz] (when utc (time/to-time-zone (coerce/from-long utc) tz))))
+  ([utc tz] (when utc (time/to-time-zone (from-utc utc) tz))))
   
 (defn from-iso-8601 [string] (fmt/parse string))
+
+(defn from-epoch
+  ([epoch] (when (number? epoch) (time/plus (time/epoch) (time/secs epoch))))
+  ([epoch tz] (when (and (number? epoch) tz)
+                (time/to-time-zone (from-epoch epoch) tz))))
+
+(defn from-date
+  ([date] (coerce/from-date date)))
 
 ;; Export formats
 
@@ -133,6 +144,12 @@
       java.lang.Long dt
       org.joda.time.DateTime (coerce/to-long dt)
       java.util.Date (.getTime dt)))
+
+(defn as-date [dt]
+  (condp = (type dt)
+    java.lang.Long (java.util.Date. dt)
+    org.joda.time.DateTime (coerce/to-date dt)
+    java.util.Date dt))
 
 (defn as-short-relative-string [dt]
   (.print (short-formatter dt) dt))

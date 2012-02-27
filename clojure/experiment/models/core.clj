@@ -30,9 +30,10 @@
     (and (every? (set (keys treat)) [:name :description])
 	 (every? #(or (nil? %1) (sequential? %1)) [comments warnings tags]))))
   
-(defmethod client-keys :treatment [treat]
-  [:name :tags :description :dynamics
-   :help :reminder :votes :warnings :comments])
+;;(defmethod client-keys :treatment [treat]
+;;  [:_id :type
+;;   :name :tags :description :dynamics
+;;   :help :reminder :votes :warnings :comments])
 
 (deftemplate treatment-list-view
   [:div {:class "result treatment-list-view"}
@@ -56,7 +57,7 @@
 
 (deftemplate instrument-list-view
   [:div {:class "result instrument-list-view"}
-   [:h3 [:b "Instrument"] " for " (% name) " via " (% src) " entry"]
+   [:h3 [:b "Instrument"] " for " (% variable) " via " (% src) " entry"]
    [:p (% description)]])
 
 (deftemplate instrument-short-table
@@ -129,8 +130,8 @@
 (defmethod db-reference-params :trial [model]
   [:experiment])
 
-(defmethod client-keys :trial [model]
-  [:duration :experiment :sms? :user])
+;;(defmethod client-keys :trial [model]
+;;  [:_id :type :duration :experiment :sms? :user])
 
 (defn human-status [trial]
   ({:active "Active"

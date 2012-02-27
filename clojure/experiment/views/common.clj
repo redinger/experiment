@@ -240,10 +240,11 @@
      [:a {:class "header-link login-link"
           :href "/action/login"}
       "Login"]
-     [:span {:clas "separator"} "|"]
-     [:a {:class "header-link"
-          :href ""}
-      (facebook-login "Connect")]]))
+;;     [:span {:clas "separator"} "|"]
+;;     [:a {:class "header-link"
+;;          :href ""}
+;;      (facebook-login "Connect")]
+     ]))
 
 (defpartial simple-layout [{:as options :keys [header-menu] :or {header-menu true}}
                             & content]
@@ -332,7 +333,6 @@
      (map (fn [[name template]]
 	    (render-template name template))
 	  (select-keys (all-templates) list))))
-
       
 
 ;; Authentication
@@ -381,6 +381,10 @@
 (defn valid-registration-rec? [{:keys [email username password password2]}]
   (cond (or (= (count email) 0) (not (re-find #"@" email)))
         [false "We require a valid email address"]
+        (models/fetch-model :user :where {:email email})
+        [false "Email address is already registered"]
+        (models/fetch-model :user :where {:username username})
+        [false (format "Username '%s' is already registered" username)]
         (not (> (count username) 3))
         [false "We require a valid username longer than 3 characters"]
         (= (count password) 4)
@@ -396,7 +400,11 @@
   (user/create-user! (:username user) (:password user) (:email user) (:name user))
   (mail/send-site-message
    {:subject "New registration"
-    :body (format reg-notice-body (:username user) (:name user))}))
+    :body (format reg-notice-body (:username user) (:name user))})
+  (mail/send-message-to (:email user)
+   {:subject "Thank you for registering at PersonalExperiments.org"
+    :body (format "Your username is: %s
+We will contact you shortly when the site or the site's study is ready to launch" (:username user))}))
 
 (defpage do-register [:post "/action/register"] {:as user}
   (if (:cancel user)

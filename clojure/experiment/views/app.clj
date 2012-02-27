@@ -85,7 +85,7 @@
     [:script {:type "text/javascript"}
      (map #(apply bootstrap-collection-expr %)
 	  [["window.ExApp.Instruments" (models/fetch-models :instrument)]
-	   ["window.exApp.Experiments" (models/fetch-models :experiment)]
+	   ["window.ExApp.Experiments" (models/fetch-models :experiment)]
 	   ["window.ExApp.MyTrials"
 	    (models/fetch-models :trial :where {:user username})]
 	   ["window.ExApp.Treatments" (models/fetch-models :treatment)]

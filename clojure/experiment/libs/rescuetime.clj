@@ -53,9 +53,8 @@
   ([name type results]
      (let [pos (column-index results type)
            pattern (re-pattern name)]
-       (assoc
-           (update-in results [:rows]
-                      #(filter (partial matching-row-p pos pattern) %))))))
+       (update-in results [:rows]
+                  #(filter (partial matching-row-p pos pattern) %)))))
 
 (defonce ^:dynamic *test* nil)
 
