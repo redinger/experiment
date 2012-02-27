@@ -320,7 +320,8 @@ renderTrackerChart = (id, instrument, start, extra, options) ->
                 chart:
                         type: 'line'
                         renderTo: id
-
+        $('#'+id).html('<h1>Fetching Tracking Chart</h1>')
+        
         $.getJSON "/api/charts/tracker",
                 inst: instrument.get 'id', (config) ->
                         config = $.extend config, options
@@ -682,7 +683,8 @@ class DashboardPane extends Backbone.View
 
   switch: (e) =>
         e.preventDefault()
-        tabpath = $(e.target).attr('href')
+        tabpath = $(e.target).attr('href').split('/')
+        tabpath = _.rest(tabpath, 2).join('/')
         App.router.navigate tabpath, true
 
 # ++++++++++++++++++++++++++++++
