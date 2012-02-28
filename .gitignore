@@ -3,3 +3,12 @@
 lib/*
 classes/*
 checkouts/*
+*.log*
+node_modules/
+resources/public/css/app.js
+resources/public/css/calendar.css
+resources/public/css/main.css
+resources/public/css/reset.css
+resources/public/js/app.js
+resources/public/js/dialog.js
+resources/public/js/simple.js

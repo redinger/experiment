@@ -46,9 +46,13 @@
      ;;   :labels {:items [{:html "<div><p><b>Start</b></p></div>" :style {:left "100px" :top "100px"}}]}
      :series series}))
 
+(defn as-utc-series [series]
+  (map (fn [[date value]] [(dt/as-utc date) value]) series))
+
 (defn tracker-chart
   ([inst start end user]
-     (let [series (time-series inst user start end false)]
+     (let [series (as-utc-series
+                   (time-series inst user start end false))]
        (timeseries-config (:variable inst) "spline"
                           [{:name (:variable inst)
                             :data (vec series)}])))
@@ -65,9 +69,8 @@
   (let [instrument (get-instrument (deserialize-id inst))]
     (response/json
      (tracker-chart instrument
-                    (or (as-int start) (dt/as-utc (dt/a-month-ago)))
-                    (or (as-int end) (dt/as-utc (dt/now)))))))
-
+                    (or (dt/from-utc (as-int start)) (dt/a-month-ago))
+                    (or (dt/from-utc (as-int end)) (dt/now))))))
 
 ;; =========================
 ;; Control chart

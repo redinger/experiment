@@ -16,7 +16,7 @@
 ;;   - poll-freq (how often to check for new data - daily, hourly, weekly)
 
 (defn chunk-interval [inst]
-  (or (get-in inst [:sampling :chunksize])) :month)
+  (get-in inst [:sampling :chunksize] :month))
 
 ;; Sample:
 ;; - :ts
@@ -78,15 +78,16 @@
   "Return a canonical date given the chunksize period"
   [chunksize key-fn]
   (comp
-   (case interval
+   (case (keyword chunksize)
      :year #(time/date-time (time/year %))
      :month #(time/date-time (time/year %) (time/month %))
-     :week #(time/date-time (time/year %) (time/month %))
+     :week #(let [date (time/date-time (time/year %) (time/month %) (time/day %))]
+              (.roundFloorCopy (.weekOfWeekyear date)))
      :day #(time/date-time (time/year %) (time/month %) (time/day %))
      :hour #(time/date-time (time/year %) (time/month %) (time/day %) (time/hour %)))
    key-fn))
 
-(defn- sample-groups
+(defn sample-groups
   "Return samples as groups defined by date decimator"
   [inst samples]
   (assert (valid-samples? samples))

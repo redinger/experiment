@@ -369,13 +369,13 @@
   (cond (:cancel user)
 	(resp/redirect "/")
 	(auth/login user)
-	(do (println "Successful login by " user)
+	(do (println "Successful login by " (:username user))
 	    (if-let [targ (:target user)]
 	      (do (println "Redirecting to target: " targ)
 		  (resp/redirect targ))
 	      (resp/redirect "/app/dashboard")))
 	true
-	(do (println "Failed login by " user)
+	(do (println "Failed login by " (:username user))
 	    (resp/redirect "/"))))
 
 (defn valid-registration-rec? [{:keys [email username password password2]}]

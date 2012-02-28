@@ -8,6 +8,7 @@
             [experiment.libs.zeo :as zeo]
             [experiment.libs.withings :as wi]
             [experiment.libs.strava :as strava]
+            [experiment.libs.fitbit :as fit]
             [experiment.libs.rescuetime :as rt]))
 
 ;;
@@ -180,7 +181,6 @@
 
 (defn wi-sample [sample]
   (let [{:keys [date type value]} sample]
-    (println date)
     (if date
       {:ts (dt/from-epoch date) :v value}
       (println sample))))
@@ -236,12 +236,96 @@
      :nicknames ["fat mass" "fat"]
      :description "Fat Mass according to Withings Scale"})
   true)
-     
+
+;; ------------------------------------------
+;; FitBit-derived Instruments
+;; ------------------------------------------
+
+(def fitbit-fake-inst
+  {:_id "FITBIT" :type "instrument" :sampling {:chunksize :week}})
+
+(defmethod configured? :fit [inst user]
+  (fit/get-user-id user))
+
+(defmethod last-update :fit [instrument user]
+  (last-updated-time user fitbit-fake-inst))
+
+(defn add-fit-sample [user date]
+  (let [data (fit/summary user date)
+        summary (:summary data)]
+    (if (and data (> (:steps summary) 0))
+      (do (add-samples user fitbit-fake-inst
+                       [(merge {:ts date
+                                :v (:activeScore summary)}
+                               summary)])
+          true)
+      false)))
+    
+
+(defn- days-ago-to-date [days]
+  (time/minus (dt/now) (time/days days)))
+
+(defn add-fit-samples [inst user]
+  (let [days (time/in-days
+              (time/interval
+               (or (last-update inst user) (dt/a-month-ago))
+               (time/now)))]
+    (doall
+     (map (partial add-fit-sample user)
+          (map days-ago-to-date (range (dec days)))))))
+      
+
+(alter-var-root #'ih derive :fit-steps :fit)
+(defmethod refresh :fit [inst user & [force?]]
+  (when (or force? (stale? inst user))
+    (add-fit-samples inst user)))
+    
+(defmethod reset :fit [inst user]
+  (reset-samples user fitbit-fake-inst))
+
+(defmethod time-series :fit-steps [inst user & [start end convert?]]
+  (map (fn [sample]
+         [(:ts sample) (:steps sample)])
+       (get-samples user fitbit-fake-inst
+                    :start (or start (dt/a-month-ago))
+                    :end (or end (dt/now)))))
+    
+(defn ensure-fit-instruments []
+  (ensure-instrument [:fitbit :fit-steps]
+    {:variable "Steps Taken"
+     :src-type :steps
+     :sampling {:period (* 60 12) ;; 12 hours
+                :chunksize :week}
+     :nicknames ["steps" "walking" "steps taken" "number of steps"]
+     :description "Number of steps in a day according to fitbit"}))
+
+
+;; Handle Fitbit subscription notifications
+
+(defonce fitbit (agent [0 0]))
+
+(defn fetch-fitbit-sample [[success fail] user date]
+  (try
+    (do (add-fit-sample user date)
+        [(inc success) fail])
+    (catch java.lang.Throwable e
+      (clojure.tools.logging/error e "Fitbit fetch error")
+      [success (inc fail)])))
+
+(defn fitbit-handler-fn [updates]
+  (for [update updates]
+    (let [{:keys [collectionType date ownerId subscriptionId]} update]
+      (when-let [user (and (= collectionType "activities") (fit/id->user ownerId))]
+        (send fitbit fetch-fitbit-sample user (dt/from-iso-8601 date))))))
+
+(fit/set-notification-handler 'fitbit-handler-fn)
+
+
 ;; ------------------------------------------
 ;; Bootstrapping
 ;; ------------------------------------------
 
 (defn ensure-instruments []
   (ensure-rt-instruments)
-  (ensure-wi-instruments))
-  
+  (ensure-wi-instruments)
+  (ensure-fit-instruments))  

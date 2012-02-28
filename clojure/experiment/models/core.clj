@@ -57,7 +57,7 @@
 
 (deftemplate instrument-list-view
   [:div {:class "result instrument-list-view"}
-   [:h3 [:b "Instrument"] " for " (% variable) " via " (% src) " entry"]
+   [:h3 [:b "Instrument"] " for " (% variable) " (" (% svc) " tracking)"]
    [:p (% description)]])
 
 (deftemplate instrument-short-table

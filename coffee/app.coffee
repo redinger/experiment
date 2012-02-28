@@ -323,7 +323,8 @@ renderTrackerChart = (id, instrument, start, extra, options) ->
         $('#'+id).html('<h1>Fetching Tracking Chart</h1>')
         
         $.getJSON "/api/charts/tracker",
-                inst: instrument.get 'id', (config) ->
+                inst: instrument.get 'id',
+                (config) ->
                         config = $.extend config, options
                         App.chart_config = config
                         new Highcharts.Chart config
@@ -757,7 +758,7 @@ class SearchFilterView extends Backbone.View
         @$el.find('#search-filter-input').autoSuggest @allObjects(), defaults
         $('input.as-values').attr('value', ',')
 
-  # Help Dialog
+# Help Dialog
   events:
         'click a.help-link': 'showHelpDialog'
 

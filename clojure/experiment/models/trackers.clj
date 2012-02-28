@@ -23,9 +23,6 @@
 ;;	inst (:instrument tracker)
 ;;	last-update (get-last-sample user inst)
 
-
-
-
 ;; (defn rt-results-to-samples [results]
 ;;   inst datetime value)
 
