@@ -5,7 +5,7 @@ classes/*
 checkouts/*
 *.log*
 node_modules/
-resources/public/css/app.js
+resources/public/css/app.css
 resources/public/css/calendar.css
 resources/public/css/main.css
 resources/public/css/reset.css

@@ -46,15 +46,14 @@
 (defn patient-consented? []
   (get-user-property :study1-consented))
 
-
 (defn record-experiment [exp]
   (if (> (count (:id exp)) 0)
     (update-model!
-     (assoc exp
+     (assoc (dissoc exp :submit)
        :_id (deserialize-id (:id exp))
        :type "study1-experiment"))
     (create-model!
-     (assoc exp
+     (assoc (dissoc exp :submit)
        :type "study1-experiment"
        :owner (:username (session/current-user))
        :date (dt/as-utc (dt/now))))))
@@ -274,13 +273,21 @@
         (get-experiment id)
         {}))]))
 
-;; (defpartial author-view [:get "/study1/author-view"] {:as options}
-;;   (let [
-;;   (common/simple-layout {:header-menu false}
-;;     [:a {:href "/study1"} "Go to the Study Page"]
-;;     [:div.study1-author
-;;      [:h1 "Review Experiment: " 
-    
+(defpage author-view [:get "/study1/author-view"] {:as options}
+  (let [exp (get-experiment (:id options))]
+    (common/simple-layout {:header-menu false}
+      [:a {:href "/study1"} "Go to the Study Page"]
+      [:div.study1-author
+       (if (not exp)
+         [:h1 "Experiment not found"]
+         (list [:h1 (:name exp)]
+               [:p [:b "Treatment"] (:treatment exp)]
+               [:p [:b "Outcome"] (:outcome exp)]
+               [:p [:b "Measures"] (:measures exp)]
+               [:p [:b "Schedule"] (:schedule exp)]
+               [:p [:b "Predictors"] (:predictors exp)]
+               [:p [:b "Notes"] (:notes exp)]))])))
+   
 (defn experiment-valid? [spec]
   true)
 

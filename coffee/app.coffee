@@ -321,7 +321,6 @@ renderTrackerChart = (id, instrument, start, extra, options) ->
                         type: 'line'
                         renderTo: id
         $('#'+id).html('<h1>Fetching Tracking Chart</h1>')
-        
         $.getJSON "/api/charts/tracker",
                 inst: instrument.get 'id',
                 (config) ->
