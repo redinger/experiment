@@ -123,6 +123,7 @@
 (defpage [:get "/api/fitbit/authorize"] {:keys [oauth_token oauth_verifier] :as request}
   (assert (= (get-req-token) oauth_token))
   (save-access-tokens (fetch-access-token oauth_verifier))
+  (subscribe (experiment.models.user/get-user {:username (session/current-user)}))
   (resp/redirect "/app/profile"))
 
 ;;
@@ -174,10 +175,13 @@
 (defn list-subscriptions [user]
   (request :get user "apiSubscriptions.json"))
 
-(defpage fitbit-update [:post "/api/fitbit/update"] {:as params}
+(defpage fitbit-updates [:post "/api/fitbit/updates"] {:as params}
+  (clojure.tools.logging/spy noir.request/*request*)
   (clojure.tools.logging/spy params)
-  (when-let [fn @notification-handler]
-    (map fn (:updates params))))
-                 
-
-
+  (try
+    (when-let [fn @notification-handler]
+      (map fn (:updates params)))
+    (catch java.lang.Throwable e
+      (clojure.tools.logging/spy "Error in fitbit-update")
+      (clojure.tools.logging/spy e)))
+  {:status 204 :body ""})
