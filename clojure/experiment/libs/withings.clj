@@ -8,20 +8,14 @@
             [clj-time.core :as time]
             [noir.response :as resp]
             [experiment.infra.session :as session]
+            [experiment.infra.properties :as props]
             [oauth.signature :as sig]
             [clj-json.core :as json]
             [clj-http.client :as http]))
 
-;;(def oauth-key "417254733763bee16dbd130ff833fc66400098d51d84347377fcf47cf7d")
-;;(def oauth-secret "608cf6e9c0759012cd11f6e3c2fe2784ccff157c4c3be625d5e56599d59")
-
-(def consumer-key "fe0103e86168f989b30328bf63b780e606d209057e3863dfbff67e73bc3")
-(def consumer-secret "88b72d8885b12795b95fd1c0d41fc5c9599db791bf97e47cece5d477bb95d8")
-  
-
 (def consumer
-  (oauth/make-consumer consumer-key
-                       consumer-secret
+  (oauth/make-consumer (props/get :withings.key)
+                       (props/get :withings.secret)
                        "https://oauth.withings.com/account/request_token"
                        "https://oauth.withings.com/account/access_token"
                        "https://oauth.withings.com/account/authorize"

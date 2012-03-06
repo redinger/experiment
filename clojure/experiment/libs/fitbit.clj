@@ -8,17 +8,15 @@
             [clj-time.core :as time]
             [noir.response :as resp]
             [experiment.infra.session :as session]
+            [experiment.infra.properties :as props]
             [oauth.signature :as sig]
             [clj-json.core :as json]
             [clj-http.client :as http]))
 
 
-(def consumer-key "f9e277098d3a4bcfb2d63d5276d35e61")
-(def consumer-secret "ee7c99506878461491154ebbdce2a3fb")
-
 (def consumer
-  (oauth/make-consumer consumer-key
-                       consumer-secret
+  (oauth/make-consumer (props/get :fitbit.key)
+                       (props/get :fitbit.secret)
                        "http://api.fitbit.com/oauth/request_token"
                        "http://api.fitbit.com/oauth/access_token"
                        "http://api.fitbit.com/oauth/authorize"
@@ -33,7 +31,7 @@
   (session/get "fitbit_oauth_token"))
 
 (defn- get-req-secret []
-  (:oauth_token_secret @request-auth))
+  (session/get "fitbit_oauth_secret"))
 
 (defn- save-access-tokens [response]
   (if (session/active?)
@@ -119,6 +117,8 @@
       (http/post (:access-uri consumer)
                  {:query-params params
                   :headers {"Authorization" (oauth/authorization-header (sort params))}})))))
+
+(declare subscribe)
 
 (defpage [:get "/api/fitbit/authorize"] {:keys [oauth_token oauth_verifier] :as request}
   (assert (= (get-req-token) oauth_token))

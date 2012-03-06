@@ -5,6 +5,7 @@
   (:require [oauth.client :as oauth]
             [noir.response :as resp]
             [experiment.infra.session :as session]
+            [experiment.infra.properties :as props]
             [oauth.signature :as sig]
             [clj-http.client :as http]))
             
@@ -13,12 +14,9 @@
 ;; Configuration
 ;;
 
-(def consumer-key "XVYYPzkkHJMp2DzeWWVjA")
-(def consumer-secret "RjS3IWkYhJer1wZq1QkOyslIru7PpA2Vm3vnuUqhEGo")
-
 (def consumer
-  (oauth/make-consumer consumer-key
-                       consumer-secret
+  (oauth/make-consumer (props/get :twitter.key)
+                       (props/get :twitter.secret)
                        "https://api.twitter.com/oauth/request_token"
                        "https://api.twitter.com/oauth/access_token"
                        "https://api.twitter.com/oauth/authorize"

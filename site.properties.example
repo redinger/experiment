@@ -1,0 +1,26 @@
+# Site configuration
+
+mode:		:dev
+db.name: 	:prod
+
+# Service Credentials
+
+mail.host:     	"smtp.gmail.com"
+mail.user:     	"user@gmail.com"
+mail.pass:     	"securepass"
+mail.ssl:      	:true
+
+sms.username:	"foobar"
+sms.password: 	"securepass"
+
+rescuetime.api-key: "B63Je4ab5hlmzTpILpTpQLOMBs7mHC3G3"
+rescuetime.dev-key: "B63Je4ab5hlmzTpILpTpQLOMBs7mHC3G3"
+
+twitter.key:	    "B63Je4ab5hlmzTpILpTpQLOMBs7mHC3G3"
+twitter.secret:	    "B63Je4ab5hlmzTpILpTpQLOMBs7mHC3G3"
+
+withings.key: 	    "B63Je4ab5hlmzTpILpTpQLOMBs7mHC3G3"
+withings.secret:    "B63Je4ab5hlmzTpILpTpQLOMBs7mHC3G3"
+
+fitbit.key:	    "B63Je4ab5hlmzTpILpTpQLOMBs7mHC3G3"
+fitbit.secret:	    "B63Je4ab5hlmzTpILpTpQLOMBs7mHC3G3"

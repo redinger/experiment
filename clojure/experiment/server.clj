@@ -6,6 +6,7 @@
 	    [experiment.controller :as ctrl]
 	    [experiment.infra.session :as session]
             [experiment.libs.sms :as sms]
+            [experiment.libs.properties :as props]
 	    [clojure.data.json :as json]
 	    [somnium.congomongo :as mongo]
 	    [experiment.infra.api]))
@@ -32,12 +33,14 @@
    :w 1))
 
 (defn start [& [mode]]
+  ;; Properties
+  (props/load-site-properties)
   ;; Mongo Setup
   (mongo/set-connection!
    (mongo/make-connection
-    :test {} mongo-options))
+    (props/get :db.name) {} mongo-options))
   ;; Setup logging
-  (let [mode (keyword (or mode :dev))]
+  (let [mode (keyword (or mode (props/get :mode) :dev))]
     (if (= mode :dev)
       (set-logger! "default"
 		   :level :debug
@@ -47,7 +50,8 @@
 		   :pattern "%d - %m%n"
                    :out "experiment.log"))
     ;; Setup SMS subsystem
-    (sms/set-credentials {:user "ianeslick" :pw "az5ure"})
+    (sms/set-credentials {:user (props/get :sms.username)
+                          :pw (props/get :sms.password)})
     ;; Start and save server
     (let [port (Integer. (get (System/getenv) "PORT" "8080"))
 	  server (server/start

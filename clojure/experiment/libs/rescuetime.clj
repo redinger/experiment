@@ -3,10 +3,8 @@
             [experiment.libs.datetime :as dt]
 	    [clojure.data.json :as json]))
 
-(def ^:dynamic *api-key* "B63Je4umeLnCdqF974NyTpILpTpQLOMBs7mHC3G3")
+(def ^:dynamic *api-key* nil)
 (def api-base "https://www.rescuetime.com/anapi/data")
-
-(def dev-key "B63jkG0K78w4K_Mepj8_e_YFaq9kGrBoPp9r1APJ")
 
 (defn api-request [params]
   (json/read-json
@@ -21,7 +19,7 @@
                :accept :json}))))
 
 (defmacro with-key [value & body]
-  `(binding [*api-key* (or ~value *api-key*)]
+  `(binding [*api-key* (or ~value (props/get :rescuetime.api-key))]
      ~@body))
 
 (defn index-at

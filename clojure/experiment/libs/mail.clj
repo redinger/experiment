@@ -1,15 +1,16 @@
 (ns experiment.libs.mail
-  (:require [postal.core :as post]))
-
+  (:require [postal.core :as post]
+            [experiment.libs.properties :as props]))
+            
 (def mailer (agent [0 0]))
 
 (defn send-message [[count errors] message]
   (try
     (do (post/send-message
-         #^{:host "smtp.gmail.com"
-            :user "ianeslick@gmail.com"
-            :pass "3eraGOOGH8dr"
-            :ssl true}
+         #^{:host (props/get :mail.host)
+            :user (props/get :mail.user)
+            :pass (props/get :mail.pass) 
+            :ssl (> (count (props/get :mail.ssl)) 0)}
          message)
         [(inc count) errors])
     (catch java.lang.Throwable e
