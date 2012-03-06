@@ -4,6 +4,7 @@ lib/*
 classes/*
 checkouts/*
 *.log*
+site.properties
 node_modules/
 resources/public/css/app.css
 resources/public/css/calendar.css
