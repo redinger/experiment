@@ -14,8 +14,9 @@
 
 (defonce site-properties {})
 
-(defn load-site-properties []
-  (alter-var-root #'site-properties #(load-properties %2) "site.properties"))
+(defn load-site-properties [& [filename]]
+  (alter-var-root #'site-properties #(load-properties %2)
+                  (or filename "site.properties")))
 
 (defn- as-keyword [key]
   (cond (string? key) (keyword key)
