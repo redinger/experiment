@@ -8,7 +8,7 @@
             [clj-time.core :as time]
             [noir.response :as resp]
             [experiment.infra.session :as session]
-            [experiment.infra.properties :as props]
+            [experiment.libs.properties :as props]
             [oauth.signature :as sig]
             [clj-json.core :as json]
             [clj-http.client :as http]))
@@ -202,7 +202,9 @@
       (action user "measure" "getmeas"
               {:startdate (dt/as-utc startdate) :devtype 1})))
   ([user]
-     (user-measures user (time/epoch))))
+     (filter-records
+      (action user "measure" "getmeas"
+              {:devtype 1}))))
 
 (defn user-info [user]
   (action user "user" "getbyuserid" {}))

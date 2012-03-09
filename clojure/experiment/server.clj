@@ -7,6 +7,7 @@
 	    [experiment.infra.session :as session]
             [experiment.libs.sms :as sms]
             [experiment.libs.properties :as props]
+            [experiment.models.events :as events]
 	    [clojure.data.json :as json]
 	    [somnium.congomongo :as mongo]
 	    [experiment.infra.api]))
@@ -52,6 +53,9 @@
     ;; Setup SMS subsystem
     (sms/set-credentials {:user (props/get :sms.username)
                           :pw (props/get :sms.password)})
+    (sms/set-reply-handler 'events/sms-reply-handler)
+    ;; Start scheduler
+    (ctrl/start)
     ;; Start and save server
     (let [port (Integer. (get (System/getenv) "PORT" "8080"))
 	  server (server/start

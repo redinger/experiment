@@ -61,7 +61,7 @@
   (str/replace text #"\n" "<br>"))
 
 (defpage "/exp1/doc/:name" {}
-  (let [article (fetch-model :article :where {:name name})]
+  (let [article (fetch-model :article {:name name})]
      (if article
        [:div
 	[:h1 (:title article)]

@@ -1,6 +1,6 @@
 (ns experiment.models.instruments
   (:use experiment.infra.models
-        experiment.models.samples2
+        experiment.models.samples
         clojure.math.numeric-tower)
   (:require [clj-time.core :as time]
             [experiment.models.user :as user]
@@ -22,9 +22,9 @@
   (fetch-models :instrument))
 
 (defn get-instrument [ref]
-  (or (fetch-model "instrument" :where {:_id ref})
-      (fetch-model "instrument" :where {:src ref})
-      (fetch-model "instrument" :where {:name ref})))
+  (or (fetch-model "instrument" {:_id ref})
+      (fetch-model "instrument" {:src ref})
+      (fetch-model "instrument" {:name ref})))
 
 ;; Instrument Protocol
 ;; - last-update-received
@@ -32,6 +32,8 @@
 ;; - number-of-missed-records (start, end)
 ;; - refresh (pull from upstream server service)
 ;; - recompute (update time series DB, any derived measures)
+;; - update (add new data - for manual instruments)
+;; - reset (delete all data and fetch up to 1 month back)
 
 (def ih (make-hierarchy))
 
@@ -40,6 +42,7 @@
 (defmulti refresh (fn [i u & args] (keyword (:src i))) :hierarchy #'ih)
 (defmulti reset (fn [i u] (keyword (:src i))) :hierarchy #'ih)
 (defmulti time-series (fn [i u & args] (keyword (:src i))) :hierarchy #'ih)
+(defmulti update (fn [i u d] (keyword (:src i))) :hierarchy #'ih)
 
 ;; Utils
 
@@ -77,7 +80,14 @@
   nil)
 
 (defmethod reset :default [inst user]
-  (reset-samples user inst))
+  (rem-samples user inst))
+
+(defmethod update :default [inst user data]
+  (cond (map? data)
+        (add-samples user inst [data])
+        (sequential? data)
+        (add-samples user inst data)))
+        
 
 ;; ------------------------------------
 ;; Rescuetime-based Instruments
@@ -109,8 +119,7 @@
   [inst user & [force?]]
   (rt-update inst user force? [start]
      (let [data (rt/social-media "day" start (dt/now))]
-       (add-samples user inst
-                    (map socmed->series (:rows data))))))
+       (update inst user (map socmed->series (:rows data))))))
 
 (defn- efficiency->total [[dt total people eff]]
   {:ts (dt/from-iso-8601 dt) :v (seconds-to-hours total) :secs total})
@@ -123,12 +132,9 @@
   [inst user & [force?]]
   (rt-update inst user force? [start]
      (let [data (rt/efficiency "day" start (dt/now))]
-       (add-samples user
-                    inst
-                    (map efficiency->eff (:rows data)))
-       (add-samples user
-                    (get-instrument "rt-total")
-                    (map efficiency->total (:rows data))))))
+       (update inst user (map efficiency->eff (:rows data)))
+       (update (get-instrument "rt-total") user
+               (map efficiency->total (:rows data))))))
 
 (alter-var-root #'ih derive :rt-total :rt)
 (defmethod refresh :rt-total
@@ -177,7 +183,7 @@
        (wi/get-userid user)))
 
 (defn wi-inst-by-type [type]
-  (fetch-model :instrument :where {:src-type type}))
+  (fetch-model :instrument {:src-type type}))
 
 (defn wi-sample [sample]
   (let [{:keys [date type value]} sample]
@@ -186,19 +192,20 @@
       (println sample))))
 
 (defn add-wi-group [user [type samples]]
-  (add-samples
-   user (wi-inst-by-type type)
-   (keep wi-sample samples)))
+  (update (wi-inst-by-type type) user 
+          (keep wi-sample samples)))
 
 (defmethod refresh :wi
   [inst user & [force?]]
   (when (or force? (stale? inst user))
-    (map (partial add-wi-group user)
-         (group-by
-          :type
-          (second (wi/user-measures user (or (last-update inst user)
-                                             force?
-                                             (time/epoch))))))
+    (doall
+     (map (partial add-wi-group user)
+          (group-by
+           :type
+           (second
+            (if force?
+              (wi/user-measures user)
+              (wi/user-measures user (or (last-update inst user) (time/epoch))))))))
     true))
 
 (def wi-instruments
@@ -254,10 +261,10 @@
   (let [data (fit/summary user date)
         summary (:summary data)]
     (if (and data (> (:steps summary) 0))
-      (do (add-samples user fitbit-fake-inst
-                       [(merge {:ts date
-                                :v (:activeScore summary)}
-                               summary)])
+      (do (update fitbit-fake-inst user
+                  [(merge {:ts date
+                           :v (:activeScore summary)}
+                          summary)])
           true)
       false)))
     
@@ -281,7 +288,7 @@
     (add-fit-samples inst user)))
     
 (defmethod reset :fit [inst user]
-  (reset-samples user fitbit-fake-inst))
+  (rem-samples user fitbit-fake-inst))
 
 (defmethod time-series :fit-steps [inst user & [start end convert?]]
   (map (fn [sample]
@@ -328,4 +335,4 @@
 (defn ensure-instruments []
   (ensure-rt-instruments)
   (ensure-wi-instruments)
-  (ensure-fit-instruments))  
+  (ensure-fit-instruments))

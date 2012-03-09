@@ -108,10 +108,10 @@
 	[{:type :experiment
 	  :editors ["eslick"]
 	  :title "Does diet rapidly improve fatigue if I control for sleep?"
-	  :outcome [(as-dbref (fetch-model :instrument :where {:variable "Fatigue" :src :manual}))]
-	  :instruments [(as-dbref (fetch-model :instrument :where {:variable "Sleep quality" :src :zeo}))
-			(as-dbref (fetch-model :instrument :where {:variable "Adherence" :src :manual}))
-			(as-dbref (fetch-model :instrument :where {:variable "Psoriasis activity" :src :manual}))]
+	  :outcome [(as-dbref (fetch-model :instrument {:variable "Fatigue" :src :manual}))]
+	  :instruments [(as-dbref (fetch-model :instrument {:variable "Sleep quality" :src :zeo}))
+			(as-dbref (fetch-model :instrument {:variable "Adherence" :src :manual}))
+			(as-dbref (fetch-model :instrument {:variable "Psoriasis activity" :src :manual}))]
 	  :measurements [{:type :schedule
 			  :interval-unit "day"
 			  :interval 1}]
@@ -123,20 +123,20 @@
     (map create-model!
 	 [{:type :trial
 	   :user "eslick"
-	   :experiment (mongo/db-ref :experiment (:_id (fetch-model :experiment :where {:title "Does diet rapidly improve fatigue if I control for sleep?"})))
+	   :experiment (mongo/db-ref :experiment (:_id (fetch-model :experiment {:title "Does diet rapidly improve fatigue if I control for sleep?"})))
 	   :sms? true
 	   :active? true
 	   :start "date"
 	   :end "date"}]))
 	   
    )
-;;   (let [user (fetch-model :user :where {:username "eslick"})]
+;;   (let [user (fetch-model :user {:username "eslick"})]
 ;;     ))
 ;;    (create-model! (assoc user  
 
 (defn create-dataset []
-  (let [user (as-dbref (fetch-model :user :where {:username "eslick"}))
-	instrument (as-dbref (fetch-model :instrument :where {:variable "Fatigue" :src :manual}))
+  (let [user (as-dbref (fetch-model :user {:username "eslick"}))
+	instrument (as-dbref (fetch-model :instrument {:variable "Fatigue" :src :manual}))
 	now (now)
 	data (reverse
 	      (map (fn [offset value]

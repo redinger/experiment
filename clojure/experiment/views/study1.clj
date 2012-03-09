@@ -59,14 +59,14 @@
        :date (dt/as-utc (dt/now))))))
 
 (defn get-experiment [id]
-  (fetch-model :study1-experiment :where {:_id (as-oid id)}))
+  (fetch-model :study1-experiment {:_id (as-oid id)}))
 
 (defn get-experiments
   ([]
      (get-experiments (session/current-user)))
   ([user]
      (let [name (if (string? user) user (:username user))]
-       (fetch-models :study1-experiment :where {:owner name}))))
+       (fetch-models :study1-experiment {:owner name}))))
      
 (defn study1-complete?
   ([]

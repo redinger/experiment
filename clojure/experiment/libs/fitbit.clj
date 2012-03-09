@@ -8,7 +8,7 @@
             [clj-time.core :as time]
             [noir.response :as resp]
             [experiment.infra.session :as session]
-            [experiment.infra.properties :as props]
+            [experiment.libs.properties :as props]
             [oauth.signature :as sig]
             [clj-json.core :as json]
             [clj-http.client :as http]))
@@ -21,6 +21,8 @@
                        "http://api.fitbit.com/oauth/access_token"
                        "http://api.fitbit.com/oauth/authorize"
                        :hmac-sha1))
+
+(assert (:key consumer))
 
 (defn- save-req-tokens [request]
   (when (session/active?)
@@ -132,6 +134,7 @@
 
 (defn request
   ([op user cmd]
+     (assert (:key consumer))
      (let [uri (str "http://api.fitbit.com/1/user/-/" cmd)
            creds (oauth/credentials
                   consumer

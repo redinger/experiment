@@ -9,7 +9,7 @@
 			   [org.clojure/tools.logging "0.2.3"]
 			   [clj-logging-config "1.9.1"]
 			   ;; Framework
-                           [noir "1.2.1"]
+                           [noir "1.2.2"]
 			   ;; Backends
 			   [congomongo "0.1.7-SNAPSHOT"]
 			   [clojureql/clojureql "1.1.0-SNAPSHOT"]

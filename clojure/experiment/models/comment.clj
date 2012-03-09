@@ -39,7 +39,7 @@
 ;; API
 
 (defn all-comments [scope]
-  (fetch-models :comment :where {:scope scope}))
+  (fetch-models :comment {:scope scope}))
 
 (defn all-discussions
   "Get a topologically organized comment tree of nested

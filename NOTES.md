@@ -62,21 +62,21 @@ reminders or serve as the backdrop for user-generated events.
 
 Architectural design tasks
 
-   x Model abstraction on server
-     x Backbone-based abstraction layer (base classes, protocols) for the 'model model'
-     x Handle references
-     x Bootstrapping data into views (transmit entire DB for phase I)
-     x Nested object REST API support for Backbone
-   x Auto-complete for tags, model names, etc.
-   x Structured treatment descriptions using auto-complete
-   x Site navigation model using dispatch
+   - X Model abstraction on server
+     - X Backbone-based abstraction layer (base classes, protocols) for the 'model model'
+     - X Handle references
+     - X Bootstrapping data into views (transmit entire DB for phase I)
+     - X Nested object REST API support for Backbone
+   - X Auto-complete for tags, model names, etc.
+   - X Structured treatment descriptions using auto-complete
+   - X Site navigation model using dispatch
 
 Feature tasks
 
    - Style search object views
    - Date range selection for tracker page / trial view
-   - Tracker backend services
-   - Dashboard main page
+   - X Tracker backend services
+   - X Dashboard main page
    - Start trial from experiment view
    - Illustrate missing data chart
    - Trial View needs treatment description
@@ -86,13 +86,13 @@ Feature tasks
    - Trial schedule and view
      - Handle schedule and reminders 
    - Profile editing / forms
-     - Pretty forms CSS or JS
+     - X Pretty forms CSS or JS
    - Generate content
 
    - NO IE popup on login
    - Outcome control chart
 
-   - Study registration
+   - X Study registration
    - Object create / edit screens
    - Social components
    - Site auxilary content
@@ -110,9 +110,9 @@ Architecture design tasks
    - Release model for aggregated/versioned javascript files
    - Error handling across server & client
    - Pallet distribution model
-      x pallet, git, keys
+      - X pallet, git, keys
       ~ Mongo installation, nginx as proxy and static files
-      x TODO: Leinengin
+      - X TODO: Leinengin
       - TODO: Site upgrade scripts
    - Database and server backup
    - Sensible dump and reload database
@@ -139,7 +139,7 @@ Feature tasks
 
 ### Tasks for v0.4 - Public Release
 
-   - Pick a name
+   - X Pick a name
    - Logo
    - Final CSS design tune
 
@@ -153,7 +153,7 @@ Feature tasks
      to handle this.  (For example, we want nice SEO URLs for all
      browseable objects such as treatments, experiments, and public
      discussions.
-   x Server-side dispatch to client 'views' based on user-agent.  E.g. iphone
+   - X Server-side dispatch to client 'views' based on user-agent.  E.g. iphone
      sends mobile client-app, search engine gets simple HTML view, web clients
      get web app and older browsers get 'install new browser' page.
      
@@ -161,3 +161,30 @@ Feature tasks
 
    - Site introduction similar to Coda's: http://www.panic.com/coda/
    - I like github's look at feel!  (as you can tell)
+
+
+# Design Notes
+
+## Schedules and events
+
+### Schedule
+
+The calendar schedule for an event.
+
+Weekdays, weekends, specific day, select days
+TimeOfDay
+
+Schedule Protocol
+(events schedule interval)
+
+### Event
+
+Events have types w/ parameters that determine how the action plays out
+
+### Actions
+
+For now, baked into code.  
+
+   - Sample Data: Elicit an SMS instrument value
+   - Remind: the user of treatment period (start/stop, daily)
+   - ? Report: study is finished, weekly progress?

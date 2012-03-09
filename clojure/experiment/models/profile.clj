@@ -8,15 +8,6 @@
   (:require [experiment.libs.datetime :as dt]
             [experiment.infra.session :as session]))
 
-
-;; {
-;;  :type :profile
-;;  :city "Poulsbo"
-;;  :state "WA"
-;;  :geo ??
-;;  :
-;; }
-
 (defn profile-field
   ([name text value]
      [:div.profile-field

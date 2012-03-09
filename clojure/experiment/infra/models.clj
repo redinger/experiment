@@ -23,7 +23,7 @@
        (:_id model)
        (instance? ObjectId (:_id model))))
 
-(defmulti valid-model-params? 
+(defmulti valid-model? 
   "Enforces invariant properties of a specific model.  Model
    creation and updating both must satisfy this test for
    mutation to proceed.  Test that appropriate values
@@ -44,22 +44,21 @@
   (fn [model] (when-let [type (:type model)]
                 (keyword type))))
 
-
-(defmulti client-keys 
+(defmulti public-keys 
   "Performs a select-keys on client data so we don't store
    illegal client-side slots on the server or send server-side
    slots to the client.  Default is to be permissive."
   (fn [model] (when-let [type (:type model)]
                 (keyword type))))
 
-(defmulti export-hook
+(defmulti server->client-hook
   "An optional function that is the identity fn by default which
-   takes the internal model and transforms it to another version of
-   an internal model prior to export"
+   takes the server model and transforms it to a public/client
+   view before serialization"
   (fn [model]
     (name (:type model))))
 
-(defmulti import-hook
+(defmulti client->server-hook
   "The import hook runs on the internal representation of the model
    after import but before the object is saved to the underlying store"
   (fn [model]
@@ -70,6 +69,39 @@
    from client arguments dispatching on the :type field of the arguments"
   (fn [model]
     (keyword (:type model))))
+
+
+;;
+;; Default Model behaviors
+;;
+
+(defmethod valid-model? :default
+  [model]
+  true)
+
+(defmethod model-collection :default
+  [model]
+  (if (map? model)
+    (do (assert (:type model))
+        (name (:type model)))
+    (do (assert (or (string? model) (keyword? model)))
+        (model-collection {:type type}))))
+
+(defmethod db-reference-params :default
+  [model]
+  [])
+
+(defmethod public-keys :default
+  [model]
+  (keys model))
+
+(defmethod server->client-hook :default
+  [model]
+  model)
+
+(defmethod client->server-hook :default
+  [model]
+  model)
 
 ;;
 ;; MongoDB Helpers
@@ -110,43 +142,43 @@
 
 ;; Main object IDs
 
-(defn export-model-id
+(defn serialize-model-id
   "Export a local model-id as a foreign ID"
   [smodel]
   (dissoc (assoc smodel :id (serialize-id (:_id smodel))) :_id))
 
-(defn import-model-id
+(defn deserialize-model-id
   "Import a foregin model-id as a local ID"
   [cmodel]
   (dissoc (assoc cmodel :_id (deserialize-id (:id cmodel))) :id))
 
-;; Embedded DBRefs
+;; Handle embedded DBRefs
 
-(defn- export-ref
+(defn- serialize-ref
   "If the object is a DBRef, convert to client format"
   [ref]
   (if (mongo/db-ref? ref)
     (serialize-dbref ref)
     ref))
 
-(defn export-model-refs [smodel]
-  (walk/postwalk export-ref smodel))
+(defn serialize-model-refs [smodel]
+  (walk/postwalk serialize-ref smodel))
 
-(defn- import-model-ref [model key]
+(defn- deserialize-model-ref [model key]
   (if-let [[ns id] (model key)]
     (assoc model key (deserialize-dbref ns id))
     model))
 
-(defn import-model-refs [cmodel]
+(defn deserialize-model-refs [cmodel]
   "Import model references from the client"
-  (reduce import-model-ref cmodel (db-reference-params cmodel)))
+  (reduce deserialize-model-ref cmodel (db-reference-params cmodel)))
 
-;; Filter client-keys on import/export for safety
+;; Filter public-keys on import/export for safety
 
-(defn filter-client-keys
-  "Must define client-keys for safety purposes"
+(defn filter-public-keys
+  "Must define public-keys for safety purposes"
   [cmodel]
-  (let [keys (client-keys cmodel)]
+  (let [keys (public-keys cmodel)]
 ;;    (assert keys) ;; Comment out for development
     (if keys (select-keys cmodel keys)
 	cmodel)))
@@ -198,80 +230,50 @@
 ;; Model CRUD API
 ;; =================================
 
-(defmulti create-model! :type)
-(defmulti update-model! :type)
-(defmulti modify-model! :type)
-(defmulti update-model-pre (comp str :type))
-(defmulti fetch-model (fn [type & options] type))
-(defmulti fetch-models (fn [type & options] type))
-(defmulti delete-model-pre (comp str :type))
-(defmulti delete-model! :type)
-(defmulti annotate-model! (fn [type field anno] type))
+(defmulti create-model! (comp keyword :type))
+(defmulti update-model! (comp keyword :type))
+(defmulti modify-model! (comp keyword :type))
+(defmulti update-model-hook (comp keyword :type))
+(defmulti fetch-model (fn [type & options] (keyword type)))
+(defmulti fetch-models (fn [type & options] (keyword type)))
+(defmulti delete-model-hook (comp keyword :type))
+(defmulti delete-model! (comp keyword :type))
+(defmulti annotate-model! (fn [type field anndo] (keyword type)))
 
 (defn translate-options
   "Convert our options to an mongo argument list"
   [options]
-  options)
+  (cond (empty? options) '()
+        (keyword? (first options)) options
+        true (cons :where options)))
 
-(defn export-model [smodel]
+(defn server->client [smodel]
   (cond (empty? smodel)
 	nil
 	(map? smodel)
 	(do ;; (log/spy smodel)
 	    (-> smodel
-		export-hook
-		filter-client-keys
-		export-model-id
-		export-model-refs))
+		server->client-hook
+		filter-public-keys
+		serialize-model-id
+		serialize-model-refs))
 	(sequential? smodel)
-	(vec (doall (map export-model smodel)))
+	(vec (doall (map server->client smodel)))
 	true
 	(throw (java.lang.Error. (format "Cannot export model %s" smodel)))))
 
-(defn import-model [cmodel]
+(defn client->server [cmodel]
   (-> cmodel
-      filter-client-keys
-      import-model-id 
-      import-model-refs
-      import-hook))
+      filter-public-keys
+      deserialize-model-id 
+      deserialize-model-refs
+      client->server-hook))
 
-(defn import-new-model [cmodel]
+(defn new-client->server [cmodel]
   (-> cmodel
-      filter-client-keys
-      import-model-refs
-      import-hook))
-
-;;
-;; Default Model behaviors
-;;
-
-(defmethod valid-model-params? :default
-  [model]
-  true)
-
-(defmethod model-collection :default
-  [model]
-  (if (map? model)
-    (do (assert (:type model))
-        (name (:type model)))
-    (do (assert (or (string? model) (keyword? model)))
-        (model-collection {:type type}))))
-
-(defmethod db-reference-params :default
-  [model]
-  [])
-
-(defmethod client-keys :default
-  [model]
-  (keys model))
-
-(defmethod export-hook :default
-  [model]
-  model)
-
-(defmethod import-hook :default
-  [model]
-  model)
+      filter-public-keys
+      deserialize-model-refs
+      client->server-hook))
 
 ;;
 ;; Default Model CRUD API implementation
@@ -280,8 +282,8 @@
 (defmethod create-model! :default
   [model]
   (assert (not (model? model)))
-  (if (valid-model-params? model)
-    (mongo/insert! (model-collection model) (update-model-pre model))
+  (if (valid-model? model)
+    (mongo/insert! (model-collection model) (update-model-hook model))
     "Error"))
 
 (defn- update-by-modifiers
@@ -289,17 +291,17 @@
   (let [bare (dissoc model :_id :id :type)]
     {:$set bare}))
 
-(defmethod update-model-pre :default
+(defmethod update-model-hook :default
   [model]
   model)
 
 (defmethod update-model! :default
   [model]
-  (if (valid-model-params? model)
+  (if (valid-model? model)
     (.getError
      (mongo/update! (model-collection model)
                     {:_id (:_id model)}
-                    (update-by-modifiers (update-model-pre model))
+                    (update-by-modifiers (update-model-hook model))
                     :upsert false))
     "Error"))
 
@@ -345,6 +347,7 @@
 
 (defmethod delete-model! :default [model]
   (assert (:type model) (:_id model))
+  (delete-model-hook model)
   (mongo/destroy! (model-collection {:type (:type model)})
 		  {:_id (:_id model)})
   true)
@@ -366,15 +369,3 @@
 		    criteria {:$set {field value}} :multiple true)))
 
 
-;;
-;; Compact model definition macro
-;;
-
-;; (defmacro defmodel [name & {:as options}]
-;;   ...)
-
-;; Name the model
-;; - mongo collection
-;; - validity testing
-;; - client key set
-;; - client HB template(s)

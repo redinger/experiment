@@ -8,6 +8,7 @@
    hiccup.page-helpers
    noir.core)
   (:require
+   [experiment.views.common :as common]
    [experiment.libs.datetime :as dt]
    [clj-time.core :as time]
    [noir.response :as response]
@@ -20,7 +21,6 @@
    [:div {:class "highchart"}
    (%strcat "<div id='" (% cssid) "' style='height:" (% height) ";width:" (% width) ";'/>")]
    [:div {:class "d3chart"}]])
-
 
 (defn- compute-limits [numbers]
   (let [min (apply min numbers)
@@ -90,3 +90,8 @@
 
 ;;(defn control-chart [experiment instrument]
 ;;  (let [
+
+(defpage test-chart [:get "/dev/charts"] {:keys [] :as options}
+  (common/simple-layout
+   {}
+   [:div#test {:style "border: 1px solid black;"}]))

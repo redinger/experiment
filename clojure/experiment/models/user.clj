@@ -48,7 +48,7 @@
 ;; Users
 ;;
 
-(defmethod valid-model-params? :user [user]
+(defmethod valid-model? :user [user]
   (and (:username user)))
 
 (defn create-user! [username password email name]
@@ -64,7 +64,7 @@
   "Model for reference"
   [reference]
   (cond (string? reference)
-	(fetch-model :user :where {:username reference})
+	(fetch-model :user {:username reference})
 	true
 	(resolve-dbref reference)))
 
@@ -74,7 +74,7 @@
 	true
 	(as-dbref (get-user reference))))
 
-(defmethod client-keys :user [user]
+(defmethod public-keys :user [user]
   (keys (apply dissoc user
                [:updates :permissions :password :salt :dataid :state])))
 

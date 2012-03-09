@@ -1,14 +1,13 @@
 (ns experiment.models.events
+  (:use experiment.infra.models)
   (:require
-   [experiment.models.user :as user]
+   [clojure.tools.logging :as log]
+   [experiment.libs.datetime :as dt]
    [experiment.infra.session :as session]
-   [experiment.libs.datetime :as dt])
-  (:use experiment.infra.models
-	noir.core
-	hiccup.core
-	hiccup.page-helpers
-	hiccup.form-helpers
-	handlebars.templates))
+   [experiment.libs.sms :as sms]
+   [experiment.models.user :as user]
+   [experiment.models.instruments :as inst]
+   ))
 
 ;; ==================================
 ;; Events
@@ -19,24 +18,9 @@
   {:type "schedule"
    }
   
-  ;; Data from an API
-  {:type "dump"
-   :user [] ;; REF
-   }
-  
-  ;; Data produced by instrument (direct or extracted from a report)
   {:type "event"
-   :user [] ;; REF
-   :instrument [] ;; REF
-   :data [] ;; Series of pairs (date as long ms, instrument value)
-   }
-
-  {:type "reminder"
-   :datetime true
-   :instrument true
-   :msg true
-   :channel true
-   :sent? true
+   :action ...
+   :sent? completed
    :submit? true
    }
 
@@ -47,27 +31,9 @@
    }
   )
 
-
-(defn user-events []
-  (let [user (session/current-user)]
-    nil))
-
-;; Are events time or periods?
-(defn events-for-month []
-  )
-
-(defn filter-events
-  "Filters events according to inclusive start and end dates"
-  [startdate enddate events])
-
-
 ;; ==================================
 ;; Reminders
 ;; ==================================
-
-(defn generate-reminders [schedule base options]
-  nil)
-  
 
 (defn trial-reminders [trial]
   (:reminders trial))
@@ -76,128 +42,156 @@
   (assert (= (type start) java.lang.Long))
   (>= (:date reminder) start))
 
+
 ;; ==================================
-;; Calendar View
+;; Event API
+;;
+;; Status:
+;; - pending :: schedule but not fired
+;; - active :: fired but not done (e.g. sms sent)
+;; - done :: event is fully satisfied
+;;
+;; Required keys
+;; - :type "event"
+;; - :etype <event type>
+;; - :user (user associated with the event)
+;;
+;; Other keys:
+;; - :start (not stored, but required to schedule)
+;; - :wait - whether to remain active waiting for a response
+;; - :result - was the event satisfied (e.g. delivered, responded, etc)
+;; - :timeout - how long to wait before failing when response is needed
 ;; ==================================
 
-(def ^:dynamic *events* {})
-(def ^:dynamic *today* nil)
+(def required-event-keys [:type :etype :user :start])
 
-(defn today? [day]
-  (= day *today*))
+(defn valid-event? [event]
+  (and (= (count (select-keys required-event-keys))
+          (count required-event-keys))
+       (#{"pending" "active" "done"} (:status event))))
 
-(defpartial render-event [event]
-  [:li
-   [:span {:class "title"} (:title event)]
-   [:span {:class "desc"} (:desc event)]])
+(defn active-event? [event]
+  (or (nil? (:status event))
+      (#{"pending" "active"} (:status event))))
 
-(defn events-for-day [day]
-  (*events* day))
-
-(defn treatment? [event]
-  (:treatment event))
-
-(defpartial render-day [day]
-  (let [events (events-for-day day)
-	class (clojure.string/join
-	       " "
-	       [(when (today? day) "today")
-		(when events
-		  (if (some treatment? events)
-		    "treat"
-		    "date_has_event"))])]
-    [:td {:class class}
-     day
-     (when events
-       [:div {:class "events"}
-	[:ul
-	 (map render-event events)]])]))
+(defn event-requires-reply? [event]
+  (:wait event))
   
-(defpartial render-first-week [padding range]
-  [:tr
-   (when (> padding 0) [:td {:class "padding" :colspan padding}])
-   (map render-day range)])
 
-(defpartial render-week [[padding range]]
-  [:tr
-   (map render-day range)
-   (when (> padding 0) [:td {:class "padding" :colspan padding}])])
+;; =================================
+;; Event Actions
+;; =================================
 
-(defn- events-daily-map [month events]
-  ;; NOTE: TODO
-  (zipmap (range 1 25 3)
-	  (repeat [{:title "Record fatigue"
-		    :spec "Respond to SMS fatigue question"}
-		   {:title "QOL Questionnaire"
-		    :desc "Fill out online QOL Questionnaire"}])))
+(defmulti fire-event (comp keyword :etype))
 
-(defn- make-month [month-ref]
-  (if month-ref
-    (let [[year month] month-ref]
-      (org.joda.time.LocalDate. year month 1))
-    (.withDayOfMonth (org.joda.time.LocalDate.) 1)))
+;; By default do nothing
 
-(defn- month-padding [month]
-  (- (.getDayOfWeek month) 1))
 
-(defn- month-end-day [month]
-  (.getDayOfMonth
-   (-> month
-       (.plusMonths 1)
-       (.minusDays 1))))
+(defmethod fire-event :default [event]
+  nil)
 
-(defn- compute-weeks [start-pad last-day]
-  (letfn [(week [start]
-		(let [next (+ start 7)]
-		  (cond (< last-day start)
-			nil
-			(< last-day next)
-			(cons [(- next last-day) (range start last-day)] (week next))
-			true
-			(cons [0 (range start (+ start 7))] (week next)))))]
-    (week (- 8 start-pad))))
-		 
+;; Simply write an event to the log
 
-(defpartial render-calendar-table [month events]
-  (let [month (make-month month)
-	start-pad (month-padding month)
-	last-day (month-end-day month)
-	weeks (compute-weeks start-pad last-day)]
-    (binding [*events* (events-daily-map month events)]
-      [:div {:class "calendar"}
-       [:table {:cellspacing 0}
-	[:thead
-	 [:tr (map (fn [day] [:th day])
-		   ["Mon" "Tue" "Wed" "Thu" "Fri" "Sat" "Sun"])]]
-	[:tbody
-	 (cons (render-first-week start-pad (range 1 (- 8 start-pad)))
-	       (map render-week weeks))]]])))
+(defmethod fire-event :log [event]
+  (println "Log event firing")
+  (log/spy event))
 
 ;;
-;; Calendar Client API
+;; Send an SMS as instrument or reminder
 ;;
 
-(deftemplate small-calendar
-  [:div {:id (% id) :class "small-calendar"}])
+(defmethod fire-event :sms [event]
+  (sms/send-sms nil nil)
+  (let [status (if (event-requires-reply? event) "active" "done")]
+    (modify-model! event
+                   {:$set {:status status}})))
 
-(defpage trial-calendar [:get "/api/calendar/trial/:id"] {:keys [id year month start]}
-  (let [trial (resolve-dbref "trial" id)
-	start (or start (dt/as-utc (dt/now)))]
-    (try 
-      (render-calendar-table (when (and month (not (= month "now")))
-			       [(Integer/parseInt year)
-				(Integer/parseInt month)
-				(Long/parseLong start)])
-			     (filter (partial future-reminder? start)
-				     (trial-reminders trial)))
-      (catch java.lang.Throwable e
-	"<b>Calendar Render Error</b>"))))
+(defn- active-sms-events
+  "Return the sms events for the user associated with this incoming message"
+  ([user]
+     (fetch-models :event {:user (as-dbref user) :status "active" :etype "sms"}
+                   :sort {:start 1})))
 
-(defpage experiment-calendar [:get "/api/calendar/experiment/:id"] {:keys [id]}
-  (let [experiment (resolve-dbref "experiment" id)]
-    (try
-      (render-calendar-table nil (generate-reminders experiment (dt/now)
-						     {:reminders? true}))
-      (catch java.lang.Throwable e
-	"<b>Calendar Render Error</b>"))))
-      
+(defn- user-for-cell-number [num]
+  (fetch-model :user {:profile.cell num}))
+
+;; Parse and associate replies with events, submit data
+
+(defmulti parse-sms
+  "[instrument user message-text event]
+   A method that parses an SMS response for user according to
+   the :sms-parse type of the instrument, the default handlers
+   uses :sms-prefix to identify the response prefix that associates
+   the data with the instrument which is then treated as a sample
+   for that instrument (assoc {:ts <datetime msg received>}
+                              (parse-sms inst user event message))"
+  (fn [message event]
+    (when-let [name (:sms-parser event)]
+      (keyword name))))
+
+(defn default-sms-parser-re [event]
+  (re-pattern
+   (str (or (:sms-prefix event) "")
+        (case (:sms-value-type event)
+          nil "\\s*(\\d*)"
+          "string" "\\s*([^\\s]+)"
+          "float" "\\s*([\\d\\.]+)"))))
+
+(defn default-sms-parser [message event]
+  (when-let [value (second (re-matches (default-sms-parser-re event) message))]
+    (case (:sms-value-type event)
+      nil (Integer/parseInt value)
+      "string" value
+      "float" (Float/parseFloat value))))
+    
+(defmethod parse-sms :default [message ts event]
+  (when-let [val (and (:sms-prefix event)
+                      (default-sms-parser message event))]
+    {:ts ts :v val :raw message :event event}))
+
+
+(defn update-event [{:keys [event ts v] :as sample}]
+  (modify-model! event {:$set {:status "done"
+                               :result "success"
+                               :result-ts (dt/as-date ts)}})
+  (inst/update (resolve-dbref (:inst event))
+               (resolve-dbref (:user event))
+               [(dissoc sample :event)]))
+
+(defn cancel-event [event & [result]]
+  (modify-model! event {:$set {:status "done"
+                               :result (or result "failed")
+                               :result-ts (dt/as-date (dt/now))}}))
+
+(defn associate-message-with-events [user ts text]
+  (let [events (active-sms-events user)
+        samples (keep (partial parse-sms text ts) events)]
+    (cond (empty? samples)
+          (do (log/info
+               (str "Failed to parse response from " (:username user)
+                    ": '" text "'"))
+              false)
+          (= (count samples) 1)
+          (update-event (first samples))
+          true
+          (do (log/warn "Multiple matching samples for " (:username user)
+                        ": '" text "' -- removing old and associating with latest")
+              (update-event (last samples))
+              (doall (map cancel-event (butlast samples)))
+              true))))
+
+(defn associate-message-with-tracker [user ts text]
+  ;; TODO: Lookup trackers that can parse this?
+  nil)
+                                     
+(defn sms-reply-handler
+  "Main handler for SMS replies from our texting service.
+   Given a number and message, parse it, associate it with
+   an event and submit the resulting data as a sample if
+   appropriate.  (TODO) Send failure messages if no parser
+   matches or on a failure to parse"
+  [ts number text]
+  (let [ts (dt/now)
+        user (user-for-cell-number number)]
+    (or (associate-message-with-events user ts text)
+        (associate-message-with-tracker user ts text))))

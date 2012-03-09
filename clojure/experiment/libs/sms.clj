@@ -4,6 +4,7 @@
   (:require [clj-http.client :as http]
 	    [clojure.contrib.string :as string]
 	    [clj-time.core :as time]
+            [experiment.libs.datetime :as dt]
 	    [clojure.data.json :as json]
             [clojure.tools.logging :as log]
 	    [somnium.congomongo :as mongo]
@@ -51,7 +52,7 @@
 (defn log-message! [message]
   (assert (and (:from message) (:message message)))
   (mongo/insert! :sms (assoc message
-                        :date (clj-time.coerce/to-long (time/now))
+                        :date (dt/as-date (dt/now))
                         :type :sms)))
 
 (defn get-messages
@@ -66,7 +67,6 @@
    (mongo/fetch :sms :where {:from from}
                 :sort {:date -1}
                 :limit 1)))
-                
 
 
 ;;
@@ -96,10 +96,10 @@
   (alter-var-root #'*handler* (fn [a b] b) handler))
 
 (defn- handle-reply [from message]
-  (let [msg {:from message :message message}]
-    (log-message! msg))
-  (when (or (fn? *handler*) (var? *handler*))
-    (*handler* from message)))
+  (let [ts (dt/now)]
+    (log-message! {:from message :message message :ts (dt/as-utc ts)})
+    (when (or (fn? *handler*) (var? *handler*))
+      (*handler* ts from message))))
   
 (defpage inbox-url [:get "/sms/receive"] {:keys [from message]}
   (handle-reply from message)
@@ -111,8 +111,9 @@
 
 (defn account-balance [& [credentials]]
   (with-credentials [credentials]
-    (http/get (compose-request-url
-	       "https://app.grouptexting.com/api/credits/check/"
-	       {}))))
+    (json/read-json
+     (:body
+      (http/get (compose-request-url
+                 "https://app.grouptexting.com/api/credits/check/"
+                 {}))))))
 	       
-	     

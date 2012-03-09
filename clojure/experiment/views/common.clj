@@ -21,6 +21,8 @@
 	      "/js/vendor/jquery.sparkline.min.js"
 	      "/js/vendor/highcharts.src.js"
 	      "/js/vendor/d3.js"
+	      "/js/vendor/d3.time.js"
+              "/js/qi-chart.js"
 	      "/js/vendor/handlebars.1.0.0.beta.3.js"
 	      "/js/vendor/underscore-131.js"
 	      "/js/vendor/backbone-091.js"
@@ -33,7 +35,9 @@
 	      "/js/vendor/jquery.simplemodal.1.4.1.min.js"
 	      "/js/vendor/jquery.sparkline.min.js"
 	      "/js/vendor/highcharts.js"
-	      "/js/vendor/d3-min.js"
+	      "/js/vendor/d3.min.js"
+	      "/js/vendor/d3.time.min.js"
+              "/js/qi-chart.js"
 	      "/js/vendor/handlebars.1.0.0.beta.3.js"
 	      "/js/vendor/underscore-min-131.js"
 	      "/js/vendor/backbone-min-091.js"
@@ -44,7 +48,11 @@
   (include-js "/js/vendor/jquery-1.7.min.js"
 	      "/js/vendor/jquery.simplemodal.1.4.1.min.js"
 	      "/js/vendor/handlebars.1.0.0.beta.3.js"
-	      "/js/dialog.js"))
+	      "/js/vendor/underscore-131.js"
+	      "/js/dialog.js"
+	      "/js/vendor/d3.js"
+	      "/js/vendor/d3.time.js"
+              "/js/qi-chart.js"))
 
 (defn render-analytics []
   "<script type=\"text/javascript\">
@@ -76,8 +84,8 @@
 
 (defpartial standard-head-nojs [& head-content]
   [:head
-   [:link {:rel "shortcut icon"
-           :href "/img/favicon.ico"}]
+   [:link {:rel "shortcut icon" :href "/img/favicon.ico"}]
+   [:meta {:http-equiv "X-UA-Compatible" :content "chrome=1"}]
    [:title "Personal Experiments"]
    (include-standard-css)
    head-content
@@ -85,8 +93,8 @@
 
 (defpartial standard-head [& head-content]
   [:head
-   [:link {:rel "shortcut icon"
-           :href "/img/favicon.ico"}]
+   [:link {:rel "shortcut icon" :href "/img/favicon.ico"}]
+   [:meta {:http-equiv "X-UA-Compatible" :content "chrome=1"}]
    [:title "Personal Experiments"]
    (include-standard-css)
    (include-vendor-libs)
@@ -157,11 +165,11 @@
 
 (deftemplate register-dialog-body 
   (form-to [:post "/action/register"]
-           [:div {:class "form-pair username-field"}
+           [:div {:class "form-pair email-field"}
 	    (label "email" "E-mail") (text-field "email")]
            [:div {:class "form-pair username-field"}
-	    (label "name" "Your Name (optional)") (text-field "username")]
-           [:div {:class "form-pair username-field"}
+	    (label "name" "Your Name (optional)") (text-field "name")]
+           [:div {:class "form-pair name-field"}
 	    (label "username" "Username") (text-field "username")]
 	   [:div {:class "form-pair password-field"}
 	    (label "password" "Password") (password-field "password")]
@@ -302,13 +310,13 @@
 (defn bootstrap-collection-expr [name coll]
   (str name ".reset("
        (json/generate-string
-	(models/export-model coll))
+	(models/server->client coll))
        ");"))
 
 (defn bootstrap-instance-expr [name coll]
   (str name ".set("
        (json/generate-string
-	(models/export-model coll))
+	(models/server->client coll))
        ");"))
 
 (defpartial send-user []
@@ -381,9 +389,9 @@
 (defn valid-registration-rec? [{:keys [email username password password2]}]
   (cond (or (= (count email) 0) (not (re-find #"@" email)))
         [false "We require a valid email address"]
-        (models/fetch-model :user :where {:email email})
+        (models/fetch-model :user {:email email})
         [false "Email address is already registered"]
-        (models/fetch-model :user :where {:username username})
+        (models/fetch-model :user {:username username})
         [false (format "Username '%s' is already registered" username)]
         (not (> (count username) 3))
         [false "We require a valid username longer than 3 characters"]

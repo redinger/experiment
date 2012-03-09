@@ -1,188 +1,204 @@
 (ns experiment.models.samples
-  (:use experiment.infra.models)
-  (:require [clojureql.core :as cql]
-	    [clj-time.core :as time]
-            [clojure.java.jdbc :as sql]
-	    [experiment.libs.datetime :as dt]))
+  (:use experiment.infra.models
+        clojure.math.numeric-tower)
+  (:require [somnium.congomongo :as mongo]
+            [experiment.models.schedule :as schedule]
+            [clj-time.core :as time]
+            [experiment.libs.datetime :as dt]))
 
-;;
-;; Schema and helpers
-;;
 
-(def db {:classname "com.mysql.jdbc.Driver"
-	 :subprotocol "mysql"
-	 :user "client"
-	 :password "trackme"
-	 :subname "//localhost:3306/experiment"})
+;; User:
+;; -------------------
+;; - ID
 
-(defn create-tables []
-  (sql/with-connection db
-    (sql/create-table
-     :instruments
-     [:id :int "PRIMARY KEY" "AUTO_INCREMENT"]
-     [:name "varchar(256)"]
-     [:iid "varchar(256)"])
-    (sql/create-table
-     :users
-     [:id :int "PRIMARY KEY" "AUTO_INCREMENT"]
-     [:username "varchar(40)"]
-     [:uid "varchar(256)"])
-    (sql/create-table
-     :samples
-     [:user :int "NOT NULL"]
-     [:inst :int "NOT NULL"]
-     [:ts :bigint "NOT NULL"]
-     [:value :double]
-     ["FOREIGN KEY(user)" "references" "users(id)"]
-     ["FOREIGN KEY(inst)" "references" "instruments(id)"])
-    (sql/create-table
-     :records
-     [:user :int "NOT NULL"]
-     [:inst :int "NOT NULL"]
-     [:ts :bigint "NOT NULL"]
-     [:value "varchar(256)"]
-     ["FOREIGN KEY(user)" "references" "users(id)"]
-     ["FOREIGN KEY(inst)" "references" "instruments(id)"])
-    (sql/do-commands
-     "CREATE UNIQUE INDEX samples_idx ON samples (user,inst,ts)"
-     "CREATE UNIQUE INDEX records_idx ON records (user,inst,ts)")))
+;; Instrument:
+;; -------------------
+;; - ID
+;; - sampling
+;;   - interval (chunk interval)
+;;   - poll-freq (how often to check for new data - daily, hourly, weekly)
 
-(defn drop-tables []
-  (comment
-  (sql/with-connection db
-    (doall (map sql/drop-table [:users :instruments :samples :records])))))
+(defn chunk-interval [inst]
+  (get-in inst [:sampling :chunksize] :month))
 
-;;
-;; Clojure QL based API
-;;
+;; Sample:
+;; -------------------
+;; - :ts
+;; - :v <default or time-series value>
+;; - <can have arbitrary extra data, but has cost impact on queries>
 
-(def users (cql/table db :users))
-(defn user [uid]
-  (cql/select users (cql/where (= :uid uid))))
-(defn user-id [uid]
-  (cql/pick (user uid) :id))
+(defn valid-sample? [sample]
+  (and (:ts sample)
+       (= (type (:ts sample)) org.joda.time.DateTime)
+       (:v sample)
+       true))
 
-(def instruments (cql/table db :instruments))
-(defn instrument [iid]
-  (cql/select instruments (cql/where (= :iid iid))))
-(defn instrument-id [iid]
-  (cql/pick (instrument iid) :id))
+(defn valid-samples? [samples]
+  (every? valid-sample? samples))
 
-(def samples (cql/table db :samples))
-(def records (cql/table db :records))
+(defn- as-chunk-sample
+  "Convert Joda Time objects to Java Date objects"
+  [sample]
+  (update-in sample [:ts] dt/as-date))
 
-(defn generic-data? [instrument]
-  (:generic-values? instrument))
+(defn- as-native-sample
+  [sample]
+  (update-in sample [:ts] dt/from-date))
+          
+(defn- merge-sample [old new]
+  (assert (= (:start old) (:start new)))
+  (merge old new))
 
-;;
-;; Manage identity
-;;
+(defn- merge-samples
+  "Identity is determined by :ts date object;
+   new values trump old values according to merge policy
+   all non-conflicting values are included"
+  [old new]
+  (vals
+   (merge-with
+    merge-sample
+    (zipmap (map :ts old) old)
+    (zipmap (map :ts new) new))))
 
-(defn id [model]
-  (str (:_id model)))
+;; Chunk:
+;; -------------------
+;; - ID
+;; - user
+;; - inst
+;; - start <date>
+;; - samples []
+;;   - ts
+;;   - v
+;;   - <domain-specific>
+;; - stats
+;;   - sum (v)
+;;   - count (v)
 
-(defn clear-identity-cache []
-  (unset-collection-field :user :dataid)
-  (unset-collection-field :instrument :dataid))
+(defn- get-chunk [u i base & [restrict?]]
+  (mongo/fetch-one
+   :chunks
+   :where {:user (:_id u)
+           :inst (:_id i)
+           :start (dt/as-date base)}))
 
-(defn as-sql-user [model]
-  (if-let [id (:dataid model)]
-    id
-    (let [dbid @(user-id (id model))]
-      (if dbid
-	(do (update-model! (assoc model :dataid dbid))
-	    dbid)
-	(do @(cql/conj! users {:username (:username model)
-			       :uid (id model)})
-	    (as-sql-user model))))))
+(defn- update-chunk [u i base old-chunk samples]
+  (let [select {:user (:_id u)
+                :inst (:_id i)
+                :start (dt/as-date base)}
+        update {:$set {:updated (dt/as-date (dt/now))
+                       :samples samples
+                       :stats.count (count samples)
+                       :stats.sum (apply + (map :v samples))}}]
+    (mongo/update!
+     :chunks
+     (if old-chunk
+       (assoc select
+         :stats.count (get-in old-chunk [:stats :count])
+         :stats.sum (get-in old-chunk [:stats :sum]))
+       select)
+     update
+     :upsert (not old-chunk))))
 
-(defn as-sql-instrument [model]
-  (if-let [id (:dataid model)]
-    id
-    (let [dbid @(instrument-id (id model))]
-      (if dbid
-	(do (update-model! (assoc model :dataid dbid))
-	    dbid)
-	(do @(cql/conj! instruments {:name (:name model)
-				     :iid (id model)})
-	    (as-sql-instrument model))))))
+(defn- chunk-update-fn
+  "Given a user and interval, return a function
+   that will update the state of a chunk for a given
+   base date and set of samples"
+  [u i]
+  (assert (and (= (:type u) "user") (= (:type i) "instrument")
+               (:_id u) (:_id i)))
+  (fn [[base-date samples]]
+    (let [old-chunk    (get-chunk u i base-date)
+          old-samples  (:samples old-chunk)
+          new-samples  (merge-samples old-samples
+                                      (map as-chunk-sample samples))
+          result       (update-chunk u i base-date
+                                     old-chunk new-samples)]
+      true)))
+           
+(defn- date-decimator-fn
+  "Return a canonical date given the chunksize period"
+  [chunksize key-fn]
+  (comp (schedule/decimate-fn chunksize) key-fn))
 
-(defn instrument-table [user instrument]
-  (-> (if (generic-data? instrument)
-        records
-        samples)
-      (cql/select (cql/where (= :user (as-sql-user user))))
-      (cql/select (cql/where (= :inst (as-sql-instrument instrument))))))
+(defn sample-groups
+  "Return samples as groups defined by date decimator"
+  [inst samples]
+  (assert (valid-samples? samples))
+  (group-by (date-decimator-fn (chunk-interval inst) :ts)
+            samples))
+  
+(defn- chunk-select
+  "Return a where clause for mongo lookups to get the target chunks"
+  ([u i]
+     {:inst (:_id i) :user (:_id u)})
+  ([u i options]
+     (let [{:keys [start end]} options]
+       (merge (chunk-select u i)
+              (when start
+                {:start {:$gte (dt/as-date start)}})
+              (when end
+                {:start {:$lt (dt/as-date end)}})))))
 
-;;
-;; Get sample series
-;;
+(defn- sample-filter-fn
+  "Return a filter function to select only those samples
+   meeting the criterion outlined in the option set"
+  ([options]
+     (let [{:keys [start end]} options]
+       (fn [sample]
+         (and (or (not start)
+                  (time/after? (:ts sample) start))
+              (or (not end)
+                  (time/before? (:ts sample) end)))))))
 
-(defn valid-instrument? [instrument]
-  (and (model? instrument)
-       (= (:type instrument) "instrument")))
-
-(defn- as-sample [user instrument [dt val]]
-  (assert (and dt val))
-  {:user (as-sql-user user)
-   :inst (as-sql-instrument instrument)
-   :ts (dt/as-utc dt)
-   :value val})
+;; API
 
 (defn add-samples
-  "data is a sequence of date-value pairs"
-  [user instrument data]
-  (assert (valid-instrument? instrument))
-  @(cql/conj! (instrument-table user instrument)
-              (clojure.tools.logging/spy (vec (map (partial as-sample user instrument) data)))))
-
-(defn reset-samples [user instrument]
-  @(cql/disj! (instrument-table user instrument)
-              (cql/where (= :user (as-sql-user user)))))
-
-(defn remove-samples [user instrument & [start end]]
-  ;; TBD
-  )
-
-(defn- sample-pairs [convert?]
-  (fn [results]
-    (vec (map (fn [{:keys [ts value]}] [(if convert? (dt/from-utc ts) ts) value])
-              results))))
+  "Insert new samples into array"
+  [u i data]
+  (doall
+   (map (chunk-update-fn u i)
+        (sample-groups i data))))
+  
+(defn rem-samples
+  "Remove samples"
+  [u i & {:keys [start end] :as options}]
+  (mongo/destroy! :chunks
+                  :where (chunk-select u i options)))
 
 (defn get-samples
-  "Get a vector of time / value items.  An instrument can post
-   process returned data to format - the post processor takes
-   "
-  ([user instrument]
-     (get-samples user instrument 0 (dt/now) true))
-  ([user instrument start]
-     (get-samples user instrument start (dt/now) true))
-  ([user instrument start end]
-     (get-samples user instrument start end true))
-  ([user instrument start end convert?]
-     (assert (valid-instrument? instrument))
-     (let [start (dt/as-utc start)
-	   end (dt/as-utc end)]
-       ((sample-pairs convert?)
-        @(-> (instrument-table user instrument)
-             (cql/select (cql/where (and (>= :ts start) (<= :ts end))))
-             (cql/project [:ts :value])
-             (cql/sort [:ts]))))))
+  "Get a sequence of samples {:ts <date> :v <any> ...}"
+  [u i & {:keys [start end] :as options}]
+  (->> (mongo/fetch :chunks
+                    :where (chunk-select u i options)
+                    :only [:samples])
+       (mapcat :samples)
+       (sort-by :ts)
+       (map as-native-sample)
+       (filter (sample-filter-fn options))))
 
-(defn get-sample-range
-  "Return a pair of datestamps if data exists or nil if not, the
-   pair indicate the first and last timestamps for that user/inst pair"
-  [user instrument]
-  (let [[minmax] @(-> (instrument-table user instrument)
-                      (cql/aggregate [[:max/ts :as :max] [:min/ts :as :min]]))]
-    (update-in (update-in minmax [:max] dt/from-utc)
-               [:min] dt/from-utc)))
+(defn last-sample [u i]
+  (->> (mongo/fetch :chunks
+                    :where (chunk-select u i)
+                    :only [:samples]
+                    :limit 1
+                    :sort {:start -1})
+       first
+       :samples
+       (sort-by :ts)
+       first
+       as-native-sample))
 
-(defn get-last-sample-time
-  "Return the last timestamp on which we recorded data for this user
-   and instrument - a number or nil if nothing"
-  [user instrument]
-  (:max (get-sample-range user instrument)))
+(defn last-sample-time [u i]
+  (:ts (last-sample u i)))
+
+(defn last-updated-time [u i]
+  (when-let [updated
+             (->> (mongo/fetch :chunks
+                               :where (chunk-select u i)
+                               :only [:updated]
+                               :limit 1
+                               :sort {:start -1})
+                  first
+                  :updated)]
+    (dt/from-date updated)))
      
-  
-

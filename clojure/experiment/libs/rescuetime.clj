@@ -1,6 +1,7 @@
 (ns experiment.libs.rescuetime
   (:require [clj-http.client :as http]
             [experiment.libs.datetime :as dt]
+            [experiment.libs.properties :as props]
 	    [clojure.data.json :as json]))
 
 (def ^:dynamic *api-key* nil)

@@ -122,7 +122,7 @@
 (defn- filter-treatments [filters]
   (if (some #(re-find #"^use" %) filters)
     []
-    (fetch-models :treatment :where (treatment-filter filters))))
+    (fetch-models :treatment (treatment-filter filters))))
 
 (defn- instrument-filter [filters]
   (let [fulltext (fulltext-regex filters)
@@ -136,7 +136,7 @@
 (defn- filter-instruments [filters]
   (if (some #(re-find #"^use|^with" %) filters)
     []
-    (fetch-models :instrument :where (instrument-filter filters))))
+    (fetch-models :instrument  (instrument-filter filters))))
 
 (defn- experiment-filter [treatments filters]
   (let [fulltext (fulltext-regex filters)
@@ -152,7 +152,7 @@
 	     {:instruments.$id {:$in instrument-ids}}))))
 
 (defn- filter-experiments [treatments filters]
-  (fetch-models :experiment :where (experiment-filter treatments filters)))
+  (fetch-models :experiment (experiment-filter treatments filters)))
 
 (defn filter-models [filters]
   (let [treatments (filter-treatments filters)

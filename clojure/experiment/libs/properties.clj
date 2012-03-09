@@ -15,7 +15,7 @@
 (defonce site-properties {})
 
 (defn load-site-properties [& [filename]]
-  (alter-var-root #'site-properties #(load-properties %2)
+  (alter-var-root #'site-properties #(read-properties %2)
                   (or filename "site.properties")))
 
 (defn- as-keyword [key]
@@ -24,4 +24,6 @@
         true (throw (java.lang.Error. "Keyword type not recognized"))))
 
 (defn get [property]
+  (when (empty? site-properties)
+    (load-site-properties))
   (clojure.core/get site-properties (as-keyword property)))

@@ -45,7 +45,7 @@
 (defn current-trials []
   (models/fetch-models
    :trial
-   :where {:user (:username (session/current-user))}))
+   {:user (:username (session/current-user))}))
 
 (defn menu-content []
   [["dashboard" "Dashboard"]
@@ -87,10 +87,10 @@
 	  [["window.ExApp.Instruments" (models/fetch-models :instrument)]
 	   ["window.ExApp.Experiments" (models/fetch-models :experiment)]
 	   ["window.ExApp.MyTrials"
-	    (models/fetch-models :trial :where {:user username})]
+	    (models/fetch-models :trial {:user username})]
 	   ["window.ExApp.Treatments" (models/fetch-models :treatment)]
 	   ["window.ExApp.MyTrackers"
-	    (models/fetch-models :tracker :where {:user.$id (:_id user)}
+	    (models/fetch-models :tracker {:user.$id (:_id user)}
 				 :only [:user :instrument :type :state])]
            ["window.ExApp.Users"
             (models/fetch-models :user :only [:username :type])]])
