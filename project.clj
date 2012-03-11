@@ -1,6 +1,6 @@
-(defproject experiment "0.9.0-SNAPSHOT"
+(defproject experiment "1.0.0-SNAPSHOT"
             :description "Evaluation platform of a new model for running, recording and sharing self-experiments"
-	    :url ""
+	    :url "http://personalexperiments.org"
 	    :source-path "clojure"
             :dependencies [[org.clojure/clojure "1.3.0"]
 			   [org.clojure/data.json "0.1.1"]
@@ -11,8 +11,7 @@
 			   ;; Framework
                            [noir "1.2.2"]
 			   ;; Backends
-			   [congomongo "0.1.7-SNAPSHOT"]
-			   [clojureql/clojureql "1.1.0-SNAPSHOT"]
+			   [congomongo "0.1.8"]
 			   ;; Clojure Libs
                            [swank-clojure "1.4.0"]
                            [com.draines/postal "1.7-SNAPSHOT"]
@@ -24,7 +23,6 @@
 			   [quartz-clj "1.1.0-SNAPSHOT"]
                            [clodown "1.0.2"]
 			   ;; Java libs
-			   [mysql/mysql-connector-java "5.1.6"]
 			   [log4j "1.2.16"]
 			   [org.slf4j/slf4j-log4j12 "1.6.1"]]
 	    :main experiment.server
@@ -34,6 +32,7 @@
 	    :dev-dependencies [[lein-daemon "0.4.0"]
                                [swank-clojure "1.4.0"]
                                [clojure-source "1.3.0"]
+                               [lein-marginalia "0.7.0"]
 	    		       [lein-multi "1.1.0-SNAPSHOT"]]
             ;; For CDT
             :jvm-opts ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
