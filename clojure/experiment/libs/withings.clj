@@ -66,7 +66,6 @@
   (get-in user [:wi-cred :oauth_token_secret]))
 
 
-
 ;;
 ;; GET TOKENS AND SEND USER TO AUTHORIZE PAGE
 ;;

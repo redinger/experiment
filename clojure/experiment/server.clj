@@ -15,7 +15,7 @@
 (defonce agent-redirect-rules
   (atom
    {#"/app(.*)"
-    [[:iphone "/iphone/app%s"]
+    [;;[:iphone "/iphone/app%s"]
      [:ie6 "/not-supported"]
      [:ie7 "/not-supported"]]}))
 
@@ -25,21 +25,23 @@
 		       agent-redirect-rules)
 (server/load-views "clojure/experiment/views/")
 
-(defonce ^:dynamic *server* (atom nil))
-
 (def mongo-options
   (mongo/mongo-options
    :auto-connect-retry true
    :socketKeepAlive true
    :w 1))
 
+(defonce ^:dynamic *server* (atom nil))
+
 (defn start [& [mode]]
-  ;; Properties
-  (props/load-site-properties)
+  ;; Property loading now happens at reader time
+  ;; (props/load-site-properties)
+
   ;; Mongo Setup
   (mongo/set-connection!
    (mongo/make-connection
     (props/get :db.name) {} mongo-options))
+
   ;; Setup logging
   (let [mode (keyword (or mode (props/get :mode) :dev))]
     (if (= mode :dev)
@@ -50,12 +52,15 @@
 		   :level :warn
 		   :pattern "%d - %m%n"
                    :out "experiment.log"))
+
     ;; Setup SMS subsystem
     (sms/set-credentials {:user (props/get :sms.username)
                           :pw (props/get :sms.password)})
     (sms/set-reply-handler 'events/sms-reply-handler)
-    ;; Start scheduler
+
+    ;; Start event scheduler
     (ctrl/start)
+
     ;; Start and save server
     (let [port (Integer. (get (System/getenv) "PORT" "8080"))
 	  server (server/start

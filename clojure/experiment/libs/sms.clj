@@ -46,7 +46,7 @@
 	   (inject-perms argmap)))))
 
 ;;
-;; Message log
+;; Message logging
 ;;
 
 (defn log-message! [message]
@@ -68,6 +68,43 @@
                 :sort {:date -1}
                 :limit 1)))
 
+;;
+;; API: Parse SMS Content as Samples
+;;
+
+;; Parse and associate replies with events, submit data
+
+(defmulti parse-sms
+  "[instrument user message-text event]
+   A method that parses an SMS response for user according to
+   the :sms-parse type of the instrument, the default handlers
+   uses :sms-prefix to identify the response prefix that associates
+   the data with the instrument which is then treated as a sample
+   for that instrument (assoc {:ts <datetime msg received>}
+                              (parse-sms inst user event message))"
+  (fn [message event]
+    (when-let [name (:sms-parser event)]
+      (keyword name))))
+
+(defn default-sms-parser-re [event]
+  (re-pattern
+   (str (or (:sms-prefix event) "")
+        (case (:sms-value-type event)
+          nil "\\s*(\\d*)"
+          "string" "\\s*([^\\s]+)"
+          "float" "\\s*([\\d\\.]+)"))))
+
+(defn default-sms-parser [message event]
+  (when-let [value (second (re-matches (default-sms-parser-re event) message))]
+    (case (:sms-value-type event)
+      nil (Integer/parseInt value)
+      "string" value
+      "float" (Float/parseFloat value))))
+    
+(defmethod parse-sms :default [message ts event]
+  (when-let [val (and (:sms-prefix event)
+                      (default-sms-parser message event))]
+    {:ts ts :v val :raw message :event event}))
 
 ;;
 ;; API: SEND MESSAGES

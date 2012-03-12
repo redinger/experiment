@@ -8,6 +8,8 @@
 ;;  refs Experiment
 ;;  has outcome #[notstart, abandon, success, fail, uncertain]
 ;;  log [action ...] #[start, pause, unpause, end]
+;;  schedule []
+;;  
 
 (defmethod db-reference-params :trial [model]
   [:experiment])
@@ -19,7 +21,8 @@
   ({:active "Active"
     :paused "Paused"
     :abandoned "Abandoned"
-    :completed "Completed"}
+    :completed "Completed"
+    nil "Unknown"}
    (keyword (:status trial))))
 
 (defn trial-done? [trial]
@@ -27,6 +30,7 @@
 	     
 (defmethod server->client-hook "trial" [trial]
   (assoc trial
+    :status_str (human-status trial)
     :stats {:elapsed 21
 	    :remaining 7
 	    :intervals 1}

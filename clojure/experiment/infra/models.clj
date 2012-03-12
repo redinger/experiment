@@ -10,9 +10,18 @@
   (:import [org.bson.types ObjectId]
 	   [com.mongodb DBRef]))
 
-;;
-;; Model Behavior Protocol
-;;
+;; ------------------------------------------
+;; Server-Client Model Framework
+;; ------------------------------------------
+
+;; This framework provides hooks for different data
+;; models, implemented as standard maps, with a
+;; convention of :type as the type specifier and
+;; client-side ID of :id and server-side id of :_id
+;; The APIs included here are somewhat MongoDB specific
+;; still, but provide a good baseline abstraction for
+;; models that live in a document DB and have different
+;; behavior and valid slots in the server or client context.
 
 (defn model?
   "A predicate to test that we have a valid model:
@@ -72,7 +81,7 @@
 
 
 ;;
-;; Default Model behaviors
+;; ## Default Model behaviors
 ;;
 
 (defmethod valid-model? :default
@@ -104,23 +113,29 @@
   model)
 
 ;;
-;; MongoDB Helpers
+;; ## MongoDB Helpers
 ;;
 
-(defn objectid? 
-  [id]
+(defn objectid? [id]
   (= (type id) ObjectId))
+
+(defn embedded-objectid? [id]
+  (and (= (count id) 25)
+       (= (first id) \*)))
 
 (defn serialize-id
   "Convert a MongoDB ID for client use"
   [id]
-  (assert (instance? ObjectId id))
+  (assert (or (objectid? id) (embedded-objectid? id)))
   (str id))
 
 (defn deserialize-id
-  "Convert a foreign ID reference to an Mongo ObjectId"
+  "Convert a client ID reference to an ObjectId"
   [id]
-  (mongo/object-id id))
+  (assert (string? id))
+  (if (embedded-objectid? id)
+    id
+    (mongo/object-id id)))
 
 (defn- serialize-dbref
   "Convert a DBRef object to a pair referencing a namespace and UID"
@@ -132,15 +147,16 @@
       [ref (.toString id)])))
 
 (defn- deserialize-dbref
+  "Convert a client-side object reference pair to a DBRef"
   [ref]
   (assert (and (= (count ref) 2) (every? string? ref)))
   (mongo/db-ref (first ref) (mongo/object-id (second ref))))
 
 ;;
-;; Model import/export handlers for MongoDB
+;; ## Model import/export handlers
 ;;
 
-;; Main object IDs
+;; ### Convert object IDs to/from client
 
 (defn serialize-model-id
   "Export a local model-id as a foreign ID"
@@ -150,9 +166,11 @@
 (defn deserialize-model-id
   "Import a foregin model-id as a local ID"
   [cmodel]
-  (dissoc (assoc cmodel :_id (deserialize-id (:id cmodel))) :id))
+  (if (:id cmodel)
+    (dissoc (assoc cmodel :_id (deserialize-id (:id cmodel))) :id)
+    cmodel))
 
-;; Handle embedded DBRefs
+;; ### Handle embedded DBRefs
 
 (defn- serialize-ref
   "If the object is a DBRef, convert to client format"
@@ -173,17 +191,17 @@
   "Import model references from the client"
   (reduce deserialize-model-ref cmodel (db-reference-params cmodel)))
 
-;; Filter public-keys on import/export for safety
+;; ### Filter public-keys on import/export for safety
 
 (defn filter-public-keys
   "Must define public-keys for safety purposes"
   [cmodel]
-  (let [keys (public-keys cmodel)]
-;;    (assert keys) ;; Comment out for development
-    (if keys (select-keys cmodel keys)
-	cmodel)))
+  (if-let [keys (public-keys (conj cmodel [:id :type]))]
+    (select-keys cmodel keys)
+    cmodel))
 	
 (defn as-dbref
+  "Return a Mongo DBRef for a model object"
   ([model]
      (let [{:keys [type _id]} model]
        (assert (and type _id))
@@ -191,7 +209,9 @@
   ([name id]
      (mongo/db-ref name id)))
 
-(defn as-oid [id]
+(defn as-oid
+  "Ensure an ID string is an ObjectID"
+  [id]
   (cond (objectid? id) id
 	(string? id) (mongo/object-id id)
 	true (assert (str "Unrecognized id: " id))))
@@ -199,16 +219,26 @@
 (defn oid? [id]
   (objectid? id))
 
-(defn resolve-dbref [ref & [id]]
-  (if id
-    (do (assert (or (keyword? ref) (string? ref)))
-	(mongo/fetch-one ref :where {:_id (as-oid id)}))
-    (do (assert (mongo/db-ref? ref))
-	(mongo/fetch-one (.getRef ref) :where {:_id (.getId ref)}))))
+(defn resolve-dbref
+  ([ref]
+     (assert (mongo/db-ref? ref))
+     (somnium.congomongo.coerce/coerce (.fetch ^DBRef ref) [:mongo :clojure]))
+  ([ref id]
+     (assert (or (keyword? ref) (string? ref)))
+     (mongo/fetch-one ref :where {:_id (as-oid id)})))
 
-;;(extend DBRef
-;;  clojure.lang.IDeref
-;;  {:deref resolve-dbref})
+(defn assign-uid [model]
+  (if (not (:_id model))
+    (assoc model :_id (str "*" (ObjectId/get)))))
+  
+
+;; Extend DBRef with IDeref protocol for dereferencing?
+;;
+;; (extend DBRef
+;;   clojure.lang.IDeref
+;;   {:deref resolve-dbref})
+
+;; ### Support for sub-objects and partial object updates
 
 (defn lookup-location
   "Resolve string or keyword location and indirect into
@@ -221,24 +251,36 @@
         (keyword? location)
         (model location)))
 
+(defn submodel-path
+  "Make a mongo-friendly sub-object path from a dotted location
+   string, an array of keys"
+  [location leaf]
+  (if (sequential? location)
+    (str/join \. (conj (map name location) (name leaf)))
+    (str/join \. (list (name location) (name leaf)))))
+
+(defn submodel-slot-paths
+  "Return a map from model keys to keys that are paths
+   to the keys of an embedded model"
+  [model path]
+  (zipmap (keys model)
+          (map (comp (partial submodel-path path) name)
+               (keys model))))
+
+(defn- update-by-modifiers
+  ([model]
+     (let [bare (dissoc model :_id :id :type)]
+       {:$set bare}))
+  ([submodel path]
+     {:$set (clojure.set/rename-keys
+             (dissoc submodel :_id :id :type)
+             (submodel-slot-paths submodel path))}))
+
 (defmacro nil-on-empty [body]
   `(let [result# ~body]
      (when (not (empty? result#))
        result#)))
 
-;; =================================
-;; Model CRUD API
-;; =================================
-
-(defmulti create-model! (comp keyword :type))
-(defmulti update-model! (comp keyword :type))
-(defmulti modify-model! (comp keyword :type))
-(defmulti update-model-hook (comp keyword :type))
-(defmulti fetch-model (fn [type & options] (keyword type)))
-(defmulti fetch-models (fn [type & options] (keyword type)))
-(defmulti delete-model-hook (comp keyword :type))
-(defmulti delete-model! (comp keyword :type))
-(defmulti annotate-model! (fn [type field anndo] (keyword type)))
 
 (defn translate-options
   "Convert our options to an mongo argument list"
@@ -247,7 +289,12 @@
         (keyword? (first options)) options
         true (cons :where options)))
 
-(defn server->client [smodel]
+;; ### Main internal API for Client-Server transforms
+
+(defn server->client
+  "Convert a server-side object into a map that is ready
+   for JSON encoding and use by a client of the system"
+  [smodel]
   (cond (empty? smodel)
 	nil
 	(map? smodel)
@@ -260,99 +307,165 @@
 	(sequential? smodel)
 	(vec (doall (map server->client smodel)))
 	true
-	(throw (java.lang.Error. (format "Cannot export model %s" smodel)))))
+	(response/status
+         500
+         (format "Cannot export model %s" smodel))))
 
-(defn client->server [cmodel]
+(defn client->server
+  "Take a map transmitted from a client and convert it
+   into a server-side object suitable to be stored or
+   manipulated"
+  [cmodel]
   (-> cmodel
       filter-public-keys
       deserialize-model-id 
       deserialize-model-refs
       client->server-hook))
 
-(defn new-client->server [cmodel]
+(defn new-client->server
+  "When a client creates a new object on the server, we
+   don't transform the :id field"
+  [cmodel]
   (-> cmodel
       filter-public-keys
       deserialize-model-refs
       client->server-hook))
 
-;;
-;; Default Model CRUD API implementation
-;;
 
-(defmethod create-model! :default
-  [model]
-  (assert (not (model? model)))
-  (if (valid-model? model)
-    (mongo/insert! (model-collection model) (update-model-hook model))
-    "Error"))
+;; ------------------------------------------
+;; Client-Server Models API
+;; ------------------------------------------
 
-(defn- update-by-modifiers
+;; Basic API (see implementations below)
+(declare create-model! fetch-model fetch-models
+         update-model! modify-model! delete-model!)
+
+;; Legacy
+(defmulti annotate-model! (fn [type field anndo] (keyword type)))
+
+;; Model Evolution Hooks
+
+(defmulti create-model-hook (comp keyword :type))
+(defmulti update-model-hook (comp keyword :type))
+(defmulti delete-model-hook (comp keyword :type))
+
+(defmethod create-model-hook :default
   [model]
-  (let [bare (dissoc model :_id :id :type)]
-    {:$set bare}))
+  (update-model-hook model))
 
 (defmethod update-model-hook :default
   [model]
   model)
 
-(defmethod update-model! :default
+;; Model CRUD API implementation
+
+(defn create-model!
+  [model]
+  (assert (not (model? model)))
+  (if (valid-model? model)
+    (mongo/insert! (model-collection model) (create-model-hook model))
+    (noir.response/status 500 "Invalid Model")))
+
+(defn update-model!
   [model]
   (if (valid-model? model)
-    (.getError
-     (mongo/update! (model-collection model)
-                    {:_id (:_id model)}
-                    (update-by-modifiers (update-model-hook model))
-                    :upsert false))
-    "Error"))
+    (mongo/update! (model-collection model)
+                   (select-keys model [:_id])
+                   (update-by-modifiers (update-model-hook model))
+                   :upsert false)
+    (noir.response/status 500 "Invalid Model")))
 
-(defmethod modify-model! :default
+(defn modify-model!
   [model modifier]
   (assert (map? modifier))
   (mongo/update! (model-collection model)
-                 {:_id (:_id model)}
+                 (select-keys model [:_id])
                  modifier
                  :upsert false))
                  
-
-(defmethod annotate-model! :default
-  [model location annotation]
-  (.getError
-   (mongo/update! (model-collection model)
-                  {:_id (:_id model)}
-                  {:$push { location annotation }}
-                  :upsert false)))
-
-(defn set-submodel! [model location data]
-  (.getError
-   (mongo/update! (model-collection model)
-                  {:_id (:_id model)}
-                  {:$set { location data }})))
-
-(defn get-submodel [model location]
-  (lookup-location
-   (mongo/fetch (model-collection model)
-                :where {:_id (:_id model)}
-                :only [location])))
-
-(defmethod fetch-model :default [type & options]
+(defn fetch-model
+  [type & options]
   (nil-on-empty
    (apply mongo/fetch-one
           (model-collection {:type type})
           (translate-options options))))
 
-(defmethod fetch-models :default [type & options]
+(defn fetch-models
+  [type & options]
   (apply mongo/fetch
 	 (model-collection {:type type})
 	 (translate-options options)))
 
-(defmethod delete-model! :default [model]
+(defn delete-model!
+  [model]
   (assert (:type model) (:_id model))
   (delete-model-hook model)
   (mongo/destroy! (model-collection {:type (:type model)})
-		  {:_id (:_id model)})
+		  (select-keys model [:_id]))
   true)
 
-;; Utilities
+
+;; ------------------------------------------
+;; Client-Server SubModels API
+;; ------------------------------------------
+;;
+;; The Submodel API provides the same abstraction over a document
+;; database as the primary CRUD API, but allows the addition of
+;; a location specifier which operates on embedded objects.
+;;
+;; (set-submodel! parent "profile.addresses.id"
+;;                {:type "address" :name "Joe User"})
+;; =>
+;; {:foo {:bar {:id {type "address" :name "Joe User"}}}}
+;;
+
+(declare create-submodel! set-submodel!
+         get-submodel get-submodels
+         delete-submodel!)
+
+(defn create-submodel!
+  [model location submodel]
+  (let [new (assign-uid submodel)]
+    (mongo/update! (model-collection model)
+                   (select-keys model [:_id])
+                   (update-by-modifiers
+                    new
+                    (submodel-path location new)))))
+
+(defn get-submodel [model location]
+  (lookup-location
+   (mongo/fetch-one (model-collection model)
+                    :where (select-keys model [:_id])
+                    :only [location])
+   location))
+
+(defn get-submodels
+  [model location]
+  (get-submodel model location))
+
+(defn set-submodel!
+  [model location submodel]
+  (mongo/update! (model-collection model)
+                 (select-keys model [:_id])
+                 (update-by-modifiers (client->server submodel)
+                                      location)
+                 :upsert false))
+
+(defn delete-submodel!
+  [model location]
+  (mongo/update! (model-collection model)
+                 (select-keys model [:_id])
+                 {:$unset {location 1}}))
+  
+;; Legacy
+(defmethod annotate-model! :default
+  [model location annotation]
+  (mongo/update! (model-collection model)
+                  (select-keys model [:_id])
+                  {:$push { location annotation }}
+                  :upsert false))
+
+;; ## Misc Store Utilities
 
 (defn unset-collection-field 
   ([type field]

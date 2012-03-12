@@ -27,7 +27,7 @@ clinical N:1 experiments.
 ## Detailed Documentation
 
 See the literate-style [Marginalia
-documentation](http://github.com/eslick/experiment/tree/master/docs/uberdoc.html)
+documentation](http://experiment.github.com/uberdoc.html)
 of key sections of the server code base for a more detailed overview.
 
 See NOTES.md for more information on design and roadmap.

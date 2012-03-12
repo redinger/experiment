@@ -50,6 +50,7 @@
    objects representing the starting instant of the days
    that lie within the interval in the same timezone"
   ([i]
+     (assert (= (type i) org.joda.time.Interval))
      (lazy-seq
       (let [start (decimate :day (start i))
             newstart (plus start (days 1))]
@@ -62,14 +63,14 @@
    objects representing the starting instant of the weeks
    in the same timezone that lie within the interval"
   ([i]
+     (assert (= (type i) org.joda.time.Interval))
      (lazy-seq
       (let [start (decimate :week (start i))
             newstart (plus start (weeks 1))]
         (if (before? newstart (end i))
           (cons start (interval->days (interval newstart (end i))))
           (cons start nil))))))
-
-
+      
 ;; ==================================================================
 ;;
 ;; Basic interface, relies on embedded event template and dispatch
@@ -77,7 +78,7 @@
 
 (defn schedule-dispatcher
   ([schedule & rest]
-     (assert (= (:type schedule) :schedule))
+     (assert (= (:type schedule) "schedule"))
      (keyword (:stype schedule))))
 
 (defmulti events schedule-dispatcher)
@@ -87,18 +88,19 @@
 ;;
 
 ;; Daily
-;; Every day, one or more fixed times a day
-;; With jitter
+;; Every day, one or more fixed times
+;; :times - [{:hour :min}, ...] event times
+;; :jitter +/- jitter minutes for each time spec
 
 (defn events-within [interval events]
   (filter (comp (partial within? interval) :start) events))
 
 (defn daily-events [schedule day-dt]
-  (assert (= (:stype schedule) :daily))
-  (for [{:keys [hour min jitter] :or {min 0 jitter 0}} (:times schedule)]
+  (assert (= (:stype schedule) "daily"))
+  (for [{:keys [hour min] :or {min 0 jitter 0}} (:times schedule)]
     (assoc (:event schedule)
       :start (plus day-dt (hours hour) (minutes min))
-      :jitter jitter)))
+      :jitter (:jitter schedule))))
   
 (defmethod events :daily [schedule & [interval]]
   (assert (:times schedule))
@@ -109,13 +111,14 @@
 
 ;; Weekly
 ;; Events for one or more days a week
-;; :times record for each day-of-week + time of day
+;; :times - [{:day :hour :min}, ...] event times
+;; :jitter - +/- jitter minutes for each time
 
 (defn weekly-events [schedule week-dt]
-  (for [{:keys [day hour min jitter]} (:times schedule)]
+  (for [{:keys [day hour min]} (:times schedule)]
     (assoc (:event schedule)
       :start (.withDayOfWeek (plus week-dt (hours hour) (minutes min)) day)
-      :jitter jitter)))
+      :jitter (:jitter schedule))))
 
 (defmethod events :weekly [schedule interval]
   (assert (:times schedule))
@@ -123,4 +126,33 @@
        (mapcat (partial weekly-events schedule))
        (events-within interval)
        (map jitter-event)))
+
+;; Periodic
+;; Support periods schedules within a set of periods
+;; :periods - list of intervals {:start dt :end dt}
+;; :schedule - schedule to maintain during those intervals
+
+(defn- convert-date [node]
+  (if (= (type node) java.util.Date)
+    (dt/from-date node)
+    node))
+
+(defn- periodic-record-as-joda [rec]
+  (let [newrec (clojure.walk/postwalk convert-date rec)]
+    (assoc newrec
+      :periods (map #(assoc %1 :interval (interval (:start %1) (:end %1)))
+                    (:periods newrec)))))
+ 
+(defn period-overlaps? [inter period]
+  (println period)
+  (overlaps? inter (:interval period)))
+  
+(defmethod events :periodic [schedule interval]
+  (assert (:periods schedule))
+  (->> (:periods (periodic-record-as-joda schedule))
+       (filter (partial period-overlaps? interval))
+       (mapcat (fn [period] (events (:schedule schedule)
+                                    (.overlap interval (:interval period)))))))
+               
+       
 
