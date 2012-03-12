@@ -27,3 +27,6 @@
   (when (empty? site-properties)
     (load-site-properties))
   (clojure.core/get site-properties (as-keyword property)))
+
+(defn put [property value]
+  (alter-var-root #'site-properties assoc property value))

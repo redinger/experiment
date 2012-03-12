@@ -9,15 +9,15 @@
 
 
 ;;
-;; Current user
+;; # Middleware: Bind the current user
 ;;
 
 (def ^:dynamic *current-user* nil)
 
 (defn session-user
-  "Binds the current session user, when logged in.  Use tools in infra/sessions
-   and infra/auth to login and logout users"
-  [handler]
+  "RING MIDDLEWARE: Binds the current session user, when logged in.
+   Use tools in infra/sessions and infra/auth to login and logout
+   users" [handler]
   (fn [req]
     (let [userid (session/get :userid)]
       (binding [*current-user*
@@ -26,12 +26,12 @@
 	(handler req)))))
 
 ;;
-;; JSON Payload Parsing
+;; # Middleware: pre-parse JSON payloads
 ;;
    
 (defn extract-json-payload
   "RING MIDDLEWARE: When the POST content type is application/json,
-   parse the data and make available in paramet list as :json-payload"
+   parse the data and make available in parameter list as :json-payload"
   [handler]
   (fn [req]
     (handler
@@ -44,10 +44,10 @@
        req))))
 
 ;;
-;; Redirect to a new URL based on user agent
+;; # Middleware: redirect to a URL based on the user agent
 ;;
 ;; - Very special purpose facility
-;; - Be nice to make general?
+;; - Be nice to make more general?
 
 (def user-agent-names
   {:iphone #".*iPhone.*"

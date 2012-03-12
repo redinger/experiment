@@ -1,23 +1,24 @@
 (ns experiment.libs.sms
-  (:use noir.core
-	experiment.infra.models)
-  (:require [clj-http.client :as http]
-	    [clojure.contrib.string :as string]
-	    [clj-time.core :as time]
-            [experiment.libs.datetime :as dt]
-	    [clojure.data.json :as json]
-            [clojure.tools.logging :as log]
-	    [somnium.congomongo :as mongo]
-	    [noir.response :as response]
-	    [noir.request :as request]
-	    [clojure.tools.logging :as log]))
+  (:use
+   noir.core
+   experiment.infra.models)
+  (:require
+   [clojure.contrib.string :as string]
+   [clojure.tools.logging :as log]
+   [clj-http.client :as http]
+   [clojure.data.json :as json]
+   [clj-time.core :as time]
+   [experiment.libs.datetime :as dt]
+   [somnium.congomongo :as mongo]
+   [noir.response :as response]
+   [noir.request :as request]))
 
 ;;
-;; An SMS gateway based on the grouptexting API
-;;
+;; A simple SMS gateway based on grouptexting API
+;; -----------------------------------------------
 
 
-;; CREDENTIALS
+;; ## Manage GroupTexting Credentials
 
 (defonce ^:dynamic *credentials* nil)
 
@@ -34,7 +35,7 @@
   `(binding [*credentials* (or ~creds *credentials*)]
      ~@body))
 
-;; BUILD REQUESTS
+;; ## Make a request to the grouptexting API
 
 (defn- compose-request-url
   "Compose a map of args as key-value pairs on the base URL"
@@ -46,8 +47,9 @@
 	   (inject-perms argmap)))))
 
 ;;
-;; Message logging
+;; ## Log all the messages we get
 ;;
+;; Log all the messages we get to Mongo for forensic purposes
 
 (defn log-message! [message]
   (assert (and (:from message) (:message message)))
@@ -59,7 +61,7 @@
   ([from]
      (mongo/fetch :sms :where {:from from}))
   ([start end]
-     (mongo/fetch :sms :where {:date {:$gte start :$lte end}}
+     (mongo/fetch :sms :where {:date {:$gte (as-date start) :$lte (as-date end)}}
                   :sort {:date 1})))
 
 (defn get-latest-message [from]
@@ -69,32 +71,104 @@
                 :limit 1)))
 
 ;;
-;; API: Parse SMS Content as Samples
-;;
+;; SMS API
+;; ------------------------------
 
-;; Parse and associate replies with events, submit data
+;; ## Send an SMS
+
+(defn send-sms [number message & [credentials]]
+  (assert (< (count message) 160))
+  (assert (not (re-find #"[']" message)))
+  (with-credentials [credentials]
+    (http/get (compose-request-url
+	       "https://app.grouptexting.com/api/sending"
+	       {:phonenumber number
+		:message message}))))
+
+;; ## Account mgmt
+
+(defn account-balance [& [credentials]]
+  (with-credentials [credentials]
+    (json/read-json
+     (:body
+      (http/get (compose-request-url
+                 "https://app.grouptexting.com/api/credits/check/"
+                 {}))))))
+
+;;
+;; SMS Inbox Handler
+;; -----------------------------------
+
+(defn default-handler [from message]
+  (log/spy [from message]))
+
+(defonce ^:dynamic *handler* 'default-handler)
+
+(defn set-reply-handler [handler]
+  (alter-var-root #'*handler* (fn [a b] b) handler))
+
+(defn- handle-reply
+  "Internal handler for any received SMS messages.
+   Logs the message then calls the user handler if defined.
+   from and message are strings"
+  [from message]
+  (let [ts (dt/now)]
+    (log-message! {:from message :message message :ts (dt/as-utc ts)})
+    (when (or (fn? *handler*) (var? *handler*))
+      (*handler* ts from message))))
+  
+(defpage inbox-url [:get "/sms/receive"]
+  {:keys [from message]}
+  (handle-reply from message)
+  (response/empty))
+
+
+;;
+;; API: Parse SMS Content
+;; ----------------------------------------
+;;
+;; Parse and associate replies with events, submit data.
+;; The idea is that we look at active events for a user,
+;; and see if any of them are compatible with the data
+;; we're seeing in the SMS message.
 
 (defmulti parse-sms
-  "[instrument user message-text event]
-   A method that parses an SMS response for user according to
-   the :sms-parse type of the instrument, the default handlers
-   uses :sms-prefix to identify the response prefix that associates
-   the data with the instrument which is then treated as a sample
-   for that instrument (assoc {:ts <datetime msg received>}
-                              (parse-sms inst user event message))"
+  "A multi-method that parses an SMS response according to
+   the :sms-parser type specified in the event.  Override
+   to do something other than the prefix default.  Timestamp
+   returned is the receipt timestamp; events may need to
+   adjust the reference timestamp to submit this as a valid
+   sample object."
   (fn [message event]
     (when-let [name (:sms-parser event)]
       (keyword name))))
 
-(defn default-sms-parser-re [event]
-  (re-pattern
-   (str (or (:sms-prefix event) "")
-        (case (:sms-value-type event)
-          nil "\\s*(\\d*)"
-          "string" "\\s*([^\\s]+)"
-          "float" "\\s*([\\d\\.]+)"))))
+(def patterns (atom nil))
 
-(defn default-sms-parser [message event]
+(defn default-sms-parser-re
+  "Return an RE pattern that recognized prefix + data type.
+   Memoizes patterns; silly performance optimization..."
+  [event]
+  (let [{:keys [sms-prefix sms-value-type]} event
+        lookup [sms-prefix sms-value-type]]
+    (or (find @patterns lookup)
+        (swap! patterns assoc lookup
+               (re-pattern
+                (str (or (:sms-prefix event) "")
+                     (case (:sms-value-type event)
+                       nil "\\s*(\\d*)"
+                       "string" "\\s*([^\\s]+)"
+                       "float" "\\s*([\\d\\.]+)")))))))
+
+(defn default-sms-parser
+  "This is the default SMS parser, it supports simple
+   SMS formats like 'mood good' or 'stool 4' or just 's 10'
+
+   - :sms-parser :default | nil
+   - :sms-prefix '<SMS prefix>'
+   - :sms-value-type '<type of value after prefix>' | nil <int by default>
+  "  
+  [message event]
   (when-let [value (second (re-matches (default-sms-parser-re event) message))]
     (case (:sms-value-type event)
       nil (Integer/parseInt value)
@@ -106,51 +180,5 @@
                       (default-sms-parser message event))]
     {:ts ts :v val :raw message :event event}))
 
-;;
-;; API: SEND MESSAGES
-;;
 
-
-(defn send-sms [number message & [credentials]]
-  (assert (< (count message) 160))
-  (assert (not (re-find #"[']" message)))
-  (with-credentials [credentials]
-    (http/get (compose-request-url
-	       "https://app.grouptexting.com/api/sending"
-	       {:phonenumber number
-		:message message}))))
-
-;;
-;; API: INBOX HANDLER
-;;
-
-(defn default-handler [from message]
-  (log/spy [from message]))
-
-(defonce ^:dynamic *handler* #'default-handler)
-
-(defn set-reply-handler [handler]
-  (alter-var-root #'*handler* (fn [a b] b) handler))
-
-(defn- handle-reply [from message]
-  (let [ts (dt/now)]
-    (log-message! {:from message :message message :ts (dt/as-utc ts)})
-    (when (or (fn? *handler*) (var? *handler*))
-      (*handler* ts from message))))
-  
-(defpage inbox-url [:get "/sms/receive"] {:keys [from message]}
-  (handle-reply from message)
-  (response/empty))
-
-;;
-;; API: Account mgmt
-;;
-
-(defn account-balance [& [credentials]]
-  (with-credentials [credentials]
-    (json/read-json
-     (:body
-      (http/get (compose-request-url
-                 "https://app.grouptexting.com/api/credits/check/"
-                 {}))))))
-	       
+       
