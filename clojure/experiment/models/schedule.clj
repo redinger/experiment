@@ -10,7 +10,7 @@
 ;; {
 ;;  :type "schedule"
 ;;  :stype "daily"
-;;  :tod <seconds>
+;;  :times <seconds>
 ;;  :event {...}
 ;; }
 

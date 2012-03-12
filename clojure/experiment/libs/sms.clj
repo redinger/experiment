@@ -61,7 +61,7 @@
   ([from]
      (mongo/fetch :sms :where {:from from}))
   ([start end]
-     (mongo/fetch :sms :where {:date {:$gte (as-date start) :$lte (as-date end)}}
+     (mongo/fetch :sms :where {:date {:$gte (dt/as-date start) :$lte (dt/as-date end)}}
                   :sort {:date 1})))
 
 (defn get-latest-message [from]
@@ -139,7 +139,7 @@
    returned is the receipt timestamp; events may need to
    adjust the reference timestamp to submit this as a valid
    sample object."
-  (fn [message event]
+  (fn [message ts event]
     (when-let [name (:sms-parser event)]
       (keyword name))))
 

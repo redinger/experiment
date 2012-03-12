@@ -4,52 +4,38 @@
   (:require [experiment.infra.session :as session]
 	    [experiment.infra.auth :as auth]))
 
-;;(defmodel user 
-;;  :collection :users
-;;  :dispatch [:cname "users" :valid-options ["q" "page" "size"]]
-;;  :validation valid-user?
-;;  :client-fields [:name :avatar :bio :gender :country :state
-;;		  :weight :yob :units :default_privacy
-;;		  :background :acl]
-;;  :embedded-models [:background background :acl acl])
-
-;; Server Models:
-;; - bb dispatch
-;; - Handler for options such as search, pagination, etc
-;; - Validation on creation, update, etc.
-
 ;; USER
-;; ===========================
-;; {
-;;  :name "Full Name"
-;;  :avatar <image>
-;;  :bio
- 
-;;  Demographics
-;;  :gender
-;;  :country
-;;  :state
-
-;;  Physical
-;;  :weight
-;;  :dob
-
-;;  Preferences
-;;  :units
-;;  :default_privacy
-
-;;  Collections
-;;  :background
-;;  :acl
-;;  }
-;; ===========================
-
+;; ---------------------------------
+;;  :username (client, :public)
+;;  :name "Full Name" (client, :owns|:friend)
+;;  :email "Account email" (client, :owns)
+;;  :password (server)
+;;  :avatar <image> (client, :public)
+;; 
+;;  Demographics (:demog, client, :owns)
+;;    :age
+;;    :gender
+;;    :country
+;;    :state
+;;    :weight
+;;    :height
 ;;
-;; Users
+;;  Profile (:profile, client, :owns)
+;;    :bio
+;;    :units
+;;    :default_privacy
+;;    :cell
 ;;
+;;  Permissions (:perm, server)
+;;    ...
+;;
+;;  :trackers []
+;;  :active_trials []
+
+;; ## Convenience methods
 
 (defmethod valid-model? :user [user]
-  (and (:username user)))
+  (and (:username user) (:password user)))
 
 (defn create-user! [username password email name]
   (create-model!
@@ -78,26 +64,22 @@
   (keys (apply dissoc user
                [:updates :permissions :password :salt :dataid :state])))
 
-;;
-;; User Properties
-;;
 
-(defn get-user-property
+;; ## User Properties
+
+(defn get-pref
   ([user property]
      (get-in user [:prefs property]))
   ([property]
-     (get-user-property (session/current-user) property)))
+     (get-pref (session/current-user) property)))
   
-(defn set-user-property! 
+(defn set-pref!
   ([user property value]
-     (update-model!
-      (assoc-in user [:prefs property] value)))
+     (modify-model! user {:$set {:prefs {property value}}}))
   ([property value]
-     (set-user-property! (session/current-user) property value)))
+     (set-pref! (session/current-user) property value)))
 
-;;
-;; User Permissions
-;;
+;; ## User Permissions
 
 (defn has-permission? [perm]
   ((set (:permissions (session/current-user))) perm))
@@ -106,9 +88,9 @@
   (has-permission? "admin"))
   
 
-;; =========================================
-;; Test Users
-;; =========================================
+
+;; Generate Test Users
+;; ------------------------
 
 (defn gen-first [] (rand-nth ["Joe" "Larry" "Curly" "Mo"]))
 (defn gen-last [] (rand-nth ["Smith" "Carvey" "Kolluri" "Kramlich"]))
@@ -126,8 +108,8 @@
    :weight (gen-weight)
    :yob (gen-yob)})
 
-;;(defn gen-users [count]
-;;  (dotimes [i count]
-;    (create-model! (gen-user))))
+(defn gen-users [count]
+  (dotimes [i count]
+    (create-model! (gen-user))))
 
 

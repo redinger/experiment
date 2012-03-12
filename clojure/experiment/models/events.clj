@@ -9,10 +9,7 @@
    [experiment.models.instruments :as inst]
    ))
 
-;; ==================================
-;; Reminders
-;; ==================================
-
+;; ## Legacy Hooks (to be removed)
 (defn trial-reminders [trial]
   (:reminders trial))
 
@@ -21,29 +18,28 @@
   (>= (:date reminder) start))
 
 
-;; ==================================
-;; Events
-;; ==================================
-
-;; ==================================
-;; Event API
+;; Event Model
+;; --------------------------
 ;;
 ;; Status:
+;;
 ;; - pending :: schedule but not fired
 ;; - active :: fired but not done (e.g. sms sent)
 ;; - done :: event is fully satisfied
 ;;
 ;; Required keys
+;; 
 ;; - :type "event"
 ;; - :etype <event type>
-;; - :user (user associated with the event)
+;; - :user (user ref associated with the event)
+;; - :inst (instrument ref associated with the event)
 ;;
 ;; Other keys:
+;; 
 ;; - :start - target start of event
 ;; - :wait - whether to remain active waiting for a response
 ;; - :result - was the event satisfied (e.g. delivered, responded, etc)
 ;; - :timeout - how long to wait before failing when response is needed
-;; ==================================
 
 (def required-event-keys [:type :etype :user :start])
 
@@ -52,76 +48,63 @@
           (count required-event-keys))
        (#{"pending" "active" "done"} (:status event))))
 
-(defn active-event? [event]
+(defn active? [event]
   (or (nil? (:status event))
       (#{"pending" "active"} (:status event))))
 
-(defn event-requires-reply? [event]
+(defn requires-reply? [event]
   (:wait event))
-  
 
-;; =================================
+(defn event-user [event]
+  (resolve-dbref (:user event)))
+  
+(defn- modify-if
+  ([map key value]
+     (if (contains? map key)
+       (assoc map key value)
+       map))
+  ([map key new-key value]
+     (if (contains? map key)
+       (dissoc (assoc map new-key value) key)
+       map)))
+
+(defn- event-query [query]
+  (-> query
+      (modify-if :user (as-dbref (:user query)))
+      (modify-if :type :etype (:type query))))
+
+(defn get-events 
+  "Return the events for the user associated with this incoming message"
+  [{:keys [user status type] :as query}]
+  (fetch-models :event (event-query query) :sort {:start 1}))
+
+(defn set-status [event status]
+  (modify-model! event {:$set {:status status}}))
+
+(defn complete [event ts data]
+  (modify-model! event {:$set {:status "done"
+                               :result "success"
+                               :result-ts (dt/as-date ts)
+                               :result-val data}}))
+
+(defn cancel [event & [reason]]
+  (modify-model! event {:$set {:status "done"
+                               :result (or reason "fail")
+                               :result-ts (dt/as-date (dt/now))}}))
+
+
 ;; Event Actions
-;; =================================
+;; ---------------------------------------
 
 (defmulti fire-event (comp keyword :etype))
 
 ;; By default do nothing
-
-
 (defmethod fire-event :default [event]
   nil)
 
-;; Simply write an event to the log
-
+;; Example action event that writes to a log
 (defmethod fire-event :log [event]
   (println "Log event firing")
   (log/spy event))
 
-;;
-;; Send an SMS as instrument or reminder
-;;
 
-(defmethod fire-event :sms [event]
-  (sms/send-sms nil nil)
-  (let [status (if (event-requires-reply? event) "active" "done")]
-    (modify-model! event
-                   {:$set {:status status}})))
-
-(defn- active-sms-events
-  "Return the sms events for the user associated with this incoming message"
-  ([user]
-     (fetch-models :event {:user (as-dbref user) :status "active" :etype "sms"}
-                   :sort {:start 1})))
-
-(defn- user-for-cell-number [num]
-  (fetch-model :user {:profile.cell num}))
-
-(defn update-event [{:keys [event ts v] :as sample}]
-  (modify-model! event {:$set {:status "done"
-                               :result "success"
-                               :result-ts (dt/as-date ts)
-                               :value v}})
-  (dissoc sample :event))
-  
-
-(defn cancel-event [event & [result]]
-  (modify-model! event {:$set {:status "done"
-                               :result (or result "failed")
-                               :result-ts (dt/as-date (dt/now))}}))
-
-(defn associate-message-with-events [user ts text]
-  (let [events (active-sms-events user)
-        samples (keep (partial parse-sms text ts) events)]
-    (cond (empty? samples)
-          (do (log/info
-               (str "Failed to parse response from " (:username user)
-                    ": '" text "'"))
-              nil)
-          (= (count samples) 1)
-          (update-event (first samples))
-          true
-          (do (log/warn "Multiple matching samples for " (:username user)
-                        ": '" text "' -- removing old and associating with latest")
-              (doall (map cancel-event (butlast samples)))
-              (update-event (last samples))))))

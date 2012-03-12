@@ -71,22 +71,41 @@
 ;; for a few hours ahead are queued in quartz.  Keep track of
 ;; the end of the last interval that was queued.
 
+(def scheduling-horizon
+  "How many hours ahead do you want the scheduler to queue tasks?"
+  24)
+
+(def scheduling-quantum
+  "How many hours do you want to schedule at a time?"
+  6)
+
+(defn- need-to-schedule?
+  "We add a quantum of events to the schedule when the end of the
+   last scheduled interval is not beyond the scheduling horizon"
+  [last]
+  (time/after? (time/plus (time/now) (time/hours scheduling-horizon))
+               (.getEnd last)))
+
 (defn- next-interval
-  "Maintain a horizon of 6 hours, adding 1 hour of events each time
-   you are invoked (allows some margin for error)"
+  "On startup, schedule out to the scheduling horizon.  Whenever"
   [last]
   (if (nil? last)
-    (time/interval (time/now) (time/plus (time/now) (time/hours 6)))
-    (time/interval (.getEnd last) (time/plus (.getEnd last) (time/hours 1)))))
+    (time/interval (time/now)
+                   (time/plus (time/now) (time/hours scheduling-horizon)))
+    (when (need-to-schedule? last)
+      (time/interval (.getEnd last)
+                     (time/plus (.getEnd last) (time/hours scheduling-quantum))))))
 
-(defn event-manager-job
+(defn event-manager-task
   "Loop over all event generating objects and queue any events
    within the event manager horizon defined by next-interval"
   [context]
   (when (= (prop/get :mode) :prod)
-    (log/info "Running Event Scheduler task")
-    (let [{:keys [last]} (q/context-data context)
-          inter (next-interval last)]
+    (when-let [inter (next-interval (:last (q/context-data context)))]
+      (log/info "Scheduling new events")
+      ;; TESTING
+      (doall
+       (map #(log/spy %) (:trackers (get-user "eslick"))))
       ;; for each user
       ;;    for each trial
       ;;       get events overlapping 'inter'
@@ -96,17 +115,19 @@
       ;;       get events overlaping 'inter'
       ;;         schedule-event
       ;;         (logging?)
+      ;; for all expired events
+      ;;     cancel-even for reason of expiration
       (.put context :last inter))))
 
 (q/defjob EventJob [context]
-  (event-manager-job context))
+  (event-manager-task context))
 
 ;;
 ;; ## Site Job: Update Manager
 ;;
 ;; 
 
-(defn update-job
+(defn update-task
   "Update resources from 3rd party resources on a daily schedule"
   [context]
   (when (= (prop/get :mode) :prod)
@@ -122,7 +143,7 @@
 (defn start []
   (q/start)
   (q/schedule-repeated-task ["Reminders" "experiment"]
-                            ReminderJob
+                            EventJob
                             (q/simple-schedule :hours 1 :forever true))
   (q/schedule-repeated-task ["Updates" "experiment"]
                             UpdateJob
@@ -136,7 +157,7 @@
 
 
 
-;; ## CRONTAB Cheat Sheet
+;; CRONTAB Cheat Sheet
 ;;
 ;;     * * * * * command to be executed
 ;;     - - - - -

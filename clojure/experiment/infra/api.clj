@@ -2,6 +2,7 @@
   (:use noir.core
 	experiment.infra.models)
   (:require
+   [clojure.data.json :as json]
    [noir.response :as response]
    [noir.request :as request]))
 

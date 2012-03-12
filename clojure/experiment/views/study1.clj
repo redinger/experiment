@@ -41,10 +41,10 @@
              )]))
 
 (defn consent-patient! []
-  (set-user-property! :study1-consented true))
+  (set-pref! :study1-consented true))
 
 (defn patient-consented? []
-  (get-user-property :study1-consented))
+  (get-pref :study1-consented))
 
 (defn record-experiment [exp]
   (if (> (count (:id exp)) 0)
