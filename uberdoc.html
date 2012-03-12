@@ -3029,7 +3029,87 @@ net.brehaut.ClojureTools = (function (SH) {
   };
 })(SyntaxHighlighter);
 </script><title>experiment -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">experiment</h1><h2 class="project-version">1.0.0-SNAPSHOT</h2><br /><p>Evaluation platform of a new model for running, recording and sharing self-experiments</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.3.0</td></tr><tr><td class="dep-name">org.clojure/data.json</td><td class="dotted"><hr /></td><td class="dep-version">0.1.1</td></tr><tr><td class="dep-name">org.clojure/java.jdbc</td><td class="dotted"><hr /></td><td class="dep-version">0.1.1</td></tr><tr><td class="dep-name">org.clojure/math.numeric-tower</td><td class="dotted"><hr /></td><td class="dep-version">0.0.1</td></tr><tr><td class="dep-name">org.clojure/tools.logging</td><td class="dotted"><hr /></td><td class="dep-version">0.2.3</td></tr><tr><td class="dep-name">clj-logging-config</td><td class="dotted"><hr /></td><td class="dep-version">1.9.1</td></tr><tr><td class="dep-name">noir</td><td class="dotted"><hr /></td><td class="dep-version">1.2.2</td></tr><tr><td class="dep-name">congomongo</td><td class="dotted"><hr /></td><td class="dep-version">0.1.8</td></tr><tr><td class="dep-name">swank-clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.4.0</td></tr><tr><td class="dep-name">com.draines/postal</td><td class="dotted"><hr /></td><td class="dep-version">1.7-SNAPSHOT</td></tr><tr><td class="dep-name">clj-http</td><td class="dotted"><hr /></td><td class="dep-version">0.3.0</td></tr><tr><td class="dep-name">clj-oauth</td><td class="dotted"><hr /></td><td class="dep-version">1.3.1-SNAPSHOT</td></tr><tr><td class="dep-name">org.clojars.kovasb/clj-json</td><td class="dotted"><hr /></td><td class="dep-version">0.3.2-SNAPSHOT</td></tr><tr><td class="dep-name">handlebars-clj</td><td class="dotted"><hr /></td><td class="dep-version">0.9-SNAPSHOT</td></tr><tr><td class="dep-name">clj-time</td><td class="dotted"><hr /></td><td class="dep-version">0.3.2</td></tr><tr><td class="dep-name">quartz-clj</td><td class="dotted"><hr /></td><td class="dep-version">1.1.0-SNAPSHOT</td></tr><tr><td class="dep-name">clodown</td><td class="dotted"><hr /></td><td class="dep-version">1.0.2</td></tr><tr><td class="dep-name">log4j</td><td class="dotted"><hr /></td><td class="dep-version">1.2.16</td></tr><tr><td class="dep-name">org.slf4j/slf4j-log4j12</td><td class="dotted"><hr /></td><td class="dep-version">1.6.1</td></tr></table></div><div class="dependencies"><h3>dev dependencies</h3><table><tr><td class="dep-name">lein-daemon</td><td class="dotted"><hr /></td><td class="dep-version">0.4.0</td></tr><tr><td class="dep-name">swank-clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.4.0</td></tr><tr><td class="dep-name">clojure-source</td><td class="dotted"><hr /></td><td class="dep-version">1.3.0</td></tr><tr><td class="dep-name">lein-marginalia</td><td class="dotted"><hr /></td><td class="dep-version">0.7.0</td></tr><tr><td class="dep-name">lein-multi</td><td class="dotted"><hr /></td><td class="dep-version">1.1.0-SNAPSHOT</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#experiment.infra.models">experiment.infra.models</a></li><li><a href="#experiment.infra.api">experiment.infra.api</a></li><li><a href="#experiment.infra.session">experiment.infra.session</a></li><li><a href="#experiment.server">experiment.server</a></li><li><a href="#experiment.controller">experiment.controller</a></li><li><a href="#experiment.libs.sms">experiment.libs.sms</a></li><li><a href="#experiment.models.samples">experiment.models.samples</a></li><li><a href="#experiment.models.events">experiment.models.events</a></li><li><a href="#experiment.models.schedule">experiment.models.schedule</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#experiment.infra.models" name="experiment.infra.models"><h1 class="project-name">experiment.infra.models</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.3.0</td></tr><tr><td class="dep-name">org.clojure/data.json</td><td class="dotted"><hr /></td><td class="dep-version">0.1.1</td></tr><tr><td class="dep-name">org.clojure/java.jdbc</td><td class="dotted"><hr /></td><td class="dep-version">0.1.1</td></tr><tr><td class="dep-name">org.clojure/math.numeric-tower</td><td class="dotted"><hr /></td><td class="dep-version">0.0.1</td></tr><tr><td class="dep-name">org.clojure/tools.logging</td><td class="dotted"><hr /></td><td class="dep-version">0.2.3</td></tr><tr><td class="dep-name">clj-logging-config</td><td class="dotted"><hr /></td><td class="dep-version">1.9.1</td></tr><tr><td class="dep-name">noir</td><td class="dotted"><hr /></td><td class="dep-version">1.2.2</td></tr><tr><td class="dep-name">congomongo</td><td class="dotted"><hr /></td><td class="dep-version">0.1.8</td></tr><tr><td class="dep-name">swank-clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.4.0</td></tr><tr><td class="dep-name">com.draines/postal</td><td class="dotted"><hr /></td><td class="dep-version">1.7-SNAPSHOT</td></tr><tr><td class="dep-name">clj-http</td><td class="dotted"><hr /></td><td class="dep-version">0.3.0</td></tr><tr><td class="dep-name">clj-oauth</td><td class="dotted"><hr /></td><td class="dep-version">1.3.1-SNAPSHOT</td></tr><tr><td class="dep-name">org.clojars.kovasb/clj-json</td><td class="dotted"><hr /></td><td class="dep-version">0.3.2-SNAPSHOT</td></tr><tr><td class="dep-name">handlebars-clj</td><td class="dotted"><hr /></td><td class="dep-version">0.9-SNAPSHOT</td></tr><tr><td class="dep-name">clj-time</td><td class="dotted"><hr /></td><td class="dep-version">0.3.2</td></tr><tr><td class="dep-name">quartz-clj</td><td class="dotted"><hr /></td><td class="dep-version">1.1.0-SNAPSHOT</td></tr><tr><td class="dep-name">clodown</td><td class="dotted"><hr /></td><td class="dep-version">1.0.2</td></tr><tr><td class="dep-name">log4j</td><td class="dotted"><hr /></td><td class="dep-version">1.2.16</td></tr><tr><td class="dep-name">org.slf4j/slf4j-log4j12</td><td class="dotted"><hr /></td><td class="dep-version">1.6.1</td></tr></table></div><div class="dependencies"><h3>dev dependencies</h3><table><tr><td class="dep-name">lein-daemon</td><td class="dotted"><hr /></td><td class="dep-version">0.4.0</td></tr><tr><td class="dep-name">swank-clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.4.0</td></tr><tr><td class="dep-name">clojure-source</td><td class="dotted"><hr /></td><td class="dep-version">1.3.0</td></tr><tr><td class="dep-name">lein-marginalia</td><td class="dotted"><hr /></td><td class="dep-version">0.7.0</td></tr><tr><td class="dep-name">lein-multi</td><td class="dotted"><hr /></td><td class="dep-version">1.1.0-SNAPSHOT</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#experiment.server">experiment.server</a></li><li><a href="#experiment.infra.models">experiment.infra.models</a></li><li><a href="#experiment.infra.api">experiment.infra.api</a></li><li><a href="#experiment.infra.session">experiment.infra.session</a></li><li><a href="#experiment.infra.middleware">experiment.infra.middleware</a></li><li><a href="#experiment.controller">experiment.controller</a></li><li><a href="#experiment.models.events">experiment.models.events</a></li><li><a href="#experiment.models.schedule">experiment.models.schedule</a></li><li><a href="#experiment.libs.sms">experiment.libs.sms</a></li><li><a href="#experiment.models.samples">experiment.models.samples</a></li><li><a href="#experiment.views.charts">experiment.views.charts</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#experiment.server" name="experiment.server"><h1 class="project-name">experiment.server</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(ns experiment.server
+  (:use
+   [experiment.infra.middleware]
+   [clj-logging-config.log4j])
+  (:require
+   [noir.server :as server]
+   [clojure.tools.logging :as log]
+   [experiment.controller :as ctrl]
+   [experiment.infra.session :as session]
+   [experiment.libs.sms :as sms]
+   [experiment.libs.properties :as props]
+   [experiment.models.events :as events]
+   [clojure.data.json :as json]
+   [somnium.congomongo :as mongo]
+   [experiment.infra.api]))</pre></td></tr><tr><td class="docs"><p>Define redirection rules for different client types</p>
+</td><td class="codes"></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defonce agent-redirect-rules
+  (atom
+   {#&quot;/app(.*)&quot;
+    [;;[:iphone &quot;/iphone/app%s&quot;]
+     [:ie6 &quot;/not-supported&quot;]
+     [:ie7 &quot;/not-supported&quot;]]}))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(server/add-middleware redirect-url-for-user-agent
+		       agent-redirect-rules)</pre></td></tr><tr><td class="docs"><p>Make body available as parsed JSON when mime type is json</p>
+</td><td class="codes"><pre class="brush: clojure">(server/add-middleware extract-json-payload)</pre></td></tr><tr><td class="docs"><p>Always track the current user when logged in</p>
+</td><td class="codes"><pre class="brush: clojure">(server/add-middleware session-user)</pre></td></tr><tr><td class="docs"><p>Load all the site views</p>
+</td><td class="codes"><pre class="brush: clojure">(server/load-views &quot;clojure/experiment/views/&quot;)</pre></td></tr><tr><td class="docs"><p>Ensure MongoDB users keep alive and retry</p>
+</td><td class="codes"><pre class="brush: clojure">(def mongo-options
+  (mongo/mongo-options
+   :auto-connect-retry true
+   :socketKeepAlive true
+   :w 1))</pre></td></tr><tr><td class="docs"><p>Store the Noir/Jetty server instance</p>
+</td><td class="codes"><pre class="brush: clojure">(defonce noir nil)</pre></td></tr><tr><td class="docs"><hr />
+
+<h2>Start Experiment Server</h2>
+
+<p>Sets up various subsystems, default database connection,
+starts Noir server and Quartz scheduler.</p>
+
+<p>Pass in :dev or :prod modes (or pulls from site.properties file)
+Be sure to setup the site.properties file before running the site
+FYI - site.properties is read at compile time for many subsystems
+such as various services, see experiment.libs.properties</p>
+</td><td class="codes"></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn start [&amp; [mode]]
+  ;; Update mode property for site conditionals
+  (when mode (props/put :mode mode))
+  ;; Mongo Setup
+  (mongo/set-connection!
+   (mongo/make-connection
+    (props/get :db.name) {} mongo-options))
+  ;; Setup logging
+  (let [mode (keyword (or mode (props/get :mode) :dev))]
+    (if (= mode :dev)
+      (set-logger! &quot;default&quot;
+		   :level :debug
+		   :pattern &quot;%d - %m%n&quot;)
+      (set-logger! &quot;default&quot;
+		   :level :warn
+		   :pattern &quot;%d - %m%n&quot;
+                   :out &quot;experiment.log&quot;))
+    ;; Setup SMS subsystem
+    (sms/set-credentials {:user (props/get :sms.username)
+                          :pw (props/get :sms.password)})
+    (sms/set-reply-handler 'events/sms-reply-handler)
+    ;; Start event scheduler
+    (ctrl/start)
+    ;; Start and save server
+    (let [port (Integer. (get (System/getenv) &quot;PORT&quot; &quot;8080&quot;))
+	  server (server/start
+		  port {:mode (props/get :mode)
+			:ns 'experiment
+			:session-store (session/mongo-session-store)})]
+      (alter-var-root #'noir (fn [old] server)))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn stop []
+  (server/stop noir)
+  (alter-var-root #'noir (fn [a] nil)))</pre></td></tr><tr><td class="docs"><p>The default project entry points starts the server in production mode</p>
+</td><td class="codes"><pre class="brush: clojure">(defn -main
+  []
+  (start :prod))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#experiment.infra.models" name="experiment.infra.models"><h1 class="project-name">experiment.infra.models</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns experiment.infra.models
   (:use noir.core)
   (:require
@@ -3117,14 +3197,20 @@ behavior and valid slots in the server or client context.</p>
   model)</pre></td></tr><tr><td class="docs"><h2>MongoDB Helpers</h2>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn objectid? [id]
-  (= (type id) ObjectId))</pre></td></tr><tr><td class="docs"><p>Convert a MongoDB ID for client use</p>
+  (= (type id) ObjectId))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn embedded-objectid? [id]
+  (and (= (count id) 25)
+       (= (first id) \*)))</pre></td></tr><tr><td class="docs"><p>Convert a MongoDB ID for client use</p>
 </td><td class="codes"><pre class="brush: clojure">(defn serialize-id
   [id]
-  (assert (instance? ObjectId id))
+  (assert (or (objectid? id) (embedded-objectid? id)))
   (str id))</pre></td></tr><tr><td class="docs"><p>Convert a client ID reference to an ObjectId</p>
 </td><td class="codes"><pre class="brush: clojure">(defn deserialize-id
   [id]
-  (mongo/object-id id))</pre></td></tr><tr><td class="docs"><p>Convert a DBRef object to a pair referencing a namespace and UID</p>
+  (assert (string? id))
+  (if (embedded-objectid? id)
+    id
+    (mongo/object-id id)))</pre></td></tr><tr><td class="docs"><p>Convert a DBRef object to a pair referencing a namespace and UID</p>
 </td><td class="codes"><pre class="brush: clojure">(defn- serialize-dbref
   [dbref]
   (assert (instance? DBRef dbref))
@@ -3143,7 +3229,7 @@ behavior and valid slots in the server or client context.</p>
   (dissoc (assoc smodel :id (serialize-id (:_id smodel))) :_id))</pre></td></tr><tr><td class="docs"><p>Import a foregin model-id as a local ID</p>
 </td><td class="codes"><pre class="brush: clojure">(defn deserialize-model-id
   [cmodel]
-  (if (:_id cmodel)
+  (if (:id cmodel)
     (dissoc (assoc cmodel :_id (deserialize-id (:id cmodel))) :id)
     cmodel))</pre></td></tr><tr><td class="docs"><h3>Handle embedded DBRefs</h3>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>If the object is a DBRef, convert to client format</p>
@@ -3164,10 +3250,9 @@ behavior and valid slots in the server or client context.</p>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Must define public-keys for safety purposes</p>
 </td><td class="codes"><pre class="brush: clojure">(defn filter-public-keys
   [cmodel]
-  (let [keys (public-keys cmodel)]
-;;    (assert keys) ;; Comment out for development
-    (if keys (select-keys cmodel keys)
-	cmodel)))</pre></td></tr><tr><td class="docs"><p>Return a Mongo DBRef for a model object</p>
+  (if-let [keys (public-keys (conj cmodel [:id :type]))]
+    (select-keys cmodel keys)
+    cmodel))</pre></td></tr><tr><td class="docs"><p>Return a Mongo DBRef for a model object</p>
 </td><td class="codes"><pre class="brush: clojure">(defn as-dbref
   ([model]
      (let [{:keys [type _id]} model]
@@ -3185,12 +3270,13 @@ behavior and valid slots in the server or client context.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn resolve-dbref
   ([ref]
      (assert (mongo/db-ref? ref))
-     (mongo/fetch-one (.getRef ref) :where {:_id (.getId ref)}))
+     (somnium.congomongo.coerce/coerce (.fetch ^DBRef ref) [:mongo :clojure]))
   ([ref id]
      (assert (or (keyword? ref) (string? ref)))
      (mongo/fetch-one ref :where {:_id (as-oid id)})))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn assign-uid [model]
-  (assoc model :id (str (java.util.UUID/randomUUID))))</pre></td></tr><tr><td class="docs"><p>Extend DBRef with IDeref protocol for dereferencing?</p>
+  (if (not (:_id model))
+    (assoc model :_id (str &quot;*&quot; (ObjectId/get)))))</pre></td></tr><tr><td class="docs"><p>Extend DBRef with IDeref protocol for dereferencing?</p>
 
 <p>(extend DBRef
   clojure.lang.IDeref
@@ -3296,12 +3382,11 @@ behavior and valid slots in the server or client context.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn update-model!
   [model]
   (if (valid-model? model)
-    (.getError
-     (mongo/update! (model-collection model)
-                    (select-keys model [:_id])
-                    (update-by-modifiers (update-model-hook model))
-                    :upsert false))
-    &quot;Error&quot;))</pre></td></tr><tr><td class="docs">
+    (mongo/update! (model-collection model)
+                   (select-keys model [:_id])
+                   (update-by-modifiers (update-model-hook model))
+                   :upsert false)
+    (noir.response/status 500 &quot;Invalid Model&quot;)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn modify-model!
   [model modifier]
   (assert (map? modifier))
@@ -3339,14 +3424,17 @@ a location specifier which operates on embedded objects.</p>
 =>
 {:foo {:bar {:id {type "address" :name "Joe User"}}}}</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(declare set-submodel! get-submodel get-submodels
+</td><td class="codes"><pre class="brush: clojure">(declare create-submodel! set-submodel!
+         get-submodel get-submodels
          delete-submodel!)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn set-submodel! [model location submodel]
-  (.getError
-   (mongo/update! (model-collection model)
-                  (select-keys model [:_id])
-                  (update-by-modifiers (client-&gt;server submodel)
-                                       location))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn create-submodel!
+  [model location submodel]
+  (let [new (assign-uid submodel)]
+    (mongo/update! (model-collection model)
+                   (select-keys model [:_id])
+                   (update-by-modifiers
+                    new
+                    (submodel-path location new)))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn get-submodel [model location]
   (lookup-location
    (mongo/fetch-one (model-collection model)
@@ -3356,6 +3444,13 @@ a location specifier which operates on embedded objects.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn get-submodels
   [model location]
   (get-submodel model location))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn set-submodel!
+  [model location submodel]
+  (mongo/update! (model-collection model)
+                 (select-keys model [:_id])
+                 (update-by-modifiers (client-&gt;server submodel)
+                                      location)
+                 :upsert false))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn delete-submodel!
   [model location]
   (mongo/update! (model-collection model)
@@ -3363,11 +3458,10 @@ a location specifier which operates on embedded objects.</p>
                  {:$unset {location 1}}))</pre></td></tr><tr><td class="docs"><p>Legacy</p>
 </td><td class="codes"><pre class="brush: clojure">(defmethod annotate-model! :default
   [model location annotation]
-  (.getError
-   (mongo/update! (model-collection model)
+  (mongo/update! (model-collection model)
                   (select-keys model [:_id])
                   {:$push { location annotation }}
-                  :upsert false)))</pre></td></tr><tr><td class="docs"><h2>Misc Store Utilities</h2>
+                  :upsert false))</pre></td></tr><tr><td class="docs"><h2>Misc Store Utilities</h2>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn unset-collection-field 
   ([type field]
@@ -3455,7 +3549,7 @@ operations.</p>
   (let [parent (resolve-dbref mtype mid)]
     (response/json
      (when-let [submodel (and parent (new-client-&gt;server json-payload))]
-       (set-submodel! parent location submodel)))))</pre></td></tr><tr><td class="docs"><p>Get Submodel at location + id</p>
+       (create-submodel! parent location submodel)))))</pre></td></tr><tr><td class="docs"><p>Get Submodel at location + id</p>
 </td><td class="codes"><pre class="brush: clojure">(defpage backbone-sub-api-read [:get &quot;/api/bones/:mtype/:mid/:location/:id&quot;]
   {:keys [mtype mid location id] :as args}
   (let [parent (resolve-dbref mtype mid)]
@@ -3473,14 +3567,14 @@ operations.</p>
   (response/json
    (set-submodel! {:type mtype :_id (deserialize-id mid)}
                   (submodel-path location id)
-                  json-payload)))</pre></td></tr><tr><td class="docs"><p>Update all submodels (this overwrites everything)
+                  (client-&gt;server json-payload))))</pre></td></tr><tr><td class="docs"><p>Update all submodels (this overwrites everything)
 NOTE: Does this do the right thing with submodel updates?</p>
 </td><td class="codes"><pre class="brush: clojure">(defpage backbone-sub-api-update-all [:put &quot;/api/bones/:mtype/:mid/:location&quot;]
   {:keys [mtype mid location json-payload] :as args}
   (assert (and (sequential? json-payload) false)) ;; Test before allowing
   (response/json
    (server-&gt;client 
-    (let [objects (zipmap (map :_id json-payload) (map client-&gt;server json-payload))]
+    (let [objects (zipmap (map :id json-payload) (map client-&gt;server json-payload))]
       (set-submodel! {:type mtype :_id (deserialize-id mid)}
                      location
                      objects)))))</pre></td></tr><tr><td class="docs"><p>Delete submodel</p>
@@ -3563,445 +3657,218 @@ yet in the infra directory</p>
       (clojure.tools.logging/error &quot;Get User from Session Error: &quot; e)
       nil)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn logged-in? []
-  (when (current-user) true))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#experiment.server" name="experiment.server"><h1 class="project-name">experiment.server</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ns experiment.server
-  (:use [experiment.infra.middleware]
-	[clj-logging-config.log4j])
-  (:require [noir.server :as server]
-	    [clojure.tools.logging :as log]
-	    [experiment.controller :as ctrl]
-	    [experiment.infra.session :as session]
-            [experiment.libs.sms :as sms]
-            [experiment.libs.properties :as props]
-            [experiment.models.events :as events]
-	    [clojure.data.json :as json]
-	    [somnium.congomongo :as mongo]
-	    [experiment.infra.api]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defonce agent-redirect-rules
-  (atom
-   {#&quot;/app(.*)&quot;
-    [;;[:iphone &quot;/iphone/app%s&quot;]
-     [:ie6 &quot;/not-supported&quot;]
-     [:ie7 &quot;/not-supported&quot;]]}))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(server/add-middleware extract-json-payload)
-(server/add-middleware session-user)
-(server/add-middleware redirect-url-for-user-agent
-		       agent-redirect-rules)
-(server/load-views &quot;clojure/experiment/views/&quot;)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def mongo-options
-  (mongo/mongo-options
-   :auto-connect-retry true
-   :socketKeepAlive true
-   :w 1))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defonce ^:dynamic *server* (atom nil))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn start [&amp; [mode]]
-  ;; Property loading now happens at reader time
-  ;; (props/load-site-properties)
-  ;; Mongo Setup
-  (mongo/set-connection!
-   (mongo/make-connection
-    (props/get :db.name) {} mongo-options))
-  ;; Setup logging
-  (let [mode (keyword (or mode (props/get :mode) :dev))]
-    (if (= mode :dev)
-      (set-logger! &quot;default&quot;
-		   :level :debug
-		   :pattern &quot;%d - %m%n&quot;)
-      (set-logger! &quot;default&quot;
-		   :level :warn
-		   :pattern &quot;%d - %m%n&quot;
-                   :out &quot;experiment.log&quot;))
-    ;; Setup SMS subsystem
-    (sms/set-credentials {:user (props/get :sms.username)
-                          :pw (props/get :sms.password)})
-    (sms/set-reply-handler 'events/sms-reply-handler)
-    ;; Start event scheduler
-    (ctrl/start)
-    ;; Start and save server
-    (let [port (Integer. (get (System/getenv) &quot;PORT&quot; &quot;8080&quot;))
-	  server (server/start
-		  port {:mode mode
-			:ns 'experiment
-			:session-store (session/mongo-session-store)})]
-      (swap! *server* (fn [old] server)))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn stop []
-  (server/stop @*server*)
-  (swap! *server* (fn [a] nil)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn -main []
-  (start :prod))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#experiment.controller" name="experiment.controller"><h1 class="project-name">experiment.controller</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ns experiment.controller
-  (:use experiment.infra.models
-	experiment.models.user
-	experiment.models.events
-        experiment.models.schedule)
-  (:require [quartz-clj.core :as q]
-	    [experiment.libs.datetime :as dt]
-	    [experiment.libs.properties :as prop]
-            [clojure.tools.logging :as log]
-	    [clj-time.core :as t]))</pre></td></tr><tr><td class="docs"><p>Scheduling Events</p>
-</td><td class="codes"></td></tr><tr><td class="docs"><p>Submit event to DB event log
-Schedule task for target time pointing at event in DB via ID
-On firing, </p>
+  (when (current-user) true))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#experiment.infra.middleware" name="experiment.infra.middleware"><h1 class="project-name">experiment.infra.middleware</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(ns experiment.infra.middleware
+  (:require
+   [somnium.congomongo :as mongo]
+   [noir.session :as session]
+   [noir.request :as req]
+   [noir.response :as resp]
+   [clojure.data.json :as json]
+   [clojure.string :as str]))</pre></td></tr><tr><td class="docs"><h1>Middleware: Bind the current user</h1>
 </td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn event-from-context [ctx]
+</td><td class="codes"><pre class="brush: clojure">(def ^:dynamic *current-user* nil)</pre></td></tr><tr><td class="docs"><p>RING MIDDLEWARE: Binds the current session user, when logged in.
+   Use tools in infra/sessions and infra/auth to login and logout
+   users</p>
+</td><td class="codes"><pre class="brush: clojure">(defn session-user
+   [handler]
+  (fn [req]
+    (let [userid (session/get :userid)]
+      (binding [*current-user*
+		(and userid
+		     (mongo/fetch-one :user :where {:_id userid}))]
+	(handler req)))))</pre></td></tr><tr><td class="docs"><h1>Middleware: pre-parse JSON payloads</h1>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>RING MIDDLEWARE: When the POST content type is application/json,
+   parse the data and make available in parameter list as :json-payload</p>
+</td><td class="codes"><pre class="brush: clojure">(defn extract-json-payload
+  [handler]
+  (fn [req]
+    (handler
+     (if-let [ctype (get-in req [:headers &quot;content-type&quot;])]
+       (do (println (:body req))
+	   (if (and (string? ctype) (re-find #&quot;application/json&quot; ctype))
+	     (update-in req [:params] assoc :json-payload
+			(json/read-json (slurp (:body req)) true false nil))
+	     req))
+       req))))</pre></td></tr><tr><td class="docs"><h1>Middleware: redirect to a URL based on the user agent</h1>
+
+<ul>
+<li>Very special purpose facility</li>
+<li>Be nice to make more general?</li>
+</ul>
+</td><td class="codes"></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def user-agent-names
+  {:iphone #&quot;.*iPhone.*&quot;
+   :msie #&quot;.*MSIE.*&quot;
+   :ie&lt;8 #&quot;.*MSIE\s[1-7].*&quot;
+   :ie8 #&quot;.*MSIE\s8.*&quot;
+   :ie9 #&quot;.*MSIE\s9.*&quot;
+   :safari #&quot;.*Safari.*&quot;
+   :mozilla #&quot;.*Mozilla.*&quot;
+   :firefox #&quot;.*Firefox.*&quot;
+   :droid1 #&quot;.*Android\s1.*&quot;
+   :droid2 #&quot;.*Android\s2.*&quot;})</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn- multiple-matches-error [matches]
+  (throw
+   (java.lang.Error.
+    (format &quot;Multiple matches: %s&quot; (map first matches)))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn- match-agent-and-rewrite [agent-string matches [agent-tag rewrite]]
+  (let [regex (user-agent-names agent-tag)]
+    (when (and regex (re-find regex agent-string))
+      (apply format rewrite matches))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn- match-agent [agent-string matches agent-rules]
+  (some (partial match-agent-and-rewrite agent-string matches) agent-rules))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn- match-uri-prefix [uri rule]
+  (let [[prefix-regex agents] rule]
+    (when-let [matches (re-matches prefix-regex uri)]
+      [prefix-regex (rest matches) agents])))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn- match-prefix [uri rules]
+  (let [matches (keep (partial match-uri-prefix uri) rules)]
+    (cond (= (count matches) 0) nil
+	  (&gt; (count matches) 1) (multiple-matches-error matches)
+	  true (rest (first matches)))))</pre></td></tr><tr><td class="docs"><p>RING MIDDLEWARE: When the User Agent matches the provided rules,
+   rewrite the URL appropriately and redirect to it.
+   [base agent target]</p>
+</td><td class="codes"><pre class="brush: clojure">(defn redirect-url-for-user-agent
+  [handler prefix-map]
+  (fn [req]
+    (let [uri (:uri req)
+	  user-agent ((:headers req) &quot;user-agent&quot;)
+	  prefix-rule-map (if (= (type prefix-map) clojure.lang.Atom)
+			    (deref prefix-map)
+			    prefix-map)]
+      (if-let [[matches agent-rules] (match-prefix uri prefix-rule-map)]
+	(if-let [new-uri (match-agent user-agent matches agent-rules)]
+	  (do (println &quot;Agent redirect of &quot; uri &quot; to &quot; new-uri)
+	      (resp/redirect new-uri))
+	  (handler req))
+	(handler req)))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#experiment.controller" name="experiment.controller"><h1 class="project-name">experiment.controller</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(ns experiment.controller
+  (:use
+   experiment.infra.models
+   experiment.models.user
+   experiment.models.events
+   experiment.models.schedule)
+  (:require
+   [quartz-clj.core :as q]
+   [experiment.libs.datetime :as dt]
+   [experiment.libs.properties :as prop]
+   [clojure.tools.logging :as log]
+   [clj-time.core :as time]))</pre></td></tr><tr><td class="docs"><hr />
+
+<h2>Scheduling Events</h2>
+
+<p>This top level event controller is a wrapper around
+quartz-clj and the Quartz 2.1 library.  It provides support
+for running regular maintenance tasks, including queueing and
+operating on user events.</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><h2>Application Job: Event Actions</h2>
+
+<p>Call schedule-event to create a quartz task based on EventActionJob
+which will trigger at the :start time, extract the event context
+from MongoDB and call the fire-event multi-method on it.</p>
+
+<p>Depends on:</p>
+
+<ul>
+<li>quartz-clj</li>
+<li>experiment.models.events <br /></li>
+<li>experiment.models.schedule</li>
+</ul>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Extract an event associated with a task </p>
+</td><td class="codes"><pre class="brush: clojure">(defn event-from-context
+  [ctx]
   (if-let [id ((q/context-data ctx) &quot;eid&quot;)]
     (if-let [event (fetch-model :event {:_id (deserialize-id id)})]
       event
       (log/error (str &quot;Event &quot; id &quot; not found&quot;)))
     (log/error (str &quot;Not event ID (eid) found in job context&quot;))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(q/defjob EventActionTask [context]
+</td><td class="codes"><pre class="brush: clojure">(q/defjob EventActionJob [context]
   (let [event (event-from-context context)]
-    (fire-event event)))</pre></td></tr><tr><td class="docs"><p>Schedule the firing of an event in the mongo DB collection :event
-   :_id - must be a valid MongoDB id in :event collection
-   :start - must contain a valid time reference (long, java, or Joda date)</p>
+    (fire-event event)))</pre></td></tr><tr><td class="docs"><p>Schedule the firing of an event stored in the mongo DB collection :event</p>
+
+<ul>
+<li>:_id - must be a valid MongoDB id in :event collection</li>
+<li>:start - must contain a valid time reference (long, java, or Joda date)</li>
+</ul>
 </td><td class="codes"><pre class="brush: clojure">(defn schedule-event
   [event]
   (q/schedule-task [(format &quot;EventAction-&quot; (:_id event))
                     &quot;experiment-events&quot;]
-                   EventActionTask
+                   EventActionJob
                    :start (dt/as-date (:start event))
-                   :data {&quot;eid&quot; (serialize-id (:_id event))}))</pre></td></tr><tr><td class="docs"><p>TOP LEVEL CONTROL</p>
-</td><td class="codes"></td></tr><tr><td class="docs"><p>An external function allows us to update task functionality
-   without resubmiting it</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reminder-task
+                   :datamap {&quot;eid&quot; (serialize-id (:_id event))}))</pre></td></tr><tr><td class="docs"><h2>Site Job: Event Manager</h2>
+
+<p>Every hour wake up and make sure that any pending events
+for a few hours ahead are queued in quartz.  Keep track of
+the end of the last interval that was queued.</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Maintain a horizon of 6 hours, adding 1 hour of events each time
+   you are invoked (allows some margin for error)</p>
+</td><td class="codes"><pre class="brush: clojure">(defn- next-interval
+  [last]
+  (if (nil? last)
+    (time/interval (time/now) (time/plus (time/now) (time/hours 6)))
+    (time/interval (.getEnd last) (time/plus (.getEnd last) (time/hours 1)))))</pre></td></tr><tr><td class="docs"><p>Loop over all event generating objects and queue any events
+   within the event manager horizon defined by next-interval</p>
+</td><td class="codes"><pre class="brush: clojure">(defn event-manager-job
   [context]
-  ;; for each user
-  ;;    for each tracker
-  ;;       get events
-  ;;       execute events (notification/routing?)
   (when (= (prop/get :mode) :prod)
-    (println &quot;Running hourly task&quot;)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(q/defjob ReminderTask [context]
-  (reminder-task context))</pre></td></tr><tr><td class="docs"><p>Update resources from 3rd party resources on a schedule</p>
-</td><td class="codes"><pre class="brush: clojure">(defn update-task
+    (log/info &quot;Running Event Scheduler task&quot;)
+    (let [{:keys [last]} (q/context-data context)
+          inter (next-interval last)]
+      ;; for each user
+      ;;    for each trial
+      ;;       get events overlapping 'inter'
+      ;;         schedule-event
+      ;;         (logging?)  
+      ;;    for each tracker
+      ;;       get events overlaping 'inter'
+      ;;         schedule-event
+      ;;         (logging?)
+      (.put context :last inter))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(q/defjob EventJob [context]
+  (event-manager-job context))</pre></td></tr><tr><td class="docs"><h2>Site Job: Update Manager</h2>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Update resources from 3rd party resources on a daily schedule</p>
+</td><td class="codes"><pre class="brush: clojure">(defn update-job
   [context]
   (when (= (prop/get :mode) :prod)
     (println &quot;Running daily download task&quot;)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(q/defjob UpdateTask [context]
-  (update-task context))</pre></td></tr><tr><td class="docs"><p>TOP LEVEL </p>
+</td><td class="codes"><pre class="brush: clojure">(q/defjob UpdateJob [context]
+  (update-task context))</pre></td></tr><tr><td class="docs"><h2>Top Level Controller API</h2>
 </td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn hourly-schedule []
-  (q/simple-schedule :hours 1 :forever true))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn daily-schedule []
-  (q/cron-schedule &quot;0 30 0 * * ?&quot;))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn start []
   (q/start)
   (q/schedule-repeated-task [&quot;Reminders&quot; &quot;experiment&quot;]
-                            ReminderTask
-                            (hourly-schedule))
+                            ReminderJob
+                            (q/simple-schedule :hours 1 :forever true))
   (q/schedule-repeated-task [&quot;Updates&quot; &quot;experiment&quot;]
-                            UpdateTask
-                            (daily-schedule)))</pre></td></tr><tr><td class="docs">
+                            UpdateJob
+                            (q/cron-schedule &quot;0 30 0 * * ?&quot;)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn pause []
   (q/pause))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn stop []
-  (q/shutdown))</pre></td></tr><tr><td class="docs"><p>TESTING</p>
-</td><td class="codes"></td></tr><tr><td class="docs"><h2>CRONTAB Cheat Sheet</h2>
+  (q/shutdown))</pre></td></tr><tr><td class="docs"><h2>CRONTAB Cheat Sheet</h2>
 
-<h1>* * * * * command to be executed</h1>
+<pre><code>* * * * * command to be executed
+- - - - -
+| | | | |
+| | | | +- - - - day of week (0 - 6) (Sunday=0)
+| | | +- - - - - month (1 - 12)
+| | +- - - - - - day of month (1 - 31)
+| +- - - - - - - hour (0 - 23)
++- - - - - - - - minute (0 - 59)
 
-<h1>- - - - -</h1>
-
-<h1>| | | | |</h1>
-
-<h1>| | | | +- - - - day of week (0 - 6) (Sunday=0)</h1>
-
-<h1>| | | +- - - - - month (1 - 12)</h1>
-
-<h1>| | +- - - - - - day of month (1 - 31)</h1>
-
-<h1>| +- - - - - - - hour (0 - 23)</h1>
-
-<h1>+- - - - - - - - minute (0 - 59)</h1>
-
-<h1>Alarm clock set to 6:30AM</h1>
-
-<p>30 6 * * * /home/nano/alarm</p>
+Alarm clock set to 6:30AM
+30 6 * * * /home/nano/alarm
+</code></pre>
+</td><td class="codes"></td></tr><tr><td class="docs"><h2>TESTING</h2>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(q/defjob Test1 [context]
   (let [time (.getFireTime context)
 	key (.getKey (.getJobDetail context))]
     (println (format &quot;Job [%s] fired at %s&quot; key time))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn run-test [num seconds-interval]
-  (q/schedule-repeated-task [&quot;test1&quot; &quot;testgroup&quot;] Test1 num seconds-interval))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#experiment.libs.sms" name="experiment.libs.sms"><h1 class="project-name">experiment.libs.sms</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ns experiment.libs.sms
-  (:use noir.core
-	experiment.infra.models)
-  (:require [clj-http.client :as http]
-	    [clojure.contrib.string :as string]
-	    [clj-time.core :as time]
-            [experiment.libs.datetime :as dt]
-	    [clojure.data.json :as json]
-            [clojure.tools.logging :as log]
-	    [somnium.congomongo :as mongo]
-	    [noir.response :as response]
-	    [noir.request :as request]
-	    [clojure.tools.logging :as log]))</pre></td></tr><tr><td class="docs"><p>An SMS gateway based on the grouptexting API</p>
-</td><td class="codes"></td></tr><tr><td class="docs"><p>CREDENTIALS</p>
-</td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defonce ^:dynamic *credentials* nil)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn set-credentials [credentials]
-  (assert (and (:user credentials) (:pw credentials)))
-  (alter-var-root #'*credentials* (fn [a b] b) credentials))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn- inject-perms [map]
-  (let [{user :user pw :pw} *credentials*]
-    (assert (and user pw))
-    (merge map {:user user :pass pw})))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmacro with-credentials [[creds] &amp; body]
-  `(binding [*credentials* (or ~creds *credentials*)]
-     ~@body))</pre></td></tr><tr><td class="docs"><p>BUILD REQUESTS</p>
-</td><td class="codes"></td></tr><tr><td class="docs"><p>Compose a map of args as key-value pairs on the base URL</p>
-</td><td class="codes"><pre class="brush: clojure">(defn- compose-request-url
-  [base argmap]
-  (log/spy
-   (apply str base
-	  &quot;?&quot;
-	  (http/generate-query-string
-	   (inject-perms argmap)))))</pre></td></tr><tr><td class="docs"><p>Message logging</p>
-</td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn log-message! [message]
-  (assert (and (:from message) (:message message)))
-  (mongo/insert! :sms (assoc message
-                        :date (dt/as-date (dt/now))
-                        :type :sms)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn get-messages
-  ([from]
-     (mongo/fetch :sms :where {:from from}))
-  ([start end]
-     (mongo/fetch :sms :where {:date {:$gte start :$lte end}}
-                  :sort {:date 1})))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn get-latest-message [from]
-  (first
-   (mongo/fetch :sms :where {:from from}
-                :sort {:date -1}
-                :limit 1)))</pre></td></tr><tr><td class="docs"><p>API: Parse SMS Content as Samples</p>
-</td><td class="codes"></td></tr><tr><td class="docs"><p>Parse and associate replies with events, submit data</p>
-</td><td class="codes"></td></tr><tr><td class="docs"><p>[instrument user message-text event]
-   A method that parses an SMS response for user according to
-   the :sms-parse type of the instrument, the default handlers
-   uses :sms-prefix to identify the response prefix that associates
-   the data with the instrument which is then treated as a sample
-   for that instrument (assoc {:ts <datetime msg received>}
-                              (parse-sms inst user event message))</p>
-</td><td class="codes"><pre class="brush: clojure">(defmulti parse-sms
-  (fn [message event]
-    (when-let [name (:sms-parser event)]
-      (keyword name))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn default-sms-parser-re [event]
-  (re-pattern
-   (str (or (:sms-prefix event) )
-        (case (:sms-value-type event)
-          nil &quot;\\s*(\\d*)&quot;
-          &quot;string&quot; &quot;\\s*([^\\s]+)&quot;
-          &quot;float&quot; &quot;\\s*([\\d\\.]+)&quot;))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn default-sms-parser [message event]
-  (when-let [value (second (re-matches (default-sms-parser-re event) message))]
-    (case (:sms-value-type event)
-      nil (Integer/parseInt value)
-      &quot;string&quot; value
-      &quot;float&quot; (Float/parseFloat value))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmethod parse-sms :default [message ts event]
-  (when-let [val (and (:sms-prefix event)
-                      (default-sms-parser message event))]
-    {:ts ts :v val :raw message :event event}))</pre></td></tr><tr><td class="docs"><p>API: SEND MESSAGES</p>
-</td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn send-sms [number message &amp; [credentials]]
-  (assert (&lt; (count message) 160))
-  (assert (not (re-find #&quot;[']&quot; message)))
-  (with-credentials [credentials]
-    (http/get (compose-request-url
-	       &quot;https://app.grouptexting.com/api/sending&quot;
-	       {:phonenumber number
-		:message message}))))</pre></td></tr><tr><td class="docs"><p>API: INBOX HANDLER</p>
-</td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn default-handler [from message]
-  (log/spy [from message]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defonce ^:dynamic *handler* #'default-handler)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn set-reply-handler [handler]
-  (alter-var-root #'*handler* (fn [a b] b) handler))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn- handle-reply [from message]
-  (let [ts (dt/now)]
-    (log-message! {:from message :message message :ts (dt/as-utc ts)})
-    (when (or (fn? *handler*) (var? *handler*))
-      (*handler* ts from message))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defpage inbox-url [:get &quot;/sms/receive&quot;] {:keys [from message]}
-  (handle-reply from message)
-  (response/empty))</pre></td></tr><tr><td class="docs"><p>API: Account mgmt</p>
-</td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn account-balance [&amp; [credentials]]
-  (with-credentials [credentials]
-    (json/read-json
-     (:body
-      (http/get (compose-request-url
-                 &quot;https://app.grouptexting.com/api/credits/check/&quot;
-                 {}))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#experiment.models.samples" name="experiment.models.samples"><h1 class="project-name">experiment.models.samples</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ns experiment.models.samples
-  (:use experiment.infra.models
-        clojure.math.numeric-tower)
-  (:require [somnium.congomongo :as mongo]
-            [experiment.models.schedule :as schedule]
-            [clj-time.core :as time]
-            [experiment.libs.datetime :as dt]))</pre></td></tr><tr><td class="docs"><h2>User:</h2>
-
-<p>- ID</p>
-</td><td class="codes"></td></tr><tr><td class="docs"><h2>Instrument:</h2>
-
-<p>- ID
-- sampling
-  - interval (chunk interval)
-  - poll-freq (how often to check for new data - daily, hourly, weekly)</p>
-</td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn chunk-interval [inst]
-  (get-in inst [:sampling :chunksize] :month))</pre></td></tr><tr><td class="docs"><h2>Sample:</h2>
-
-<p>- :ts
-- :v <default or time-series value>
-- <can have arbitrary extra data, but has cost impact on queries></p>
-</td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn valid-sample? [sample]
-  (and (:ts sample)
-       (= (type (:ts sample)) org.joda.time.DateTime)
-       (:v sample)
-       true))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn valid-samples? [samples]
-  (every? valid-sample? samples))</pre></td></tr><tr><td class="docs"><p>Convert Joda Time objects to Java Date objects</p>
-</td><td class="codes"><pre class="brush: clojure">(defn- as-chunk-sample
-  [sample]
-  (update-in sample [:ts] dt/as-date))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn- as-native-sample
-  [sample]
-  (update-in sample [:ts] dt/from-date))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn- merge-sample [old new]
-  (assert (= (:start old) (:start new)))
-  (merge old new))</pre></td></tr><tr><td class="docs"><p>Identity is determined by :ts date object;
-   new values trump old values according to merge policy
-   all non-conflicting values are included</p>
-</td><td class="codes"><pre class="brush: clojure">(defn- merge-samples
-  [old new]
-  (vals
-   (merge-with
-    merge-sample
-    (zipmap (map :ts old) old)
-    (zipmap (map :ts new) new))))</pre></td></tr><tr><td class="docs"><h2>Chunk:</h2>
-
-<p>- ID
-- user
-- inst
-- start <date>
-- samples []
-  - ts
-  - v
-  - <domain-specific>
-- stats
-  - sum (v)
-  - count (v)</p>
-</td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn- get-chunk [u i base &amp; [restrict?]]
-  (mongo/fetch-one
-   :chunks
-   :where {:user (:_id u)
-           :inst (:_id i)
-           :start (dt/as-date base)}))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn- update-chunk [u i base old-chunk samples]
-  (let [select {:user (:_id u)
-                :inst (:_id i)
-                :start (dt/as-date base)}
-        update {:$set {:updated (dt/as-date (dt/now))
-                       :samples samples
-                       :stats.count (count samples)
-                       :stats.sum (apply + (map :v samples))}}]
-    (mongo/update!
-     :chunks
-     (if old-chunk
-       (assoc select
-         :stats.count (get-in old-chunk [:stats :count])
-         :stats.sum (get-in old-chunk [:stats :sum]))
-       select)
-     update
-     :upsert (not old-chunk))))</pre></td></tr><tr><td class="docs"><p>Given a user and interval, return a function
-   that will update the state of a chunk for a given
-   base date and set of samples</p>
-</td><td class="codes"><pre class="brush: clojure">(defn- chunk-update-fn
-  [u i]
-  (assert (and (= (:type u) &quot;user&quot;) (= (:type i) &quot;instrument&quot;)
-               (:_id u) (:_id i)))
-  (fn [[base-date samples]]
-    (let [old-chunk    (get-chunk u i base-date)
-          old-samples  (:samples old-chunk)
-          new-samples  (merge-samples old-samples
-                                      (map as-chunk-sample samples))
-          result       (update-chunk u i base-date
-                                     old-chunk new-samples)]
-      true)))</pre></td></tr><tr><td class="docs"><p>Return a canonical date given the chunksize period</p>
-</td><td class="codes"><pre class="brush: clojure">(defn- date-decimator-fn
-  [chunksize key-fn]
-  (comp (schedule/decimate-fn chunksize) key-fn))</pre></td></tr><tr><td class="docs"><p>Return samples as groups defined by date decimator</p>
-</td><td class="codes"><pre class="brush: clojure">(defn sample-groups
-  [inst samples]
-  (assert (valid-samples? samples))
-  (group-by (date-decimator-fn (chunk-interval inst) :ts)
-            samples))</pre></td></tr><tr><td class="docs"><p>Return a where clause for mongo lookups to get the target chunks</p>
-</td><td class="codes"><pre class="brush: clojure">(defn- chunk-select
-  ([u i]
-     {:inst (:_id i) :user (:_id u)})
-  ([u i options]
-     (let [{:keys [start end]} options]
-       (merge (chunk-select u i)
-              (when start
-                {:start {:$gte (dt/as-date start)}})
-              (when end
-                {:start {:$lt (dt/as-date end)}})))))</pre></td></tr><tr><td class="docs"><p>Return a filter function to select only those samples
-   meeting the criterion outlined in the option set</p>
-</td><td class="codes"><pre class="brush: clojure">(defn- sample-filter-fn
-  ([options]
-     (let [{:keys [start end]} options]
-       (fn [sample]
-         (and (or (not start)
-                  (time/after? (:ts sample) start))
-              (or (not end)
-                  (time/before? (:ts sample) end)))))))</pre></td></tr><tr><td class="docs"><p>API</p>
-</td><td class="codes"></td></tr><tr><td class="docs"><p>Insert new samples into array</p>
-</td><td class="codes"><pre class="brush: clojure">(defn add-samples
-  [u i data]
-  (doall
-   (map (chunk-update-fn u i)
-        (sample-groups i data))))</pre></td></tr><tr><td class="docs"><p>Remove samples</p>
-</td><td class="codes"><pre class="brush: clojure">(defn rem-samples
-  [u i &amp; {:keys [start end] :as options}]
-  (mongo/destroy! :chunks
-                  :where (chunk-select u i options)))</pre></td></tr><tr><td class="docs"><p>Get a sequence of samples {:ts <date> :v <any> ...}</p>
-</td><td class="codes"><pre class="brush: clojure">(defn get-samples
-  [u i &amp; {:keys [start end] :as options}]
-  (-&gt;&gt; (mongo/fetch :chunks
-                    :where (chunk-select u i options)
-                    :only [:samples])
-       (mapcat :samples)
-       (sort-by :ts)
-       (map as-native-sample)
-       (filter (sample-filter-fn options))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn last-sample [u i]
-  (-&gt;&gt; (mongo/fetch :chunks
-                    :where (chunk-select u i)
-                    :only [:samples]
-                    :limit 1
-                    :sort {:start -1})
-       first
-       :samples
-       (sort-by :ts)
-       first
-       as-native-sample))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn last-sample-time [u i]
-  (:ts (last-sample u i)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn last-updated-time [u i]
-  (when-let [updated
-             (-&gt;&gt; (mongo/fetch :chunks
-                               :where (chunk-select u i)
-                               :only [:updated]
-                               :limit 1
-                               :sort {:start -1})
-                  first
-                  :updated)]
-    (dt/from-date updated)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#experiment.models.events" name="experiment.models.events"><h1 class="project-name">experiment.models.events</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+  (q/schedule-repeated-task [&quot;test1&quot; &quot;testgroup&quot;] Test1 num seconds-interval))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#experiment.models.events" name="experiment.models.events"><h1 class="project-name">experiment.models.events</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns experiment.models.events
   (:use experiment.infra.models)
   (:require
@@ -4219,5 +4086,393 @@ Support periods schedules within a set of periods
   (-&gt;&gt; (:periods (periodic-record-as-joda schedule))
        (filter (partial period-overlaps? interval))
        (mapcat (fn [period] (events (:schedule schedule)
-                                    (.overlap interval (:interval period)))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/fogus/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+                                    (.overlap interval (:interval period)))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#experiment.libs.sms" name="experiment.libs.sms"><h1 class="project-name">experiment.libs.sms</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(ns experiment.libs.sms
+  (:use
+   noir.core
+   experiment.infra.models)
+  (:require
+   [clojure.contrib.string :as string]
+   [clojure.tools.logging :as log]
+   [clj-http.client :as http]
+   [clojure.data.json :as json]
+   [clj-time.core :as time]
+   [experiment.libs.datetime :as dt]
+   [somnium.congomongo :as mongo]
+   [noir.response :as response]
+   [noir.request :as request]))</pre></td></tr><tr><td class="docs"><h2>A simple SMS gateway based on grouptexting API</h2>
+</td><td class="codes"></td></tr><tr><td class="docs"><h2>Manage GroupTexting Credentials</h2>
+</td><td class="codes"></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defonce ^:dynamic *credentials* nil)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn set-credentials [credentials]
+  (assert (and (:user credentials) (:pw credentials)))
+  (alter-var-root #'*credentials* (fn [a b] b) credentials))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn- inject-perms [map]
+  (let [{user :user pw :pw} *credentials*]
+    (assert (and user pw))
+    (merge map {:user user :pass pw})))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defmacro with-credentials [[creds] &amp; body]
+  `(binding [*credentials* (or ~creds *credentials*)]
+     ~@body))</pre></td></tr><tr><td class="docs"><h2>Make a request to the grouptexting API</h2>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Compose a map of args as key-value pairs on the base URL</p>
+</td><td class="codes"><pre class="brush: clojure">(defn- compose-request-url
+  [base argmap]
+  (log/spy
+   (apply str base
+	  &quot;?&quot;
+	  (http/generate-query-string
+	   (inject-perms argmap)))))</pre></td></tr><tr><td class="docs"><h2>Log all the messages we get</h2>
+
+<p>Log all the messages we get to Mongo for forensic purposes</p>
+</td><td class="codes"></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn log-message! [message]
+  (assert (and (:from message) (:message message)))
+  (mongo/insert! :sms (assoc message
+                        :date (dt/as-date (dt/now))
+                        :type :sms)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn get-messages
+  ([from]
+     (mongo/fetch :sms :where {:from from}))
+  ([start end]
+     (mongo/fetch :sms :where {:date {:$gte (as-date start) :$lte (as-date end)}}
+                  :sort {:date 1})))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn get-latest-message [from]
+  (first
+   (mongo/fetch :sms :where {:from from}
+                :sort {:date -1}
+                :limit 1)))</pre></td></tr><tr><td class="docs"><h2>SMS API</h2>
+</td><td class="codes"></td></tr><tr><td class="docs"><h2>Send an SMS</h2>
+</td><td class="codes"></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn send-sms [number message &amp; [credentials]]
+  (assert (&lt; (count message) 160))
+  (assert (not (re-find #&quot;[']&quot; message)))
+  (with-credentials [credentials]
+    (http/get (compose-request-url
+	       &quot;https://app.grouptexting.com/api/sending&quot;
+	       {:phonenumber number
+		:message message}))))</pre></td></tr><tr><td class="docs"><h2>Account mgmt</h2>
+</td><td class="codes"></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn account-balance [&amp; [credentials]]
+  (with-credentials [credentials]
+    (json/read-json
+     (:body
+      (http/get (compose-request-url
+                 &quot;https://app.grouptexting.com/api/credits/check/&quot;
+                 {}))))))</pre></td></tr><tr><td class="docs"><h2>SMS Inbox Handler</h2>
+</td><td class="codes"></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn default-handler [from message]
+  (log/spy [from message]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defonce ^:dynamic *handler* 'default-handler)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn set-reply-handler [handler]
+  (alter-var-root #'*handler* (fn [a b] b) handler))</pre></td></tr><tr><td class="docs"><p>Internal handler for any received SMS messages.
+   Logs the message then calls the user handler if defined.
+   from and message are strings</p>
+</td><td class="codes"><pre class="brush: clojure">(defn- handle-reply
+  [from message]
+  (let [ts (dt/now)]
+    (log-message! {:from message :message message :ts (dt/as-utc ts)})
+    (when (or (fn? *handler*) (var? *handler*))
+      (*handler* ts from message))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defpage inbox-url [:get &quot;/sms/receive&quot;]
+  {:keys [from message]}
+  (handle-reply from message)
+  (response/empty))</pre></td></tr><tr><td class="docs"><h2>API: Parse SMS Content</h2>
+
+<p>Parse and associate replies with events, submit data.
+The idea is that we look at active events for a user,
+and see if any of them are compatible with the data
+we're seeing in the SMS message.</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>A multi-method that parses an SMS response according to
+   the :sms-parser type specified in the event.  Override
+   to do something other than the prefix default.  Timestamp
+   returned is the receipt timestamp; events may need to
+   adjust the reference timestamp to submit this as a valid
+   sample object.</p>
+</td><td class="codes"><pre class="brush: clojure">(defmulti parse-sms
+  (fn [message event]
+    (when-let [name (:sms-parser event)]
+      (keyword name))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def patterns (atom nil))</pre></td></tr><tr><td class="docs"><p>Return an RE pattern that recognized prefix + data type.
+   Memoizes patterns; silly performance optimization...</p>
+</td><td class="codes"><pre class="brush: clojure">(defn default-sms-parser-re
+  [event]
+  (let [{:keys [sms-prefix sms-value-type]} event
+        lookup [sms-prefix sms-value-type]]
+    (or (find @patterns lookup)
+        (swap! patterns assoc lookup
+               (re-pattern
+                (str (or (:sms-prefix event) &quot;&quot;)
+                     (case (:sms-value-type event)
+                       nil &quot;\\s*(\\d*)&quot;
+                       &quot;string&quot; &quot;\\s*([^\\s]+)&quot;
+                       &quot;float&quot; &quot;\\s*([\\d\\.]+)&quot;)))))))</pre></td></tr><tr><td class="docs"><p>This is the default SMS parser, it supports simple
+   SMS formats like 'mood good' or 'stool 4' or just 's 10'</p>
+
+<ul>
+<li>:sms-parser :default | nil</li>
+<li>:sms-prefix '&lt;SMS prefix>'</li>
+<li>:sms-value-type '<type of value after prefix>' | nil <int by default></li>
+</ul>
+</td><td class="codes"><pre class="brush: clojure">(defn default-sms-parser
+  [message event]
+  (when-let [value (second (re-matches (default-sms-parser-re event) message))]
+    (case (:sms-value-type event)
+      nil (Integer/parseInt value)
+      &quot;string&quot; value
+      &quot;float&quot; (Float/parseFloat value))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defmethod parse-sms :default [message ts event]
+  (when-let [val (and (:sms-prefix event)
+                      (default-sms-parser message event))]
+    {:ts ts :v val :raw message :event event}))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#experiment.models.samples" name="experiment.models.samples"><h1 class="project-name">experiment.models.samples</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(ns experiment.models.samples
+  (:use experiment.infra.models
+        clojure.math.numeric-tower)
+  (:require [somnium.congomongo :as mongo]
+            [experiment.models.schedule :as schedule]
+            [clj-time.core :as time]
+            [experiment.libs.datetime :as dt]))</pre></td></tr><tr><td class="docs"><h2>User:</h2>
+
+<p>- ID</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><h2>Instrument:</h2>
+
+<p>- ID
+- sampling
+  - interval (chunk interval)
+  - poll-freq (how often to check for new data - daily, hourly, weekly)</p>
+</td><td class="codes"></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn chunk-interval [inst]
+  (get-in inst [:sampling :chunksize] :month))</pre></td></tr><tr><td class="docs"><h2>Sample:</h2>
+
+<p>- :ts
+- :v <default or time-series value>
+- <can have arbitrary extra data, but has cost impact on queries></p>
+</td><td class="codes"></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn valid-sample? [sample]
+  (and (:ts sample)
+       (= (type (:ts sample)) org.joda.time.DateTime)
+       (:v sample)
+       true))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn valid-samples? [samples]
+  (every? valid-sample? samples))</pre></td></tr><tr><td class="docs"><p>Convert Joda Time objects to Java Date objects</p>
+</td><td class="codes"><pre class="brush: clojure">(defn- as-chunk-sample
+  [sample]
+  (update-in sample [:ts] dt/as-date))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn- as-native-sample
+  [sample]
+  (update-in sample [:ts] dt/from-date))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn- merge-sample [old new]
+  (assert (= (:start old) (:start new)))
+  (merge old new))</pre></td></tr><tr><td class="docs"><p>Identity is determined by :ts date object;
+   new values trump old values according to merge policy
+   all non-conflicting values are included</p>
+</td><td class="codes"><pre class="brush: clojure">(defn- merge-samples
+  [old new]
+  (vals
+   (merge-with
+    merge-sample
+    (zipmap (map :ts old) old)
+    (zipmap (map :ts new) new))))</pre></td></tr><tr><td class="docs"><h2>Chunk:</h2>
+
+<p>- ID
+- user
+- inst
+- start <date>
+- samples []
+  - ts
+  - v
+  - <domain-specific>
+- stats
+  - sum (v)
+  - count (v)</p>
+</td><td class="codes"></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn- get-chunk [u i base &amp; [restrict?]]
+  (mongo/fetch-one
+   :chunks
+   :where {:user (:_id u)
+           :inst (:_id i)
+           :start (dt/as-date base)}))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn- update-chunk [u i base old-chunk samples]
+  (let [select {:user (:_id u)
+                :inst (:_id i)
+                :start (dt/as-date base)}
+        update {:$set {:updated (dt/as-date (dt/now))
+                       :samples samples
+                       :stats.count (count samples)
+                       :stats.sum (apply + (map :v samples))}}]
+    (mongo/update!
+     :chunks
+     (if old-chunk
+       (assoc select
+         :stats.count (get-in old-chunk [:stats :count])
+         :stats.sum (get-in old-chunk [:stats :sum]))
+       select)
+     update
+     :upsert (not old-chunk))))</pre></td></tr><tr><td class="docs"><p>Given a user and interval, return a function
+   that will update the state of a chunk for a given
+   base date and set of samples</p>
+</td><td class="codes"><pre class="brush: clojure">(defn- chunk-update-fn
+  [u i]
+  (assert (and (= (:type u) &quot;user&quot;) (= (:type i) &quot;instrument&quot;)
+               (:_id u) (:_id i)))
+  (fn [[base-date samples]]
+    (let [old-chunk    (get-chunk u i base-date)
+          old-samples  (:samples old-chunk)
+          new-samples  (merge-samples old-samples
+                                      (map as-chunk-sample samples))
+          result       (update-chunk u i base-date
+                                     old-chunk new-samples)]
+      true)))</pre></td></tr><tr><td class="docs"><p>Return a canonical date given the chunksize period</p>
+</td><td class="codes"><pre class="brush: clojure">(defn- date-decimator-fn
+  [chunksize key-fn]
+  (comp (schedule/decimate-fn chunksize) key-fn))</pre></td></tr><tr><td class="docs"><p>Return samples as groups defined by date decimator</p>
+</td><td class="codes"><pre class="brush: clojure">(defn sample-groups
+  [inst samples]
+  (assert (valid-samples? samples))
+  (group-by (date-decimator-fn (chunk-interval inst) :ts)
+            samples))</pre></td></tr><tr><td class="docs"><p>Return a where clause for mongo lookups to get the target chunks</p>
+</td><td class="codes"><pre class="brush: clojure">(defn- chunk-select
+  ([u i]
+     {:inst (:_id i) :user (:_id u)})
+  ([u i options]
+     (let [{:keys [start end]} options]
+       (merge (chunk-select u i)
+              (when start
+                {:start {:$gte (dt/as-date start)}})
+              (when end
+                {:start {:$lt (dt/as-date end)}})))))</pre></td></tr><tr><td class="docs"><p>Return a filter function to select only those samples
+   meeting the criterion outlined in the option set</p>
+</td><td class="codes"><pre class="brush: clojure">(defn- sample-filter-fn
+  ([options]
+     (let [{:keys [start end]} options]
+       (fn [sample]
+         (and (or (not start)
+                  (time/after? (:ts sample) start))
+              (or (not end)
+                  (time/before? (:ts sample) end)))))))</pre></td></tr><tr><td class="docs"><p>API</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Insert new samples into array</p>
+</td><td class="codes"><pre class="brush: clojure">(defn add-samples
+  [u i data]
+  (doall
+   (map (chunk-update-fn u i)
+        (sample-groups i data))))</pre></td></tr><tr><td class="docs"><p>Remove samples</p>
+</td><td class="codes"><pre class="brush: clojure">(defn rem-samples
+  [u i &amp; {:keys [start end] :as options}]
+  (mongo/destroy! :chunks
+                  :where (chunk-select u i options)))</pre></td></tr><tr><td class="docs"><p>Get a sequence of samples {:ts <date> :v <any> ...}</p>
+</td><td class="codes"><pre class="brush: clojure">(defn get-samples
+  [u i &amp; {:keys [start end] :as options}]
+  (-&gt;&gt; (mongo/fetch :chunks
+                    :where (chunk-select u i options)
+                    :only [:samples])
+       (mapcat :samples)
+       (sort-by :ts)
+       (map as-native-sample)
+       (filter (sample-filter-fn options))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn last-sample [u i]
+  (-&gt;&gt; (mongo/fetch :chunks
+                    :where (chunk-select u i)
+                    :only [:samples]
+                    :limit 1
+                    :sort {:start -1})
+       first
+       :samples
+       (sort-by :ts)
+       first
+       as-native-sample))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn last-sample-time [u i]
+  (:ts (last-sample u i)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn last-updated-time [u i]
+  (when-let [updated
+             (-&gt;&gt; (mongo/fetch :chunks
+                               :where (chunk-select u i)
+                               :only [:updated]
+                               :limit 1
+                               :sort {:start -1})
+                  first
+                  :updated)]
+    (dt/from-date updated)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#experiment.views.charts" name="experiment.views.charts"><h1 class="project-name">experiment.views.charts</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(ns experiment.views.charts
+  (:use
+   experiment.infra.models
+   experiment.models.events
+   experiment.models.instruments
+   clojure.math.numeric-tower
+   handlebars.templates
+   hiccup.page-helpers
+   noir.core)
+  (:require
+   [experiment.views.common :as common]
+   [experiment.libs.datetime :as dt]
+   [clj-time.core :as time]
+   [noir.response :as response]
+   [experiment.infra.session :as session]
+   [somnium.congomongo :as mongo]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(deftemplate highchart-div
+  [:div
+   [:div {:class &quot;highchart&quot;}
+   (%strcat &quot;&lt;div id='&quot; (% cssid) &quot;' style='height:&quot; (% height) &quot;;width:&quot; (% width) &quot;;'/&gt;&quot;)]
+   [:div {:class &quot;d3chart&quot;}]])</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn- compute-limits [numbers]
+  (let [min (apply min numbers)
+        max (apply max numbers)
+        fudge (* (- max min) 0.02)]
+    [(- min fudge)
+     (+ max fudge)]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn- timeseries-config [title type series]
+  (let [numbers (map second (:data (first series)))
+        [min max] (if (empty? numbers)
+                    [1 10]
+                    (compute-limits numbers))]
+    {:chart {:type type}
+     :legend {:enabled false}
+     :plotOptions {:series {:animation false
+                            :marker {:enabled false}}}
+     :xAxis {:type &quot;datetime&quot;
+             :dateTimeLabelFormats {:month &quot;%e. %b&quot; :year &quot;%b&quot;}}
+     :yAxis {:type &quot;linear&quot; :title {:text title} :min min :max max}
+     :title {:text }
+     :credits {:enabled false}
+     ;;   :labels {:items [{:html &quot;&lt;div&gt;&lt;p&gt;&lt;b&gt;Start&lt;/b&gt;&lt;/p&gt;&lt;/div&gt;&quot; :style {:left &quot;100px&quot; :top &quot;100px&quot;}}]}
+     :series series}))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn as-utc-series [series]
+  (map (fn [[date value]] [(dt/as-utc date) value]) series))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn tracker-chart
+  ([inst start end user]
+     (let [series (as-utc-series
+                   (time-series inst user start end false))]
+       (timeseries-config (:variable inst) &quot;spline&quot;
+                          [{:name (:variable inst)
+                            :data (vec series)}])))
+  ([inst start end]
+     (tracker-chart inst start end (session/current-user))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn as-int [value]
+  (try
+    (Integer/parseInt value)
+    (catch java.lang.Throwable e
+      nil)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defpage event-chart-api [:get &quot;/api/charts/tracker&quot;] {:keys [inst start end] :as options}
+  (let [instrument (get-instrument (deserialize-id inst))]
+    (response/json
+     (tracker-chart instrument
+                    (or (dt/from-utc (as-int start)) (dt/a-month-ago))
+                    (or (dt/from-utc (as-int end)) (dt/now))))))</pre></td></tr><tr><td class="docs"><p>=========================</p>
+
+<h1>Control chart</h1>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>(defn control-lines [control total]
+  (let [mean (incanter.stats/mean control)
+    sd (incanter.stats/sd control)
+    mean-series {:name "Mean" :data (vec (repeat total mean))}
+    ucl-series {:name "UCL" :data (vec (repeat total (+ mean (* 2.5 sd))))}
+    lcl-series {:name "LCL" :data (vec (repeat total (- mean (* 2.5 sd))))}]
+    (list ucl-series mean-series lcl-series)))</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>(defn control-points [userdata]
+ (map last (filter (fn [entry] (= "Neither" (nth entry 2))) userdata)))
+ (map last (first (partition-by #(nth % 2) userdata))))</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>(defn control-chart [experiment instrument]
+ (let [</p>
+</td><td class="codes"></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defpage test-chart [:get &quot;/dev/charts&quot;] {:keys [] :as options}
+  (common/simple-layout
+   {}
+   [:div#test {:style &quot;border: 1px solid black;&quot;}]))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/fogus/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
        SyntaxHighlighter.all()</script></body></html>
