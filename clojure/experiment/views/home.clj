@@ -11,6 +11,12 @@
         hiccup.page-helpers
 	hiccup.form-helpers))
 
+;; Home Page Layout
+;; ----------------------------
+
+
+;; ## Feature Boxes
+
 (def detail-records
   [{:header "Find Treatments"
     :body "This site contains dozens of small lifestyle changes and
@@ -43,50 +49,58 @@
    :link "/article/about"}])
 	 
 (defpartial render-home-detail [record]
-  [:div.home-detail-wrap
-    [:div.home-detail
-     [:a {:class "home-detail-link" :href (:link record)}
-      [:h2 (:header record)]]
-     [:p (:body record)]]])
+  [:li.span4.home-detail
+   [:div.thumbnail
+    [:h2 [:a {:href (:link record)} (:header record)]]
+    [:p (:body record)]]])
 
-(defpartial render-home-details []
-  [:div.home-details
-   (map render-home-detail (take 3 detail-records))]
-  [:div {:style "clear:both;"}]
-  [:hr]
-  [:div.home-details
-   (map render-home-detail (drop 3 detail-records))])
+(defpartial home-page-details []
+  [:ul.thumbnails
+   (map render-home-detail detail-records)])
 
-(defn render-image-link [url imgurl & {:as styles}]
-  [:a {:href url}
+
+;; ### Sponsor Bar
+
+(defn render-thumbnail [url imgurl & {:as styles}]
+  [:a.thumbnail {:href url }
    [:img (assoc styles :src imgurl)]])
-  
 
-(defpartial render-logos []
-  [:div.home-logo-header
-   [:b "Sponsored By"]]
-  [:div.home-logos
-   (render-image-link "http://lybba.org"
-                      "http://www.lybba.org/wp-content/uploads/images/lybba_logo.png"
-                      :alt "Lybba.org")
-   (render-image-link "http://www.media.mit.edu/"
-                      "http://t3.gstatic.com/images?q=tbn:ANd9GcQ9s6ovS4qdVf568bDL9Xdn8xAKTgaJIhdbdi1-jPq9lc-qYjxGYw"
-                      :alt "MIT Media Laboratory"
-                      :width "130px")
-   (render-image-link "http://c3nproject.org/"
-                      "http://c3nproject.org/sites/bmidrupalpc3n.chmcres.cchmc.org/files/c3ntheme_logo.png"
-                      :alt "C3N Project")])
+(defpartial sponsor-bar []
+  [:div.sponsor-bar
+   [:div.byline
+    "Sponsored By"]
+   [:div
+    [:ul.thumbnails
+     [:li {:style "padding-top:25px;"}
+      (render-thumbnail "http://lybba.org"
+                        "http://www.lybba.org/wp-content/uploads/images/lybba_logo.png"
+                        :alt "Lybba.org")]
+     [:li
+      (render-thumbnail "http://www.media.mit.edu/"
+                        "http://t3.gstatic.com/images?q=tbn:ANd9GcQ9s6ovS4qdVf568bDL9Xdn8xAKTgaJIhdbdi1-jPq9lc-qYjxGYw"
+                        :alt "MIT Media Laboratory"
+                        :width "130px")]
+     [:li
+      (render-thumbnail "http://c3nproject.org/"
+                        "http://c3nproject.org/sites/bmidrupalpc3n.chmcres.cchmc.org/files/c3ntheme_logo.png"
+                        :alt "C3N Project")]]]])
+
+;;
+;; ## Home Page
+;;
 
 (defpage "/" {}
-;;   (if (session/logged-in?)
-;;     (resp/redirect "/app")
-   (common/simple-layout {}
-;;    [:div.home-about
-;;     [:h2 "Experiment and share novel therapies for healthy living"]]
-    [:div.home-about
-     [:h2 [:b "Newsflash: "] " PersonalExperiments.org wins " [:a {:href "http://blog.academyhealth.org/?p=574"} "runner-up"] " in " [:a {:href "http://academyhealth.org"} "Academy Health's"] [:br] [:a {:href "http://www.health2challenge.org/relevant-evidence-to-advance-care-and-health-reach/"} "REACH competition"] " under the entry 'Aggregated Self-Experiments'"]]
-;;    (render-home-newsflash)
-    (render-home-details)
-    [:div {:style "clear: both;"}]
-    [:hr]
-    (render-logos)))
+   (common/layout
+    "Welcome to Personal Experiments"
+    (common/default-nav)
+    [:div.container.home-page
+     [:div.hero-unit
+      [:div.pull-right
+       [:img {:style "height: 200px; margin-top: -40px; margin-right: 40px;"
+              :src "img/academy-health.jpg"}]]
+      [:div
+       [:h1 "Latest News"]
+       [:p "PersonalExperiments.org wins " [:a {:href "http://blog.academyhealth.org/?p=574"} "runner-up"] " in " [:a {:href "http://academyhealth.org"} "Academy Health's"] [:br] [:a {:href "http://www.health2challenge.org/relevant-evidence-to-advance-care-and-health-reach/"} "REACH competition"] " under the entry 'Aggregated Self-Experiments'"]]
+]
+     (home-page-details)
+     (sponsor-bar)]))

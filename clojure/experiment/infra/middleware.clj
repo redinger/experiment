@@ -36,11 +36,10 @@
   (fn [req]
     (handler
      (if-let [ctype (get-in req [:headers "content-type"])]
-       (do (println (:body req))
-	   (if (and (string? ctype) (re-find #"application/json" ctype))
-	     (update-in req [:params] assoc :json-payload
-			(json/read-json (slurp (:body req)) true false nil))
-	     req))
+       (if (and (string? ctype) (re-find #"application/json" ctype))
+         (update-in req [:params] assoc :json-payload
+                    (json/read-json (slurp (:body req)) true false nil))
+         req)
        req))))
 
 ;;

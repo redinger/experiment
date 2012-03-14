@@ -20,7 +20,7 @@
 
 (defpage "/admin/hideme" {}
   (html5
-   (common/standard-head-nojs)
+   (common/layout-header "Personal Experiments: Admin")
    (:body {:onLoad "javascript:pageTracker._setVar('dev_view');"}
           [:h1 "You are now hidden from Google Analytics"])))
 

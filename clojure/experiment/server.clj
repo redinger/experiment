@@ -37,7 +37,8 @@
 (server/add-middleware session-user)
 
 ;; Load all the site views
-(server/load-views "clojure/experiment/views/")
+;;(server/load-views "clojure/experiment/views/")
+(require 'experiment.views.common)
 
 ;; Ensure MongoDB users keep alive and retry
 (def mongo-options
@@ -74,9 +75,16 @@
   ;; Setup logging
   (let [mode (keyword (or mode (props/get :mode) :dev))]
     (if (= mode :dev)
-      (set-logger! "default"
-		   :level :debug
-		   :pattern "%d - %m%n")
+      (set-loggers! "default"
+                    {:level :warn
+                     :pattern "%d - %m%n"}
+                    "experiment"
+                    {:level :debug
+                     :pattern "%d - %m%n"}
+                    "org.mortbay.log"
+                    {:level :debug}
+                    "org.quartz.core.QuartzSchedulerThread"
+                    {:level :error})
       (set-logger! "default"
 		   :level :warn
 		   :pattern "%d - %m%n"
@@ -99,6 +107,7 @@
       (alter-var-root #'noir (fn [old] server)))))
 
 (defn stop []
+  (ctrl/stop)
   (server/stop noir)
   (alter-var-root #'noir (fn [a] nil)))
 

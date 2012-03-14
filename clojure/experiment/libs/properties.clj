@@ -23,10 +23,13 @@
         (keyword? key) key
         true (throw (java.lang.Error. "Keyword type not recognized"))))
 
-(defn get [property]
+(defn get [property & [safe?]]
   (when (empty? site-properties)
     (load-site-properties))
-  (clojure.core/get site-properties (as-keyword property)))
+  (if-let [result (clojure.core/get site-properties (as-keyword property))]
+    result
+    (when-not safe?
+      (throw (java.lang.Error. (format "No property '%s' found" property))))))
 
 (defn put [property value]
   (alter-var-root #'site-properties assoc property value))

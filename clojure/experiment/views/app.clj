@@ -6,7 +6,8 @@
    [experiment.infra.session :as session]
    [experiment.models.user :as user]
    [experiment.models.profile]
-   [experiment.models.events :as events])
+   [experiment.models.events :as events]
+   [experiment.views.google :as google])
   (:use noir.core
         hiccup.core
         hiccup.page-helpers
@@ -63,8 +64,8 @@
    [:div.profile-summary
     (render-profile-summary)]
    [:hr]
-   [:div#main-menu.main-menu
-    (render-menu (menu-content))]
+   [:div#main-menu.main-menu nil]
+;;    (render-menu (menu-content))]
    [:div.nav-footer
     (image "/img/c3ntheme_logo.png" "C3N Logo")
     [:br]
@@ -99,22 +100,20 @@
 	  ");")]))
 
 (defpartial app-layout []
-  (html5
-   (standard-head-nojs)
-   [:body
-    [:div#wrapper
-     [:div#app-main
-      (app-pane)
-      (nav-layout)
-      [:div#share-pane.right-side-bar]
-      [:div#footer]]]
-    [:div#container
-     (render-all-templates)
-     (render-modal-dialog-skeleton)
-     (include-vendor-libs)
-     (include-js "/js/app.js")
-     (send-user)
-     (bootstrap-data)]]))
+  (page-frame
+   "Personal Experiments Dashboard"
+   [:div#wrapper
+    [:div#app-main
+     (app-pane)
+     (nav-layout)
+     [:div#share-pane.right-side-bar]
+     [:div#footer]]]
+   [:div.hidden
+    (render-all-templates)
+    (render-modal-dialog-skeleton)
+    (include-vendor-libs "/js/app.js")
+    (send-user)
+    (bootstrap-data)]))
 
 (defpage "/app*" {}
   (app-layout))
