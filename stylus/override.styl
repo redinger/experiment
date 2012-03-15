@@ -1,0 +1,271 @@
+@import "functions"
+
+/* Main Page Frame */
+
+.subnav
+  width 100%
+  height 36px
+  background-color #EEE
+  background-repeat repeat-x
+  background-image -moz-linear-gradient(top, #f5f5f5 0%, #eeeeee 100%)
+  background-image -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f5f5f5), color-stop(100%,#eeeeee))
+  background-image -webkit-linear-gradient(top, #f5f5f5 0%,#eeeeee 100%)
+  background-image -ms-linear-gradient(top, #f5f5f5 0%,#eeeeee 100%)
+  background-image -o-linear-gradient(top, #f5f5f5 0%,#eeeeee 100%)
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f5f5f5', endColorstr='#eeeeee',GradientType=0 )
+  background-image linear-gradient(top, #f5f5f5 0%,#eeeeee 100%)
+  border 1px solid #e5e5e5
+  -webkit-border-radius 4px
+     -moz-border-radius 4px
+          border-radius 4px
+
+.subnav .nav 
+  margin-bottom: 0
+
+.subnav .nav > li > a 
+  margin: 0
+  padding-top:    11px
+  padding-bottom: 11px
+  border-left: 1px solid #f5f5f5
+  border-right: 1px solid #e5e5e5
+  -webkit-border-radius: 0
+     -moz-border-radius: 0
+          border-radius: 0
+
+.subnav .nav > .active > a,
+.subnav .nav > .active > a:hover 
+  padding-left: 13px
+  color: #777
+  background-color: #e9e9e9
+  border-right-color: #ddd
+  border-left: 0
+  -webkit-box-shadow: inset 0 3px 5px rgba(0,0,0,.05)
+     -moz-box-shadow: inset 0 3px 5px rgba(0,0,0,.05)
+          box-shadow: inset 0 3px 5px rgba(0,0,0,.05)
+
+.subnav .nav > .active > a .caret,
+.subnav .nav > .active > a:hover .caret 
+  border-top-color: #777;
+
+.subnav .nav > li:first-child > a,
+.subnav .nav > li:first-child > a:hover 
+  border-left: 0
+  padding-left: 12px
+  -webkit-border-radius: 4px 0 0 4px
+     -moz-border-radius: 4px 0 0 4px
+          border-radius: 4px 0 0 4px
+
+.subnav .nav > li:last-child > a 
+  border-right: 0
+
+.subnav .dropdown-menu 
+  -webkit-border-radius: 0 0 4px 4px
+     -moz-border-radius: 0 0 4px 4px
+          border-radius: 0 0 4px 4px
+
+.subnav-fixed-top
+  position fixed
+  top 40px
+  right 0
+  left 0
+  z-index 1020
+  margin-bottom 0
+  border-color #D5D5D5
+  border-width 0 0 1px
+  -webkit-border-radius 0
+  -moz-border-radius 0
+  -border-radius 0
+  -webkit-box-shadow inset 0 1px 0 #fff, 0 1px 5px rgba(0,0,0,.1)
+  -moz-box-shadow inset 0 1px 0 #fff, 0 1px 5px rgba(0,0,0,.1)
+  -box-shadow inset 0 1px 0 #fff, 0 1px 5px rgba(0,0,0,.1)
+  filter progid:DXImageTransform.Microsoft.gradient(enabled=false)
+
+  .container
+    width: 940px
+
+  .nav-inner 
+    padding-left 0
+    padding-right 0
+    -webkit-border-radius 0
+    -moz-border-radius 0
+    border-radius 0
+
+
+/*
+.navbar-fixed-top
+  .navbar-inner
+    background-color #08C
+    background-image none
+  .nav li a
+    color #BBB
+*/
+
+.footer
+  background-color #F6F6F6 
+  clear both
+  margin 30px 0px 40px 0px
+  padding 15px 0px 15px 0px
+  border 1px solid #DDD
+
+.footer-bar
+  text-align center
+  vertical-align middle
+
+  a.footer-link
+    font-size small
+    padding 0px 8px 0px 8px
+    text-decoration none
+
+
+/********************************/
+/* HOME PAGE AND STATIC CONTENT */
+/********************************/
+
+.home-page
+
+  .carousel
+    margin-top 20px
+    .item
+      height 247px
+
+  .thumbnails
+    margin-top 40px
+
+  .home-detail
+  
+    .thumbnail 
+      min-height 130px
+      margin-bottom 40px
+      border none
+
+  .sponsor-bar
+
+    .byline 
+      font-weight bold
+      padding-bottom 10px
+
+    .thumbnail
+      border none
+      box-shadow none
+
+    img
+      margin-left 100px
+      margin-bottom 20px
+      text-align center
+      max-width 200px
+      max-height 120px
+
+  .hero-unit
+    padding 75px
+    background-color: #F0F0F0
+
+  .carousel
+    border solid #888 1px 1px
+    box-shadow #333 4px 4px 6px 
+
+/*
+  #study1
+    text-align right
+    background url('/img/stock/ocean1.jpg') 50% 50% no-repeat
+    color #EEE
+    text-shadow #333 3px 3px 2px
+
+    h1
+      color #EEE
+      text-shadow #333 4px 4px 3px
+*/
+
+/* Modal Dialogs */
+
+.modal-body
+  .forgot-line
+    text-align center
+
+/********************************/
+/* ARTICLE PAGE                 */
+/********************************/
+
+.hidden
+  display none
+
+.admin-link
+  float right
+
+.article
+  padding-bottom: 20px;
+
+  img
+    border 1px solid
+    padding 5px 5px 5px 5px
+    margin-top 20px
+    margin-left 10px
+
+.study1-author
+  dd
+   margin-bottom 20px
+
+/*********************/
+/* DISCUSSION WIDGET */
+/*********************/
+
+div.comment-form textarea
+  min-width 400px
+  min-height 100px
+
+div.discussion
+  margin-left 30px
+
+.discussion-byline
+  font-size 80%
+
+div.discussion-0
+  margin-left 0px
+  p 
+    font-weight bold
+    font-size 120%
+
+div.discussion-1 p
+  font-weight normal
+  font-size 100%
+
+/* STUDY 1 */
+
+.study1-author
+
+  .head
+    margin-top 10px
+    width 500px
+
+  label
+    font-weight bold
+ 
+  i
+    font-size x-small
+
+
+.chart2
+  font 10px sans-serif
+  color black
+  fill none
+  padding 5px
+
+  .glyph
+    fill none
+    stroke steelblue
+
+  rect
+    fill steelblue
+
+  text
+    fill white
+    stroke none
+
+  path
+    fill none
+    stroke #c0d
+    stroke-width 2px
+    stroke-opacity 0.5
+    
+.rule
+  stroke grey
+  fill grey

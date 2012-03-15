@@ -68,7 +68,7 @@ class ModalForm extends ModalView
         @
 
   clearForm: ->
-        vals()
+        vals = {}
         _(@schema).map( (k,v) -> vals[k] = "" if k.length > 0)
         @form.setValue vals
         @
@@ -103,8 +103,8 @@ class LoginModal extends ModalForm
         @$el.html @template
                 id: 'loginModal'
                 header: '<h1>Login</h1>'
-                footer: "<a class='btn cancel'>Cancel</a>
-                        <a class='btn btn-primary login'>Login</a>"
+                footer: "<a class='btn btn-primary login'>Login</a>
+                         <a class='btn cancel'>Cancel</a>"
         @$('.modal-body').append @form.render().el
         @$('.modal-body').append "<p class='forgot-line'> <a class='forgot'>Forgot your username or password?</a></p>"
         @
@@ -120,15 +120,17 @@ class LoginModal extends ModalForm
         if not @form.validate()
            $.post '/action/login', @form.getValue(), @serverValidate
 
-  forgot: =>
-        @hide()
-        window.forgotDialog.show()
-
   serverValidate: (data) =>
         if data.result == "fail"
             @form.fields["password"].setError(data.message || "Unknown Error")
         else
             window.location.pathname = "/"
+        @cancel()
+
+  forgot: =>
+        @hide()
+        window.forgotDialog.show()
+
 
 window.loginModal = new LoginModal()
 
@@ -170,8 +172,8 @@ class RegisterModal extends ModalForm
         @$el.html @template
                 id: 'regModal'
                 header: '<h1>Register your Account</h1>'
-                footer: "<a class='btn cancel'>Cancel</a>
-                        <a class='btn btn-primary register'>Register</a>"
+                footer: "<a class='btn btn-primary register'>Register</a>
+                        <a class='btn cancel'>Cancel</a>"
         @$('.modal-body').append @form.render().el
         @
 
@@ -181,7 +183,6 @@ class RegisterModal extends ModalForm
         'keyup #email': 'handleEmail'
         'click .register': 'register'
         'click .cancel': 'cancel'
-        'click
 
   handleUsername: =>
         $.ajax
@@ -229,12 +230,17 @@ window.regModal = new RegisterModal()
 
 # Setup global modal events (menus, nav, etc)
 $(document).ready ->
-        $('.nav .login-button').bind 'click',
+        $('.login-button').bind 'click',
                 (e) ->
                         e.preventDefault()
                         window.loginModal.show()
 
-        $('.nav .register-button').bind 'click',
+        $('.register-button').bind 'click',
                 (e) ->
                         e.preventDefault()
                         window.regModal.show()
+        $('.show-dform').bind 'click',
+                (e) ->
+                        e.preventDefault()
+
+        $('#homeCarousel').carousel interval: 10000

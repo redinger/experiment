@@ -26,9 +26,11 @@
            d.getElementsByTagName('head')[0].appendChild(js);
          }(document));" (props/get :facebook.appid)))
                          
-(defpartial include-jsapi []
-  [:div#fb-root]
-  [:script facebook-init-script])
+(defn include-jsapi []
+  (if (= (props/get :mode) :dev)
+    (html
+     [:div#fb-root]
+     [:script facebook-init-script])))
 
 ;; # Facebook User Widgets
 

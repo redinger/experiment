@@ -16,6 +16,10 @@
         experiment.views.common
 	handlebars.templates))
 
+;; ---------------------------------
+;; Dashboard 
+;; ---------------------------------
+;;
 ;; This file packages and renders most resources relevant to the
 ;; client application including client-side templates, data
 ;; bootstrapping and HTML skeletons.
@@ -23,30 +27,12 @@
 ;; See views/common.clj for the static page template and menu
 ;; rendering
 
-;; ====================================
-;; Rich application layout
-;; ====================================
-
-(defpartial render-profile-summary []
-  (let [user (session/current-user)]
-    (if (session/logged-in?)
-      (list [:img {:src "/img/generic_headshot.jpg"}]
-		   ;; "https://gp1.wac.edgecastcdn.net/801245/socialcast.s3.amazonaws.com/tenants/6255/profile_photos/499368/Ian_Headshot_Zoom_square70.jpg"}]
-	    [:h1 (or (:username user) "NO NAME!")]
-	    (link-to "/app/profile" "Edit Profile")
-	    [:br]
-	    (link-to "/action/logout" "Logout")
-	    [:br]
-	    [:a {:class "help" :href "#"} "Help"])
-      (list [:span
-	     [:a {:class "login-link" :href "/action/login"}
-	      "Login"]]
-	    [:a {:class "help" :href "#"} "Help"]))))
+(pre-route "/dashboard*" {}
+  (when (not (user/is-admin?))
+    (resp/redirect "/coming-soon")))
 
 (defn current-trials []
-  (models/fetch-models
-   :trial
-   {:user (:username (session/current-user))}))
+  (:trials (session/current-user)))
 
 (defn menu-content []
   [["dashboard" "Dashboard"]
@@ -102,7 +88,8 @@
 (defpartial app-layout []
   (page-frame
    "Personal Experiments Dashboard"
-   [:div#wrapper
+   (default-nav)
+   [:div.container
     [:div#app-main
      (app-pane)
      (nav-layout)
@@ -110,22 +97,17 @@
      [:div#footer]]]
    [:div.hidden
     (render-all-templates)
-    (render-modal-dialog-skeleton)
     (include-vendor-libs "/js/app.js")
     (send-user)
     (bootstrap-data)]))
 
-(defpage "/app*" {}
+(defpage "/dashboard*" {}
   (app-layout))
 
 
 ;;
 ;; Pre-alpha transition page
 ;;
-
-(pre-route "/app*" {}
-  (when (not (user/is-admin?))
-    (resp/redirect "/coming-soon")))
 
 (defpage "/coming-soon" {}
   (simple-layout {}

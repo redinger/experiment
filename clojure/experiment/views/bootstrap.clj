@@ -46,5 +46,33 @@
 (defelem help-text [text]
   [:p.help-block text])
 
+
+;; Menus
+;; ------------------------
+
+(defelem dropdown-item [name entries]
+  (list
+   [:li.dropdown
+    [:a.dropdown-toggle {:data-toggle "dropdown"} name [:b.caret]]]
+   [:ul.drop-down-menu
+    entries]))
                
+;; WIDGETS
+;; ------------------------
+
+(defn carousel [id items & [active-index]]
+  [:div.carousel {:id id}
+   [:div.carousel-inner
+    (doall
+     (map (fn [i item]
+            [:div {:class (if (if active-index
+                                (= i active-index)
+                                (= i 1))
+                            "item active" "item")}
+             item])
+          (range 1 (+ (count items) 1))
+          items))]
+   [:a.carousel-control.left {:href (str "#" id) :data-slide "prev"} "&lsaquo;"]
+   [:a.carousel-control.right {:href (str "#" id) :data-slide "next"} "&rsaquo;"]])
+
    

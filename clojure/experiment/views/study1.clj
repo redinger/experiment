@@ -23,22 +23,11 @@
    [experiment.infra.auth :as auth]
    [experiment.libs.datetime :as dt]))
 
-;; Utilities
 
-(defpartial inline-login []
-  (if-let [user (session/current-user)]
-    [:span.study1-login-status "Logged in as: " (:username user)
-     " (" (link-to "/action/logout?target=/study1" "Logout") ") "]
-    [:div.study1-login-status
-    (form-to [:post "/action/login?target=/study1"]
-             (label "username" "Username")
-             (text-field "username")
-             (label "password" "Password")
-             (password-field "password")
-             (submit-button "Login")
-             "&nbsp"
-             [:a {:class "forgot-password" :href ""} "Forgot password"]
-             )]))
+;; Authoring Study Page
+;; --------------------------
+
+;; ## Utilities
 
 (defn consent-patient! []
   (set-pref! :study1-consented true))
@@ -75,107 +64,124 @@
      (>= (count (get-experiments user)) 2)))
 
 
-;; Study home page
+(defn study1-nav [current]
+  (let [user (session/current-user)
+        consented? (get-pref :study1-consented)]
+    (merge (common/default-nav "Authoring Study")
+           {:subnav
+            {:menu
+             (concat
+              [{:name "Overview" :href "/study1"}
+               {:name "Consent" :href "/study1/consent"}
+               {:name "Study Protocol" :href "/study1/doc/study1-protocol"}
+               {:name "Online Q&A" :href "/study1/discuss"}]
+              (when consented?
+                [{:name "Introduction" :href "/study1/doc/study1-background"}
+                 {:name "Examples" :href "/study1/doc/study1-example"}
+                 {:name "Author" :href "/study1/author"}]))
+             :active current}})))
 
-(defpartial render-home-page []
-  (common/simple-layout {:header-menu false}
-   [:div.article
-    [:h2 "Welcome to the Self-Experiment Authoring study"]
-    (inline-login)
-    [:p "This research study seeks to understand how people
+;; ## Study home page
+
+(defpartial render-study-page []
+  (common/layout
+   "Authoring Research Study"
+   (study1-nav "Overview")
+   [:div.container
+    [:div.span8
+     [:div.page-header
+      [:h1 "Welcome to the Authoring study"]
+      [:br]
+      [:p "This research study seeks to understand how people
           react to and think about self-experimentation
           and the questions and concerns that arise when they
           try to design their own experiments."]
-
-    [:p "Please read the following documents.  If you want to
+      [:p "Please read the following documents.  If you want to
          participate in the study, register for an account.  This will
          enable you to login to the study page and consent to the
          study.  This registration will enable you to login to the
          main personal experiments site when it launches.
          To withdraw or have your account deleted, please e-mail
-         eslick@media.mit.edu"]
-    [:h3 "Procedures"]
-    [:ol
-     [:li (link-to "/study1/doc/study1-protocol" "Review the Study Protocol")]
-     (if (session/logged-in?)
-       (if (not (patient-consented?))
-         [:li (link-to "/study1/consent" "Register for the study")]
-         (list [:li "Succesfully Registered"]
-               [:li (link-to "/study1/doc/study1-background" "Introduction to Single-Subject Experimentation")]
-               [:li (link-to "/study1/doc/study1-example" "Example Experiments")]
-;;               [:li (link-to "/study1/doc/study1-instruments" "Example Measurements")]
-               ))
-       [:li "Login or " [:a {:class "register-link" :href "/action/register?target=/study1"}
-                         "Register"] " to get an account"])]
-    (if (patient-consented?)
-      (list [:h3 "Actions"]
-            [:ul
-             [:li (link-to "/study1/doc/study1-suggestions" "Treatments to Research")]
-             [:li (link-to "/study1/author" "Author an Experiment")]
-             [:li (link-to "/study1/discuss" "Online Q&A")]
-             (when (study1-complete?)
-               [:li (link-to "http://qualtrics.com" "Take the Survey")])])
-      (list [:h3 "Actions"]
-            [:ul
-             [:li (link-to "/study1/discuss" "Online Q&A")]]))
-    (when (and (patient-consented?) (not (empty? (get-experiments))))
-      (list [:h3 "My Experiments"]
-            [:ul
-             (map (fn [exp]
-                    [:li (link-to (format "/study1/author?id=%s" (:_id exp))
-                                  (:name exp))])
-                  (get-experiments (session/current-user)))]))]))
+         eslick@media.mit.edu"]]
+     [:h2 "Procedures"]
+     [:ol
+      [:li (link-to "/study1/doc/study1-protocol" "Review the Study Protocol")]
+      (if (session/logged-in?)
+        (if (not (patient-consented?))
+          [:li (link-to "/study1/consent" "Register for the study")]
+          (list [:li "Succesfully Registered"]
+                [:li (link-to "/study1/doc/study1-background" "Introduction to Single-Subject Experimentation")]
+                [:li (link-to "/study1/doc/study1-example" "Example Experiments")]
+                ))
+        [:li [:a.login-button {:href "#loginModal"} "Login"] " or " [:a.register-button {:href "#regModal"} "Register" " to get an account."]])]
+     (if (patient-consented?)
+       (list [:h2 "Actions"]
+             [:ul
+              [:li (link-to "/study1/doc/study1-suggestions" "Treatments to Research")]
+              [:li (link-to "/study1/author" "Author an Experiment")]
+              [:li (link-to "/study1/discuss" "Online Q&A")]
+              (when (study1-complete?)
+                [:li (link-to "http://qualtrics.com" "Take the Exit Survey")])])
+       (list [:h3 "Actions"]
+             [:ul
+              [:li (link-to "/study1/discuss" "Online Q&A")]]))
+     (when (and (patient-consented?) (not (empty? (get-experiments))))
+       (list [:h3 "My Experiments"]
+             [:ul
+              (map (fn [exp]
+                     [:li (link-to (format "/study1/author?id=%s" (:_id exp))
+                                   (:name exp))])
+                   (get-experiments (session/current-user)))]))]]))
 
-
-            
 
 (defpage "/study1" {}
-  (render-home-page))
-
-(defpartial render-login-error []
-  (common/simple-layout {:header-menu false}
-   [:div
-    [:h2 "Welcome to the world of single-subject experimentation"]
-    [:p "We are sorry, but your login was not recognized.  Email eslick@media.mit.edu for help."]]))
-
-(defpage [:post "/study1"] {:as args}
-  (if (auth/login args)
-    (resp/redirect "/study1")
-    (render-login-error)))
+  (render-study-page))
 
 ;; Information pages
 
 (defpage "/study1/doc/:name" {name :name}
   (let [article (get-article name)]
-    (common/simple-layout {:header-menu false}
-     (if article
-       [:div#main
-        (link-to "/study1" "Return to Study Page...")
-        (when (is-admin?)
-          [:a.admin-link {:href (format "/article/edit/%s" name)}
-           "Edit Article"])
-        [:div.article
-         [:h1 (:title article)]
-         (:html article)]]
-       [:div#main
-        [:h1 "No Article named '" name "' found"]]))))
+    (common/layout
+     (str "Reading: " (:title article))
+     (study1-nav (case name
+                   "study1-protocol" "Study Protocol"
+                   "study1-example" "Examples"
+                   "study1-background" "Introduction"
+                   true "Author"))
+     [:div.span8
+      (if article
+        (list (when (is-admin?)
+                [:a.admin-link {:href (format "/article/edit/%s" name)}
+                 "Edit Article"])
+              [:div.page-header
+               [:h1 (:title article)]]
+              (:html article))
+        [:div.page-header
+         [:h1 "No Article named '" name "' found"]])])))
 
 (defpartial render-consent-form []
   (form-to [:post "/study1/consent"]
-           (submit-button "YES, I consent to this research")
-           (submit-button "NO, I do not consent")))
+           [:div.form-actions
+            [:button {:type "submit" :class "btn-large btn-success"}
+             "YES, I consent to this research"]
+            [:button {:type "submit" :class "btn-large btn-danger"}
+             "NO, I do not consent"]]))
 
 (defpartial render-consent []
   (let [consent (get-article "study1-consent")]
-    [:div#main
-     [:div.article
-       [:h1 (:title consent)]
-       (:html consent)
-       (render-consent-form)]]))
+    [:div.container
+     [:div.page-header
+      [:h1 (:title consent)]]
+     (:html consent)
+     (if (patient-consented?)
+       [:h2 "You have consented to this study"]
+       (render-consent-form))]))
      
 (defpage "/study1/consent" {}
-  (common/simple-layout {:header-menu false}
-    (render-consent)))
+  (common/layout
+   "Authoring Study Consent"
+   (study1-nav "Consent")
+   (render-consent)))
 
 (defpage [:post "/study1/consent"] {}
   (let [req req/*request*]
@@ -185,9 +191,11 @@
 ;; Discussion page
 
 (defpage "/study1/discuss" {}
-  (common/simple-layout {:header-menu false}
-    [:a {:href "/study1"} "Return to Study Page"]
-    (discuss/discussions "study1" "/study1/discuss")))
+  (common/layout
+   "Authoring Study Discussion"
+   (study1-nav "Online Q&A")
+   [:div.container
+    (discuss/discussions "study1" "/study1/discuss")]))
 
 (defpage [:post "/study1/discuss"]
   {pid :id text :text :as data}
@@ -204,66 +212,71 @@
 ;; ========================================
 
 (defpage "/study1/review" {}
-  (common/simple-layout {:header-menu false}
+  (common/layout
+   "Authored Experiments"
+   (study1-nav "Author")
+   [:div.container
     [:h1 "My Submitted Experiments"]
     [:p "It is perfectly acceptable during the duration of this experiment (through early March 2012) to revisit experiments you have submitted and make changes to them"]
     [:ul (map (fn [exp] [:li [:a {:href (format "/study1/author?id=%s" (:_id exp))}
                               (:name exp)]])
-              (get-experiments (session/current-user)))]))
+              (get-experiments (session/current-user)))]]))
 
 ;; Study authoring page
 
+(defn form-control-group [id name control & [help]]
+  [:div.control-group
+   (label {:class "control-label"} id name)
+   [:div.controls
+    (when help [:p.help-block [:i help]])
+    control]])
+
 (defpartial experiment-form [experiment]
   (form-to [:post "/study1/author"]
-           [:div.form-field
-            [:span.head (label "name" "Name")
-             [:br]
-             [:i "Give your experiment a meaningful name"]]
-            (text-field "name" (:name experiment))]
-           [:div.form-field
-            [:span.head (label "treatment" "Treatment")
-             [:br]
-             [:i "Describe the treatment in as much detail as you can so that someone could reproduce all the important aspects of it"]]
-            (text-area "treatment" (:treatment experiment))]
-           [:div.form-field
-            [:span.head (label "outcome" "Outcome")
-             [:br]
-             [:i "What is the primary outcome you are interested in and how would you measure it?"]]
-            (text-area "outcome" (:outcome experiment))]
-           [:div.form-field
-            [:span.head (label "measures" "Other_measures")
-             [:br]
-             [:i "Please list, separated by commas, other measurements you think might be relevant to this experiment"]]
-            (text-area "measures" (:measures experiment))]
-           [:div.form-field
-            [:span.head (label "schedule" "Experiment Schedule")
-             [:br]
-             [:i "How long should someone do a treatment?  How many times should they repeat?  How long should the baseline collection period be?  How long does it take for someone to respond to a treatment?"]]
-            (text-area "schedule" (:schedule experiment))]
-           [:div.form-field
-            [:span.head (label "predictors" "Predictors")
-             [:br]
-             [:i "Based on your research, what symptoms or patient history (if any) is likely to be associated with a successful response to a treatment.  You can specify this as formally or as causally as you want."]]
-            (text-area "predictors" (:predictors experiment))]
-           [:div.form-field
-            [:span.head (label "notes" "Notes")
-             [:br]
-             [:i "Please enter any other notes or comments here."]]
-            (text-area "notes" (:notes experiment))]
-           (hidden-field "id" (str (:_id experiment)))
-           [:input {:type "submit" :name "submit" :value "Save Experiment"}]
-           [:input {:type "submit" :name "cancel" :value "Cancel"}]))
+           [:fieldset
+            (form-control-group "name" "Name"
+                                (text-field {:class "input-xlarge"}
+                                            "name" (:name experiment))
+                                "Give your experiment a meaningful name")
+            (form-control-group "treatment" "Treatment"
+                                (text-area {:class "input-xxlarge" :rows 10}
+                                           "treatment" (:treatment experiment))
+                                "Describe the treatment in as much detail as you can so that someone could reproduce all the important aspects of it")
+            (form-control-group "outcome" "Outcome"
+                                (text-area {:class "input-xxlarge" :rows 3}
+                                           "outcome" (:outcome experiment))
+                                "What is the primary outcome you are interested in and how would you measure it?")
+            (form-control-group "measures" "Other Measures"
+                                (text-area {:class "input-xxlarge" :rows 6}
+                                           "measures" (:measures experiment))
+                                "Please list, separated by commas, other measurements you think might be relevant to this experiment")
+            (form-control-group "schedule" "Experiment Schedule"
+                                (text-area {:class "input-xxlarge" :rows 6}
+                                           "schedule" (:schedule experiment))
+                                "How long should someone do a treatment?  How many times should they repeat? <br/> How long should the baseline collection period be?  How long does it take for someone to respond to a treatment?")
+            (form-control-group "predictors" "Predictors"
+                                (text-area {:class "input-xxlarge" :rows 6}
+                                           "predictors" (:predictors experiment))
+                                "Based on your research, what symptoms or patient history (if any) is likely to be associated with a successful response to a treatment. <br/>  You can specify this as formally or as causally as you want.")
+            (form-control-group "notes" "Notes/Comments"
+                                (text-area {:class "input-xxlarge" :rows 6}
+                                           "notes" (:notes experiment)))
+            (hidden-field "id" (str (:_id experiment)))
+            [:div.form-actions
+             [:button.btn.btn-primary {:type "submit" :name "submit"} "Save Experiment"]
+             [:button.btn {:type "submit" :name "cancel"} "Cancel"]]]))
 
 
 (defpartial experiment-thank-you [name]
   [:h1 "Submission Successful"]
   [:p "Thank you for submitting the experiment '" name
-   "'.  We encourage you to research more possible treatments and provide additional submissions."]
-  [:a {:href "/study1"} "Return to Study Page"])
+   "'.  We encourage you to research more possible treatments and provide additional submissions."])
 
 (defpage "/study1/author" {:as options}
-  (common/simple-layout {:header-menu false}
-    [:a {:href "/study1"} "Return to Study Page"]
+  (common/layout
+   "Author an Experiment"
+   (study1-nav "Author")
+   [:div.container
     [:div.study1-author
      [:h1 "Author an Experiment"]
      [:p "Here we ask you to describe all the essential elements of an experiment designed to test a treatment, or a collection of simultaneous treatments.  You can read the introductory material, look at an example experiment, and review the questions on the Q&A page for more information.  The <a href=\"/study1/doc/study1-suggestions\">treatment suggestion page</a> gives you some starting points for treatments and ways to find information about them"]
@@ -271,33 +284,45 @@
      (experiment-form
       (if-let [id (:id options)]
         (get-experiment id)
-        {}))]))
+        {}))]]))
 
 (defpage author-view [:get "/study1/author-view"] {:as options}
   (let [exp (get-experiment (:id options))]
-    (common/simple-layout {:header-menu false}
-      [:a {:href "/study1"} "Go to the Study Page"]
+    (common/layout
+     "View a Study"
+     (study1-nav "")
+     [:div.span6
       [:div.study1-author
        (if (not exp)
          [:h1 "Experiment not found"]
-         (list [:h1 (:name exp)]
-               [:p [:b "Treatment"] (:treatment exp)]
-               [:p [:b "Outcome"] (:outcome exp)]
-               [:p [:b "Measures"] (:measures exp)]
-               [:p [:b "Schedule"] (:schedule exp)]
-               [:p [:b "Predictors"] (:predictors exp)]
-               [:p [:b "Notes"] (:notes exp)]))])))
+         (list [:h2 "Example: " (:name exp)]
+               [:dl.dl-horizontal
+                [:dt "Treatment"]
+                [:dd (:treatment exp)]
+                [:dt "Outcome"]
+                [:dd (:outcome exp)]
+                [:dt "Measures"]
+                [:dd (:measures exp)]
+                [:dt "Schedule"]
+                [:dd (:schedule exp)]
+                [:dt "Predictors"]
+                [:dd (:predictors exp)]
+                [:dt "Notes"]
+                [:dd (:notes exp)]]))]])))
    
 (defn experiment-valid? [spec]
   true)
 
 (defpage [:post "/study1/author"] {:as spec}
-  (common/simple-layout {:header-menu false}
+  (common/layout
+   "Thank you"
+   (study1-nav "Author")
+   [:div.container
     (if (and (:submit spec) (experiment-valid? spec))
       (do
         (record-experiment spec)
         (experiment-thank-you (:name spec)))
-      (render "/study1/author"))))
+      (render "/study1/author"))]))
 
                         
 

@@ -21,7 +21,7 @@
 ;;
 ;; Backend support for login, registration, forgotten passwords, etc.
 
-(pre-route "/app*" {}
+(pre-route "/dashboard*" {}
 	   (let [uri (:uri (noir.request/ring-request))]
 	     (println "Handling: " uri)
 	     (when-not (session/logged-in?)
@@ -34,7 +34,12 @@
 	       (println "Redirecting to login, not authorized for: " uri)
 	       (resp/redirect (str "/action/login?target=" uri)))))
 
-(defpage do-login [:post "/action/login"]
+;; ## LOGIN Support
+;; The default login page re-uses the dialog logic
+(defpage login [:get "/action/login"]
+  {:keys [target] :as args}
+
+(defapi do-login [:post "/action/login"]
   {:as user}
   (resp/json
    (if-let [user (auth/login user)]
@@ -42,7 +47,14 @@
      {:result "fail"
       :message "Username/E-mail not found or password was incorrect"})))
 
-(defpage check-username [:get "/action/check-username"]
+(defpage do-logout "/action/logout" {:as options}
+  (session/clear!)
+  (resp/redirect (or (:target options) "/")))
+
+
+;; REGISTRATION Support
+
+(defapi check-username [:get "/action/check-username"]
   {:keys [username] :as data}
   (println "check username" data)
   (resp/json
@@ -50,7 +62,7 @@
               "true"
               "false")}))
 
-(defpage check-email [:get "/action/check-email"]
+(defapi check-email [:get "/action/check-email"]
   {:keys [email] :as data}
   (println "check email" data)
   (resp/json
@@ -85,112 +97,32 @@
     :body (format "Your username is: %s
 We will contact you shortly when the site or the site's study is ready to launch" (:username user))}))
 
-(defpage do-register [:post "/action/register"] {:as user}
-  (resp/json
-   (let [[result message] (valid-registration-rec? user)]
-     (if result
-       {:result "success"}
-       {:result "fail"
-        :message message}))))
+(defapi do-register [:post "/action/register"] {:as user}
+  (let [[result message] (valid-registration-rec? user)]
+    (if result
+      {:result "success"}
+      {:result "fail"
+       :message message})))
 
-(defpage do-logout "/action/logout" {:as options}
-  (session/clear!)
-  (resp/redirect (or (:target options) "/")))
+;; FORGOTTEN Password
 
-(defpage do-forgot-password [:post "/action/forgotpw"] {:as options}
-  (resp/json
-   (if-let [user (user/get-user (:username options))]
-     (try
-       (mail/send-message-to (:email user)
-                             {:subject "Forgot Password Reminder"
-                              :body "Sorry, we can only reset your password manually for now.  Please reply to this e-mail with a suggested password.  Shortly we'll allow profile editing and can fix your forgotten password more easily."})
-       (throw (java.lang.Error. "Foobar!"))
-       {:result "success"}
-       (catch java.lang.Throwable e
-         {:result "fail"
-          :message (format "Internal error: %s please write to eslick@media.mit.edu" e)}))
-     {:result "fail"
-      :message "Did not recognize your username or e-mail address"})))
+(defn temporary-reset
+
+(defapi do-forgot-password [:post "/action/forgotpw"] {:as options}
+  (if-let [user (user/get-user (:username options))]
+    (try
+      (mail/send-message-to (:email user)
+                            {:subject "Forgot Password"
+                             :body "Sorry, we can only reset your password manually for now.  Please reply to this e-mail with a suggested password.  Shortly we'll allow profile editing and can fix your forgotten password more easily."})
+      {:result "success"}
+      (catch java.lang.Throwable e
+        {:result "fail"
+         :message (format "Internal error: %s please write to eslick@media.mit.edu" e)}))
+    {:result "fail"
+     :message "Did not recognize your username or e-mail address"}))
 
 
-(defpartial login-form [user]
-  (if (session/logged-in?)
-    (resp/redirect "/")
-    (layout
-     "Login to Personal Experiments"
-     (default-nav)
-     [:div.content
-      (form-to {:class "horizontal-layout"} [:post "/action/login"]
-               [:ul.simple-form
-                (label "username" "User Name: ") (text-field "username" (:username user)) [:br]
-                (label "password" "Password: ") (password-field "password" (:password user)) [:br]
-                (if-let [targ (:target user)]
-                  (hidden-field "target" (:target user)))
-                (submit-button {:class "submit"} "submit")])])))
+(defapi reset-password [:get "/action/forgotpw"]
 
-;; ## Dialog Content Templates
-(deftemplate modal-login-template
-  [:div {:id "modalLogin" :class "modal hide fade"
-         :style "display:none;"}
-   [:div.modal-header
-    [:a.close {:data-dismiss "modal"} "x"]
-    [:h1 "Login"]]
-   [:div.modal-body
-    [:fieldset
-     (ctrl-group {:class (%str "control-group " (% username-status))}
-                 ["Username or E-mail" "username"]
-                 (input "text" "username" (% username))
-                 (help-text (% username-message)))
-     (ctrl-group {:class (%str "control-group " (% password-status))}
-                 ["Password" "password"]
-                 (password-field (% password))
-                 (help-text (% password-message)))]]
-   [:div.modal-footer
-    [:a.btn.btn-primary {:class "login"} "Login"]
-    [:a.btn.btn-primary {:class "cancel"} "Cancel"]]])
 
-(deftemplate login-dialog-body 
-  (form-to [:post "/action/login"]
-	   [:div {:class "form-pair username-field"}
-	    (label "username" "Username") (text-field "username")]
-	   [:div {:class "form-pair password-field"}
-	    (label "password" "Password") (password-field "password")]
-	   [:div {:class "buttons"}
-	    [:input {:type "submit" :name "submit" :value "Login"}]
-	    [:input {:type "submit" :name "cancel" :value "Cancel"}]]))
-
-(deftemplate register-dialog-body 
-  (form-to [:post "/action/register"]
-           [:div {:class "form-pair email-field"}
-	    (label "email" "E-mail") (text-field "email")]
-           [:div {:class "form-pair username-field"}
-	    (label "name" "Your Name (optional)") (text-field "name")]
-           [:div {:class "form-pair name-field"}
-	    (label "username" "Username") (text-field "username")]
-	   [:div {:class "form-pair password-field"}
-	    (label "password" "Password") (password-field "password")]
-	   [:div {:class "form-pair password-field"}
-	    (label "password2" "Confirm Password") (password-field "password2")]
-           (hidden-field "target" (% target))
-           (hidden-field "default" (% default))
-	   [:div {:class "buttons"}
-	    [:input {:type "submit" :name "submit" :value "Register"}]
-	    [:input {:class "cancel-button" :type "submit" :name "cancel" :value "Cancel"}]]))
-
-(deftemplate forgot-password-body
-  (form-to [:post "/action/forgotpw"]
-	   [:div {:class "form-pair username-field"}
-	    (label "username" "Username or Email") (text-field "username")]
-	   [:div {:class "buttons"}
-	    [:input {:type "submit" :name "submit" :value "Lookup"}]
-	    [:input {:type "submit" :name "cancel" :value "Cancel"}]]))
-
-(defpartial render-dialog-templates []
-  [:div.templates {:style "display: none;"}
-   (inline-template "login-dialog-body"
-			      login-dialog-body
-			      "text/x-jquery-html")
-   (inline-template "register-dialog-body"
-			      register-dialog-body
-			      "text/x-jquery-html")])
-
+;; CONTACT 
