@@ -91,30 +91,49 @@
 ;; Support Standard Page Layouts and Structure
 ;; -----------------------------------------
 
+(defn nav-user-name [& [user]]
+  (let [user (or user (session/current-user))]
+    (or (:name user) (:username user))))
+
+(defn- research-submenu []
+  [{:name "Authoring Study" :href "/study1"}
+;;   {:name "Site Analysis" :href "/article/analysis"}
+   {:lprops {:class "divider"}}
+   {:name "New Media Medicine" :href "http://newmed.media.mit.edu/"}])
+
+(defn- user-submenu []
+  [{:name '([:i.icon-cog] " Settings")
+    :href "/settings"}
+   {:name '([:i.icon-question-sign] " Help")
+    :href "/help"}
+   {:lprops {:class "divider"}}
+   {:name '([:i.icon-off] " Logout")
+    :href "/action/logout"}])
+
 (defn default-nav [& [active]]
   (if-let [user (session/current-user)]
-    {:active active
-     :menu [{:name "Home" :href "/"}
-            {:name "Dashboard" :href "/dashboard"}
-            (when (user/get-pref user :study1-consented)
-              {:name "Authoring Study" :href "/study1"})
-            {:name "About" :href "/article/about" :props {:data-toggle ""}}]
-     :user {:name (or (:name user) (:username user))
-            :options (list
-                      [:li [:a.settings {:href "/app/settings"}
-                            [:i.icon-cog] " " "Settings"]]
-                      [:li.divider]
-                      [:li [:a.logout {:href "/action/logout"} "Logout"]])}}
+    {:nav
+     {:active active
+      :main [{:name "Dashboard" :href "/"}
+             {:name "Explore"   :href "/explore"
+              :aprops {:class "explore-link"}}
+             {:name "Research" :href "#"
+              :submenu (research-submenu)}
+             {:name "About" :href "/article/about"}]
+      :ctrl [{:name (nav-user-name user)
+              :submenu (user-submenu)}]}}
 ;;     :crumbs [{:name "Home" :href "/"}
 ;;             {:name "Dashboard" :href "/dashboard"}]}
-    {:active active
-     :menu [{:name "Home" :href "/" :props {:data-toggle ""}}
-            {:name "About" :href "/article/about" :props {:data-toggle ""}}]
-;;            {:name "Contact" :href "#contact" :props {:data-toggle ""}}]
-     :ctrl [{:name "Register" :href "#registerModal"
-             :props {:class "register-button"}}
-            {:name "Login" :href "#loginModal"
-             :props {:class "login-button btn-primary"}}]}))
+    {:nav
+     {:active active
+      :main [{:name "Home" :href "/"}
+             {:name "Research" :href "#"
+              :submenu (research-submenu)}
+             {:name "About" :href "/article/about"}]
+      :ctrl [{:name "Register" :href "#registerModal"
+              :aprops {:class "register-button"}}
+             {:name "Login" :href "#loginModal"
+              :aprops {:class "login-button"}}]}}))
 
 
 ;; ## Page Components
@@ -141,9 +160,9 @@
     (include-jquery)
     (include-css-libs)
     (google/include-analytics)
-    ;;    (facebook/include-jsapi)
     ]
    [:body {:style (str "padding-top:" (or fixed-size 40) "px; padding-bottom:40px;")}
+;;    (facebook/include-jsapi)
     body-content
     (render-footer)
     (render-dialogs)
@@ -151,8 +170,8 @@
     
 (defpartial layout [title nav & content]
   (page-frame [title (if (:subnav nav) 80 40)]
-   (nav-fixed nav)
-   (subnav-fixed nav)
+   (nav-fixed (:nav nav))
+   (subnav-fixed (:subnav nav))
    (when-let [crumbs (:crumbs nav)]
      (breadcrumbs crumbs))
    content))
@@ -224,8 +243,8 @@
   [:div.templates
    (render-template "modal-dialog-template"
                     (get-template "modal-dialog-template"))
-   (render-template "modal-login-template"
-                    (get-template "modal-login-template"))])
+   (render-template "modal-form-dialog-template"
+                    (get-template "modal-form-dialog-template"))])
                 
 
   

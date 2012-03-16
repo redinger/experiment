@@ -37,8 +37,7 @@
 (server/add-middleware session-user)
 
 ;; Load all the site views
-;;(server/load-views "clojure/experiment/views/")
-(require 'experiment.views.common)
+(server/load-views "clojure/experiment/views/")
 
 ;; Ensure MongoDB users keep alive and retry
 (def mongo-options

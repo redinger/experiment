@@ -17,54 +17,24 @@
     [:form.navbar-search {:action ""}
      [:input.span2 {:type "text"}]]))
 
-(defn- user-dropdown [user]
-  (when-let [{:keys [name options]} user]
-    [:ul.nav
-     [:li.dropdown
-      [:a.dropdown-toggle {:href "#" :data-toggle "dropdown"} name [:b.caret]]
-      [:ul.dropdown-menu
-       (filter #(not (nil? %)) options)]]]))
-
-(defn- controls [controls active]
-  (when controls
-    [:ul.nav
-     (for [{:keys [name href props]} controls]
-       [:li {:class (if (= active name) "active" "")}
-        [:a.btn.btn-navbar
-         (merge {:href href} props)
-         name]])]))
-
-(defn active-class [match current]
-  (if (= match current) "active" ""))
-
+;; ## Layout for Site Nav Bar
 (defpartial nav-fixed [menu]
   [:div.navbar.navbar-fixed-top
    [:div.navbar-inner
     [:div.container 
      [:a.brand {:href "/"}
-      ;;      [:img {:src "/img/favicon.ico"
-      ;;             :style "height:20px;width:20px;margin-right:10px;"}]
       "Personal Experiments"]
-     [:ul.nav
-      (for [{:keys [name href props]}
-            (filter #(not (nil? %)) (:menu menu))]
-        [:li {:class (active-class (:active menu) name)}
-         [:a (assoc props :href href) name]])]
+     (nav-menu (:main menu) (:active menu))
      [:div.pull-right
       (bar-search (:search menu))
-      (user-dropdown (:user menu))
-      (controls (:ctrl menu) (:active menu))]]]])
+      (nav-menu (:ctrl menu) (:active menu))]]]])
 
-(defpartial subnav-fixed [nav]
-  (when-let [nav (:subnav nav)]
+(defpartial subnav-fixed [menu]
+  (when menu
     [:div.subnav.subnav-fixed-top
      [:div.nav-inner
       [:div.container
-       [:ul.nav.nav-pills
-        (map (fn [{:keys [name href]}]
-               [:li {:class (active-class (:active nav) name)}
-                [:a {:href href} name]])
-             (:menu nav))]]]]))
+       (nav-menu {:class "nav nav-pills"} (:menu menu) (:active menu))]]]))
 
 
 (defn- breadcrumb [{:keys [name href props]}]

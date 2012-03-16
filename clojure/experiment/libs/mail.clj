@@ -4,6 +4,10 @@
             
 (def mailer (agent [0 0]))
 
+(def admin-address* (or (props/get :admin-address true)
+                        "admin@personalexperiments.org"))
+  
+
 (defn send-message [[count errors] message]
   (try
     (do (post/send-message
@@ -16,11 +20,20 @@
     (catch java.lang.Throwable e
       [count (inc errors)])))
 
-(defn send-message-to [email message]
+(defn send-message-to [message email]
   (assert (every? #(get message %) [:subject :body]))
   (send mailer send-message (merge {:to email
-                                    :from "admin@personalexperiments.org"}
+                                    :from admin-address*}
                                    message)))
+
+(defn send-message-to-group [message group]
+  (assert (and (every? #(get message %) [:subject :body])
+               (sequential? group)))
+  (send mailer send-message (merge {:to admin-address*
+                                    :bcc group
+                                    :from admin-address*}
+                                   message)))
+  
 
 (defn send-site-message [message]
   (assert (every? #(get message %) [:subject :body]))

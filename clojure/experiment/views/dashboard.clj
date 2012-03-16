@@ -14,6 +14,7 @@
 	hiccup.form-helpers
 	experiment.models.suggestions
         experiment.views.common
+        experiment.views.menu
 	handlebars.templates))
 
 ;; ---------------------------------
@@ -26,10 +27,6 @@
 
 ;; See views/common.clj for the static page template and menu
 ;; rendering
-
-(pre-route "/dashboard*" {}
-  (when (not (user/is-admin?))
-    (resp/redirect "/coming-soon")))
 
 (defn current-trials []
   (:trials (session/current-user)))
@@ -47,8 +44,6 @@
 
 (defpartial nav-layout []
   [:div#nav-pane.left-side-bar
-   [:div.profile-summary
-    (render-profile-summary)]
    [:hr]
    [:div#main-menu.main-menu nil]
 ;;    (render-menu (menu-content))]
@@ -60,11 +55,6 @@
      "&nbsp; | &nbsp;"
      (link-to "/article/privacy" "Privacy")
      "&nbsp;"]]])
-
-(defpartial app-pane []
-  [:div.app-pane-wrap
-   [:div#app-pane.app-pane
-    [:div#app-wrap.inner-pad]]])
 
 (defpartial bootstrap-data []
   (let [user (session/current-user)
@@ -87,30 +77,20 @@
 
 (defpartial app-layout []
   (page-frame
-   "Personal Experiments Dashboard"
-   (default-nav)
+   ["Personal Experiments Dashboard" 80]
+   (nav-fixed (default-nav "Dashboard"))
+   (subnav-fixed (default-nav "Dashboard"))
    [:div.container
-    [:div#app-main
-     (app-pane)
-     (nav-layout)
-     [:div#share-pane.right-side-bar]
-     [:div#footer]]]
-   [:div.hidden
-    (render-all-templates)
-    (include-vendor-libs "/js/app.js")
-    (send-user)
-    (bootstrap-data)]))
+;;     (app-pane)
+;;     (nav-layout)
+    [:div.page-header
+     [:h1 "This is a total pisser"]]
+    [:div.hidden
+      (render-all-templates)
+      (include-js "/js/app.js")
+      (send-user)
+      (bootstrap-data)]]))
 
 (defpage "/dashboard*" {}
   (app-layout))
 
-
-;;
-;; Pre-alpha transition page
-;;
-
-(defpage "/coming-soon" {}
-  (simple-layout {}
-   [:div.main
-    [:h2 "Thank you for registering"]
-    [:p "PersonalExperiments.org will be available for use shortly.  We will send e-mails to all registered users when the site launches later in February.  In the meantime, your account enables you to participate in our first " [:a {:href "/study1"} "research study"] "."]]))

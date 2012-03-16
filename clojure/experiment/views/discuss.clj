@@ -54,11 +54,12 @@
     (form-to [:post base]
              (comment-fields current-id)
              [:br]
-             (submit-button "Add comment"))]])
+             [:button.btn.btn-success {:type "submit"} "Save"]
+             [:button.btn [:a {:href ""} "Cancel"]])]])
 
 (defn comment-body [comment]
-  (let [{date :date owner :owner html :html} comment]
-    [:div.discussion-body
+  (let [{:keys [date owner html]} comment]
+    [:div.discussion-body {:id (comment/comment-id comment)}
      [:span.discussion-byline
       "Posted by " [:b owner] " at " (dt/as-short-string
                                       (dt/to-default-tz
@@ -82,13 +83,14 @@
 (defpartial discussions [scope base]
   (let [discussions (comment/all-discussions scope)]
     (list
-     [:h1 "Questions, Answers and Comments"]
+     (if (session/current-user)
+       (comment-form base "Ask a New Question" nil)
+       [:em "You must be " [:a.login-button "logged-in"] " to add new comments"])
+     [:hr]
      (if (empty? discussions)
        [:h3 "No discussions found"]
        (map (partial discussion-thread base) discussions))
-     (if (session/current-user)
-       (comment-form base "New Discussion" nil)
-       [:h3 "You must be logged-in to add comments"]))))
+     )))
    
     
 

@@ -4,7 +4,8 @@
    hiccup.core
    handlebars.templates)
   (:require
-   [hiccup.form-helpers :as hf]))
+   [hiccup.form-helpers :as hf]
+   [clojure.string :as str]))
 
 ;; Twitter Bootstrap Widgets and Partials
 ;; ----------------------------------------
@@ -17,6 +18,16 @@
 ;;   {:id (% id)
 ;;    :class "modal hide fade"
 ;;    :style "display:none;"}
+   [:div.modal-header 
+    [:a.close {:data-dismiss "modal"} "x"]
+    (%code header)]
+   [:div.modal-body
+    (%code body)]
+   [:div.modal-footer
+    (%code footer)]])
+
+(deftemplate modal-form-dialog-template
+  [:div
    [:div.modal-header 
     [:a.close {:data-dismiss "modal"} "x"]
     (%code header)]
@@ -50,12 +61,43 @@
 ;; Menus
 ;; ------------------------
 
-(defelem dropdown-item [name entries]
-  (list
-   [:li.dropdown
-    [:a.dropdown-toggle {:data-toggle "dropdown"} name [:b.caret]]]
-   [:ul.drop-down-menu
-    entries]))
+;; ## Render Nav Menus
+(defn- active-class [match current & {:keys [base] :or {base ""}}]
+  (if (= match current) (str "active " base) base))
+
+(defn- merge-props [orig over]
+  (if-let [new-class (:class over)]
+    (merge orig (assoc over :class (str/join \space [(:class orig) new-class])))
+    (merge orig over)))
+
+(declare dropdown-submenu)
+
+(defn- menu-item [active {:keys [name href aprops lprops submenu] :as entry}]
+  (if-not submenu
+    [:li (merge-props {:class (active-class active name)} lprops)
+     (when name
+       [:a (merge-props {:href href} aprops)
+        name])]
+    [:li (merge-props {:class (active-class active name :base "dropdown")}
+                      lprops)
+     [:a (merge-props {:class "dropdown-toggle"
+                       :href href
+                       :data-toggle "dropdown"}
+                      aprops)
+      name
+      [:b.caret]]
+     (dropdown-submenu nil submenu)]))
+
+(defelem dropdown-submenu [active submenu]
+  [:ul.dropdown-menu
+   (map (partial menu-item active)
+        (filter #(not (nil? %)) submenu))])
+
+(defelem nav-menu [menu active]
+  [:ul.nav
+   (map (partial menu-item active)
+        (filter #(not (nil? %)) menu))])
+
                
 ;; WIDGETS
 ;; ------------------------

@@ -67,13 +67,13 @@
 (defn study1-nav [current]
   (let [user (session/current-user)
         consented? (get-pref :study1-consented)]
-    (merge (common/default-nav "Authoring Study")
+    (merge (common/default-nav "Our Research")
            {:subnav
             {:menu
              (concat
               [{:name "Overview" :href "/study1"}
-               {:name "Consent" :href "/study1/consent"}
                {:name "Study Protocol" :href "/study1/doc/study1-protocol"}
+               {:name "Consent" :href "/study1/consent"}
                {:name "Online Q&A" :href "/study1/discuss"}]
               (when consented?
                 [{:name "Introduction" :href "/study1/doc/study1-background"}
@@ -148,16 +148,17 @@
                    "study1-example" "Examples"
                    "study1-background" "Introduction"
                    true "Author"))
-     [:div.span8
-      (if article
-        (list (when (is-admin?)
-                [:a.admin-link {:href (format "/article/edit/%s" name)}
-                 "Edit Article"])
-              [:div.page-header
-               [:h1 (:title article)]]
-              (:html article))
-        [:div.page-header
-         [:h1 "No Article named '" name "' found"]])])))
+     [:div.container
+      [:div.span8
+       (if article
+         (list (when (is-admin?)
+                 [:a.admin-link {:href (format "/article/edit/%s" name)}
+                  "Edit Article"])
+               [:div.page-header
+                [:h1 (:title article)]]
+               (:html article))
+         [:div.page-header
+          [:h1 "No Article named '" name "' found"]])]])))
 
 (defpartial render-consent-form []
   (form-to [:post "/study1/consent"]
@@ -170,12 +171,15 @@
 (defpartial render-consent []
   (let [consent (get-article "study1-consent")]
     [:div.container
-     [:div.page-header
-      [:h1 (:title consent)]]
-     (:html consent)
-     (if (patient-consented?)
-       [:h2 "You have consented to this study"]
-       (render-consent-form))]))
+     [:div.span8
+      [:div.page-header
+       [:h1 (:title consent)]]
+      (:html consent)
+      (if (session/logged-in?)
+        (if (patient-consented?)
+          [:h2 "You have consented to this study"]
+          (render-consent-form))
+        [:h2 "You must register and login to consent to this study"])]]))
      
 (defpage "/study1/consent" {}
   (common/layout
@@ -195,7 +199,10 @@
    "Authoring Study Discussion"
    (study1-nav "Online Q&A")
    [:div.container
-    (discuss/discussions "study1" "/study1/discuss")]))
+    [:div.page-header
+     [:h1 "Authoring Study Q&A"]]
+    [:div.span8
+     (discuss/discussions "study1" "/study1/discuss")]]))
 
 (defpage [:post "/study1/discuss"]
   {pid :id text :text :as data}
@@ -278,9 +285,11 @@
    (study1-nav "Author")
    [:div.container
     [:div.study1-author
-     [:h1 "Author an Experiment"]
-     [:p "Here we ask you to describe all the essential elements of an experiment designed to test a treatment, or a collection of simultaneous treatments.  You can read the introductory material, look at an example experiment, and review the questions on the Q&A page for more information.  The <a href=\"/study1/doc/study1-suggestions\">treatment suggestion page</a> gives you some starting points for treatments and ways to find information about them"]
-     [:p "There are no wrong answers here, if you aren't sure about something and can't get what you want from the Q&A section, then write down what is hard or confusing.  The goal is to learn how you react and think about experimentation so we can help make the process easier."]
+     [:div.page-header
+      [:h1 "Author an Experiment"]
+      [:br]
+      [:p "Here we ask you to describe all the essential elements of an experiment designed to test a treatment, or a collection of simultaneous treatments.  You can read the introductory material, look at an example experiment, and review the questions on the Q&A page for more information.  The <a href=\"/study1/doc/study1-suggestions\">treatment suggestion page</a> gives you some starting points for treatments and ways to find information about them"]
+      [:p "There are no wrong answers here, if you aren't sure about something and can't get what you want from the Q&A section, then write down what is hard or confusing.  The goal is to learn how you react and think about experimentation so we can help make the process easier."]]
      (experiment-form
       (if-let [id (:id options)]
         (get-experiment id)

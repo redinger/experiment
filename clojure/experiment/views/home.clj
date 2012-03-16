@@ -95,7 +95,7 @@
 (defpartial sponsor-bar []
   [:div.sponsor-bar
    [:div.byline
-    "Sponsored By"]
+    "Created/Sponsored By"]
    [:div
     [:ul.thumbnails
      [:li {:style "padding-top:25px;"}
@@ -117,11 +117,12 @@
 ;; ## Home Page
 ;;
 
-(defpage "/" {}
-   (common/layout
-    "Welcome to Personal Experiments"
-    (common/default-nav "Home")
-    [:div.container.home-page
-     (home-carousel "homeCarousel")
-     (home-page-details)
-     (sponsor-bar)]))
+
+(defpage public-home-page "/" {}
+  (common/layout
+   "Welcome to Personal Experiments"
+   (common/default-nav "Home")
+   [:div.container.home-page
+    (home-carousel "homeCarousel")
+    (home-page-details)
+    (sponsor-bar)]))

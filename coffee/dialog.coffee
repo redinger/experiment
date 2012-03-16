@@ -21,7 +21,7 @@ class ModalView extends Backbone.View
            @enterPressed() if @enterPressed
 
 class ModalMessage extends ModalView
-  id: 'modalDialog'
+  id: 'modalDialogWrap'
   initialize: ->
         super()
         @
@@ -39,8 +39,9 @@ class ModalMessage extends ModalView
         if data
            options.header = data.header
            options.message = data.message
-        $('#modalDialog').remove()
+        $('#modalDialogWrap').remove()
         $('.templates').append @render().el
+        @show()
 
   events:
         'keyup': 'handleKey'
@@ -107,11 +108,13 @@ class LoginModal extends ModalForm
                          <a class='btn cancel'>Cancel</a>"
         @$('.modal-body').append @form.render().el
         @$('.modal-body').append "<p class='forgot-line'> <a class='forgot'>Forgot your username or password?</a></p>"
+#        @$('.modal-body').append "<div class='fb-login-button' data-scope='email'>Connect</div>"
         @
 
   events:
         'keyup': 'handleKey'
-        'click .cancel': 'cancel'
+        'click .cancel': 'loginCancel'
+        'click .close': 'loginCancel'
         'click .login': 'login'
         'click .forgot': 'forgot'
 
@@ -120,12 +123,21 @@ class LoginModal extends ModalForm
         if not @form.validate()
            $.post '/action/login', @form.getValue(), @serverValidate
 
+  loginCancel: () =>
+        if window.location.search.length > 0
+           window.location.href = window.location.protocol + "//" + window.location.host + "/"
+        else
+           @cancel()
+
   serverValidate: (data) =>
         if data.result == "fail"
             @form.fields["password"].setError(data.message || "Unknown Error")
         else
-            window.location.pathname = "/"
-        @cancel()
+            target = window.queryParams['target']
+            if target
+                window.location.pathname = target
+            else
+                window.location.pathname = "/"
 
   forgot: =>
         @hide()
@@ -179,10 +191,12 @@ class RegisterModal extends ModalForm
 
   events:
         'keyup': 'handleKey'
-        'keyup #username': 'handleUsername'
-        'keyup #email': 'handleEmail'
         'click .register': 'register'
         'click .cancel': 'cancel'
+        'click .close' : 'cancel'
+
+#         'keyup #username': 'handleUsername'
+#        'keyup #email': 'handleEmail'
 
   handleUsername: =>
         $.ajax
@@ -193,6 +207,7 @@ class RegisterModal extends ModalForm
 
   usernameValidate: (data) =>
         if data.exists == "true"
+            @form.fields['username'].clearError()
             @form.fields['username'].setError("This username is taken")
         else
             @form.fields['username'].clearError()
@@ -206,12 +221,15 @@ class RegisterModal extends ModalForm
 
   emailValidate: (data) =>
         if data.exists == "true"
+            @form.fields['email'].clearError()
             @form.fields['email'].setError("This address is already registered")
         else
             @form.fields['email'].clearError()
 
   enterPressed: -> @register()
   register: =>
+        @handleUsername()
+        @handleEmail()
         if not @form.validate()
            $.post '/action/register', @form.getValue(), @serverValidate
 
@@ -228,8 +246,26 @@ window.regModal = new RegisterModal()
 # Forgot Password Dialog
 # -----------------------------
 
-# Setup global modal events (menus, nav, etc)
+
+
+# Startup event handlers and actions
+# -----------------------
+
+extractParams = () ->
+        qs = document.location.search.split("+").join(" ")
+        re = /[?&]?([^=]+)=([^&]*)/g
+        params = {}
+        params[decodeURIComponent tokens[1]] = decodeURIComponent tokens[2] while tokens = re.exec qs
+        params
+
+window.queryParams = extractParams()
+
 $(document).ready ->
+
+# Startup Actions
+        $('#homeCarousel').carousel interval: 10000 if $('#homeCarousel').length
+
+# Modals
         $('.login-button').bind 'click',
                 (e) ->
                         e.preventDefault()
@@ -239,8 +275,11 @@ $(document).ready ->
                 (e) ->
                         e.preventDefault()
                         window.regModal.show()
+
+# Various actions
         $('.show-dform').bind 'click',
                 (e) ->
                         e.preventDefault()
-
-        $('#homeCarousel').carousel interval: 10000
+                        targ = $(e.target)
+                        targ.siblings('.comment-form').show()
+                        targ.hide()

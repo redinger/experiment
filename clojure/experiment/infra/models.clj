@@ -219,13 +219,18 @@
 (defn oid? [id]
   (objectid? id))
 
+(defn safe-resolve-dbref [& args]
+  (try
+    (apply resolve-dbref args)
+    (catch java.lang.Throwable e nil)))
+
 (defn resolve-dbref
   ([ref]
      (assert (mongo/db-ref? ref))
      (somnium.congomongo.coerce/coerce (.fetch ^DBRef ref) [:mongo :clojure]))
-  ([ref id]
-     (assert (or (keyword? ref) (string? ref)))
-     (mongo/fetch-one ref :where {:_id (as-oid id)})))
+  ([coll id]
+     (assert (or (keyword? coll) (string? coll)))
+     (mongo/fetch-one coll :where {:_id (as-oid id)})))
 
 (defn assign-uid [model]
   (if (not (:_id model))
@@ -354,6 +359,10 @@
   (update-model-hook model))
 
 (defmethod update-model-hook :default
+  [model]
+  model)
+
+(defmethod delete-model-hook :default
   [model]
   model)
 

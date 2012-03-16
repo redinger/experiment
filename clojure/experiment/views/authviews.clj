@@ -6,7 +6,8 @@
    experiment.views.common
    experiment.views.bootstrap
    [hiccup.form-helpers :exclude [form-to input]]
-   handlebars.templates)
+   handlebars.templates
+   experiment.infra.api)
   (:require
    [experiment.infra.session :as session]
    [experiment.infra.auth :as auth]
@@ -21,24 +22,21 @@
 ;;
 ;; Backend support for login, registration, forgotten passwords, etc.
 
-(pre-route "/dashboard*" {}
-	   (let [uri (:uri (noir.request/ring-request))]
-	     (println "Handling: " uri)
-	     (when-not (session/logged-in?)
-	       (println "Redirecting to login, not authorized for: " uri)
-	       (resp/redirect (str "/action/login?target=" uri)))))
-
-(pre-route "/admin*" {}
-	   (when-not (session/logged-in?)
-	     (let [uri (:uri (noir.request/ring-request))]
-	       (println "Redirecting to login, not authorized for: " uri)
-	       (resp/redirect (str "/action/login?target=" uri)))))
 
 ;; ## LOGIN Support
 ;; The default login page re-uses the dialog logic
+
+(defn login-with-redirect [target]
+  (resp/redirect (str "/action/login?target=" target)))
+
 (defpage login [:get "/action/login"]
   {:keys [target] :as args}
-
+  (layout
+   "Login to Access Protected Area"
+   (default-nav)
+   [:div {:style "height:400px"}
+    [:script "$(document).ready(function () { window.loginModal.show(); });"]]))
+  
 (defapi do-login [:post "/action/login"]
   {:as user}
   (resp/json
@@ -52,22 +50,35 @@
   (resp/redirect (or (:target options) "/")))
 
 
-;; REGISTRATION Support
+;; ## Protect access to areas of the site
 
-(defapi check-username [:get "/action/check-username"]
-  {:keys [username] :as data}
-  (println "check username" data)
-  (resp/json
-   {:exists (if (models/fetch-model :user {:username username})
-              "true"
-              "false")}))
+;; NOTE: be sure to adjust this to open up dashboard soon
+(defn handle-private-route []
+  (let [uri (:uri (noir.request/ring-request))]
+    (when-not (session/logged-in?)
+      (login-with-redirect uri))))
+  
 
-(defapi check-email [:get "/action/check-email"]
-  {:keys [email] :as data}
-  (println "check email" data)
-  (resp/json
-   {:exists (if (models/fetch-model :user {:email email})
-              "true" "false")}))
+(pre-route "/" {}
+           (when (session/logged-in?)
+             (if (user/is-admin?)
+               (resp/redirect "/dashboard")
+               (resp/redirect "/study1"))))
+
+(pre-route "/dashboard*" {}
+           (handle-private-route))
+
+;; Other protected routes
+;; - /settings
+
+(pre-route "/admin*" {}
+	   (when-not (session/logged-in?)
+	     (let [uri (:uri (noir.request/ring-request))]
+	       (println "Redirecting to login, not authorized for: " uri)
+	       (login-with-redirect uri))))
+
+
+;; ## REGISTRATION Support
 
 (defn valid-registration-rec? [{:keys [email username password password2]}]
   (cond (or (= (count email) 0) (not (re-find #"@" email)))
@@ -104,10 +115,21 @@ We will contact you shortly when the site or the site's study is ready to launch
       {:result "fail"
        :message message})))
 
-;; FORGOTTEN Password
+(defapi check-username [:get "/action/check-username"]
+  {:keys [username] :as data}
+  (println username)
+  {:exists (if (models/fetch-model :user {:username username})
+             "true"
+             "false")})
 
-(defn temporary-reset
+(defapi check-email [:get "/action/check-email"]
+  {:keys [email] :as data}
+  (println email)
+  {:exists (if (models/fetch-model :user {:email email})
+             "true" "false")})
 
+
+;; ## FORGOTTEN Password
 (defapi do-forgot-password [:post "/action/forgotpw"] {:as options}
   (if-let [user (user/get-user (:username options))]
     (try
@@ -122,7 +144,5 @@ We will contact you shortly when the site or the site's study is ready to launch
      :message "Did not recognize your username or e-mail address"}))
 
 
-(defapi reset-password [:get "/action/forgotpw"]
+;; (defapi reset-password [:get "/action/forgotpw"]
 
-
-;; CONTACT 

@@ -92,6 +92,7 @@
 ;;  (let [
 
 (defpage test-chart [:get "/dev/charts"] {:keys [] :as options}
-  (common/simple-layout
-   {}
+  (common/layout
+   ""
+   (common/default-nav)
    [:div#test {:style "border: 1px solid black;"}]))

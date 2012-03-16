@@ -64,6 +64,20 @@
   (keys (apply dissoc user
                [:updates :permissions :password :salt :dataid :state])))
 
+;; ## Services
+
+(defn set-service [user service record]
+  (assert (model? user))
+  (modify-model! user {:$set {:services {service record}}}))
+
+(defn set-service-param [user service param value]
+  (assert (model? user))
+  (modify-model! user {:$set {:services {param value}}}))
+
+(defn get-service-param [user service entry]
+  (assert (model? user))
+  (get-in user [:services service entry]))
+
 
 ;; ## User Properties
 

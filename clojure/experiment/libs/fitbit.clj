@@ -2,17 +2,20 @@
   (:use noir.core
         hiccup.core
         experiment.infra.models)
-  (:require [oauth.client :as oauth]
-            [clojure.math.numeric-tower :as math]
-            [experiment.libs.datetime :as dt]
-            [clj-time.core :as time]
-            [noir.response :as resp]
-            [experiment.infra.session :as session]
-            [experiment.libs.properties :as props]
-            [oauth.signature :as sig]
+  (:require [clojure.math.numeric-tower :as math]
             [clj-json.core :as json]
-            [clj-http.client :as http]))
+            [clj-http.client :as http]
+            [clj-time.core :as time]
+            [oauth.client :as oauth]
+            [oauth.signature :as sig]
+            [experiment.libs.datetime :as dt]
+            [noir.response :as resp]
+            [experiment.libs.properties :as props]
+            [experiment.infra.session :as session]
+            [experiment.models.user :as user]
+            ))
 
+(def fitbit :fit)
 
 (def consumer
   (oauth/make-consumer (props/get :fitbit.key)
@@ -36,35 +39,31 @@
   (session/get "fitbit_oauth_secret"))
 
 (defn- save-access-tokens [response]
-  (if (session/active?)
-    (update-model!
-     (assoc (session/current-user)
-       :fit-cred response))
-    (update-model!
-     (assoc (fetch-model :user :where {:username "eslick"})
-       :fit-cred response))))
+  (user/set-service (session/current-user) fitbit
+                    {:token (:oauth_token response)
+                     :secret (:oauth_token_secret response)}))
 
 (defn get-user-id [user]
-  (get-in user [:fit-cred :encoded_user_id]))
+  (user/get-service-param user fitbit :encoded_user_id))
 
 (defn id->user [id]
-  (fetch-model :user :where {"fit-cred.encoded_user_id" id}))
+  (fetch-model :user :where {"services.fit.encoded_user_id" id}))
 
 (defn get-user-uid [user]
-  (if-let [uid (get-in user [:fit-cred :unique-id])]
+  (if-let [uid (user/get-service-param user fitbit :unique-id)]
     uid
     (let [uid (rand-int 1000000)]
-      (modify-model! user {:$set {"fit-cred.unique-id" uid}})
+      (user/set-service-param user fitbit :unique-id uid)
       uid)))
 
 (defn uid->user [uid]
-  (fetch-model :user :where {"fit-cred.unique-id" uid}))
+  (fetch-model :user :where {"services.fit.unique-id" uid}))
 
 (defn- get-access-token [user]
-  (get-in user [:fit-cred :oauth_token]))
+  (user/get-service-param user fitbit :token))
 
 (defn- get-access-secret [user]
-  (get-in user [:fit-cred :oauth_token_secret]))
+  (user/get-service-param user fitbit :secret))
 
 
 ;;

@@ -23,47 +23,35 @@
 
 ;; Book keeping across phases
 
-(def request-auth (atom nil)) ;; DEBUG
-
 (defn save-req-tokens [request]
-  (swap! request-auth (fn [old] request)) ;; DEBUG
   (when (session/active?)
     (session/put! "withings_oauth_token" (:oauth_token request))
     (session/put! "withings_oauth_secret" (:oauth_token_secret request))))
 
 (defn get-req-token []
-  (if (session/active?)
-    (session/get "withings_oauth_token")
-    (:oauth_token @request-auth))) ;; DEBUG
+  (session/get "withings_oauth_token"))
 
 (defn get-req-secret []
-  (if (session/active?)
-    (session/get "withings_oauth_secret")
-    (:oauth_token_secret @request-auth))) ;; DEBUG
+  (session/get "withings_oauth_secret"))
 
-
-(defonce access-response (atom nil)) ;; DEBUG
 
 (defn save-access-tokens [userid response]
-  (swap! access-response (fn [old] access-response)) ;; DEBUG
-  (if (session/active?)
-    (update-model!
-     (assoc (session/current-user)
-       :wi-userid userid
-       :wi-cred response))
-    (update-model!
-     (assoc (fetch-model :user :where {:username "eslick"})
-       :wi-userid userid
-       :wi-cred response))))
+  (modify-model!
+   (session/current-user)
+   {:$set
+    {:services
+     {:wi {:userid userid
+           :token (:oauth_token response)
+           :secret (:oauth_secret response)}}}}))
   
 (defn get-userid [user]
-  (:wi-userid user))
+  (get-in user [:services :wi :userid]))
 
 (defn get-access-token [user]
-  (get-in user [:wi-cred :oauth_token]))
+  (get-in user [:services :wi :token]))
 
 (defn get-access-secret [user]
-  (get-in user [:wi-cred :oauth_token_secret]))
+  (get-in user [:services :wi :secret]))
 
 
 ;;
