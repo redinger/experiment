@@ -1,4 +1,4 @@
-(ns experiment.views.app
+(ns experiment.views.dashboard
   (:require
    [clojure.data.json :as json]
    [noir.response :as resp]
@@ -75,16 +75,16 @@
 	  (json/json-str (compute-suggestions))
 	  ");")]))
 
-(defpartial app-layout []
+(defpartial dashboard-layout []
   (page-frame
    ["Personal Experiments Dashboard" 80]
-   (nav-fixed (default-nav "Dashboard"))
-   (subnav-fixed (default-nav "Dashboard"))
+   (nav-fixed (:nav (default-nav "Dashboard")))
+   (subnav-fixed (:subnav (default-nav "Dashboard")))
    [:div.container
 ;;     (app-pane)
 ;;     (nav-layout)
     [:div.page-header
-     [:h1 "This is a total pisser"]]
+     [:h1 "Your Personal Experiment Dashboard (COMING SOON)"]]
     [:div.hidden
       (render-all-templates)
       (include-js "/js/app.js")
@@ -92,5 +92,14 @@
       (bootstrap-data)]]))
 
 (defpage "/dashboard*" {}
-  (app-layout))
+  (dashboard-layout))
 
+
+(defpage "/explore*" {}
+  (page-frame
+   ["Explore Experiments"]
+   (nav-fixed (:nav (default-nav "Explore")))
+   [:div.container
+    [:div.page-header
+     [:h1 "Browse and Search Experiments (COMING SOON)"]]]))
+  

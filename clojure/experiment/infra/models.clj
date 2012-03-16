@@ -219,11 +219,6 @@
 (defn oid? [id]
   (objectid? id))
 
-(defn safe-resolve-dbref [& args]
-  (try
-    (apply resolve-dbref args)
-    (catch java.lang.Throwable e nil)))
-
 (defn resolve-dbref
   ([ref]
      (assert (mongo/db-ref? ref))
@@ -231,6 +226,11 @@
   ([coll id]
      (assert (or (keyword? coll) (string? coll)))
      (mongo/fetch-one coll :where {:_id (as-oid id)})))
+
+(defn safe-resolve-dbref [& args]
+  (try
+    (apply resolve-dbref args)
+    (catch java.lang.Throwable e nil)))
 
 (defn assign-uid [model]
   (if (not (:_id model))
