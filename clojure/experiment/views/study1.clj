@@ -12,6 +12,7 @@
    [clojure.data.json :as json]
    [clojure.string :as str]
    [somnium.congomongo :as mongo]
+   [clodown.core :as markdown]
    [noir.response :as resp]
    [noir.request :as req]
    [noir.util.crypt :as crypt]
@@ -67,7 +68,7 @@
 (defn study1-nav [current]
   (let [user (session/current-user)
         consented? (get-pref :study1-consented)]
-    (merge (common/default-nav "Our Research")
+    (merge (common/default-nav "Research")
            {:subnav
             {:menu
              (concat
@@ -78,7 +79,7 @@
               (when consented?
                 [{:name "Introduction" :href "/study1/doc/study1-background"}
                  {:name "Examples" :href "/study1/doc/study1-example"}
-                 {:name "Author" :href "/study1/author"}]))
+                 {:name "Author Study" :href "/study1/author"}]))
              :active current}})))
 
 ;; ## Study home page
@@ -96,13 +97,13 @@
           react to and think about self-experimentation
           and the questions and concerns that arise when they
           try to design their own experiments."]
+
       [:p "Please read the following documents.  If you want to
-         participate in the study, register for an account.  This will
-         enable you to login to the study page and consent to the
-         study.  This registration will enable you to login to the
-         main personal experiments site when it launches.
-         To withdraw or have your account deleted, please e-mail
-         eslick@media.mit.edu"]]
+         participate in the study, " [:a.register-button {:href "#"} "register"]
+         " for an account on this site.  This will
+         enable you to login and then to consent to the study (step 2 under Procedures)."]
+      (when (session/logged-in?)
+        [:p "To withdraw or have your account deleted, please send e-mail eslick@media.mit.edu"])]
      [:h2 "Procedures"]
      [:ol
       [:li (link-to "/study1/doc/study1-protocol" "Review the Study Protocol")]
@@ -116,17 +117,18 @@
         [:li [:a.login-button {:href "#loginModal"} "Login"] " or " [:a.register-button {:href "#regModal"} "Register" " to get an account."]])]
      (if (patient-consented?)
        (list [:h2 "Actions"]
+             [:p "After you have reviewed the preparatory materials above, you need to choose a treatment and create your studies.  You can start working on an experiment at any time.  If you save the experiment, it will show up on this overview page and you can click on it to review or make changes at any time until you finish the study."]
              [:ul
-              [:li (link-to "/study1/doc/study1-suggestions" "Treatments to Research")]
-              [:li (link-to "/study1/author" "Author an Experiment")]
-              [:li (link-to "/study1/discuss" "Online Q&A")]
+              [:li (link-to "/study1/doc/study1-suggestions" "Choose Treatments to Research")]
+              [:li (link-to "/study1/author" "Author an Experiments")]
+              [:li "If you need help, go to our " (link-to "/study1/discuss" "Online Q&A") " page"]
               (when (study1-complete?)
-                [:li (link-to "http://qualtrics.com" "Take the Exit Survey")])])
+                [:li "When you are done with two or more experiments, please take the " (link-to "http://qualtrics.com" "Exit Survey")])])
        (list [:h3 "Actions"]
              [:ul
-              [:li (link-to "/study1/discuss" "Online Q&A")]]))
+              [:li (link-to "/study1/discuss" "If you need help, go to our " "Online Q&A")]]))
      (when (and (patient-consented?) (not (empty? (get-experiments))))
-       (list [:h3 "My Experiments"]
+       (list [:h3 "Your Experiments"]
              [:ul
               (map (fn [exp]
                      [:li (link-to (format "/study1/author?id=%s" (:_id exp))
@@ -145,8 +147,9 @@
      (str "Reading: " (:title article))
      (study1-nav (case name
                    "study1-protocol" "Study Protocol"
-                   "study1-example" "Examples"
                    "study1-background" "Introduction"
+                   "study1-example" "Examples"
+                   "study1-suggestions" "Suggestions"
                    true "Author"))
      [:div.container
       [:div.span8
@@ -300,24 +303,24 @@
     (common/layout
      "View a Study"
      (study1-nav "")
-     [:div.span6
+     [:div.span8
       [:div.study1-author
        (if (not exp)
          [:h1 "Experiment not found"]
          (list [:h2 "Example: " (:name exp)]
                [:dl.dl-horizontal
                 [:dt "Treatment"]
-                [:dd (:treatment exp)]
+                [:dd (markdown/md (:treatment exp))]
                 [:dt "Outcome"]
-                [:dd (:outcome exp)]
+                [:dd (markdown/md (:outcome exp))]
                 [:dt "Measures"]
-                [:dd (:measures exp)]
+                [:dd (markdown/md (:measures exp))]
                 [:dt "Schedule"]
-                [:dd (:schedule exp)]
+                [:dd (markdown/md (:schedule exp))]
                 [:dt "Predictors"]
-                [:dd (:predictors exp)]
+                [:dd (markdown/md (:predictors exp))]
                 [:dt "Notes"]
-                [:dd (:notes exp)]]))]])))
+                [:dd (markdown/md (:notes exp))]]))]])))
    
 (defn experiment-valid? [spec]
   true)
