@@ -20,13 +20,13 @@
     (catch java.lang.Throwable e
       [count (inc errors)])))
 
-(defn send-message-to [message email]
+(defn send-message-to [email message]
   (assert (every? #(get message %) [:subject :body]))
   (send mailer send-message (merge {:to email
                                     :from admin-address*}
                                    message)))
 
-(defn send-message-to-group [message group]
+(defn send-message-to-group [group message]
   (assert (and (every? #(get message %) [:subject :body])
                (sequential? group)))
   (send mailer send-message (merge {:to admin-address*
