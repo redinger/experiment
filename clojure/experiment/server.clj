@@ -94,16 +94,17 @@
                           :pw (props/get :sms.password)})
     (sms/set-reply-handler 'track/sms-reply-handler)
 
-    ;; Start event scheduler
-    (ctrl/start)
-
     ;; Start and save server
     (let [port (Integer. (get (System/getenv) "PORT" "8080"))
 	  server (server/start
 		  port {:mode (props/get :mode)
 			:ns 'experiment
 			:session-store (session/mongo-session-store)})]
-      (alter-var-root #'noir (fn [old] server)))))
+      (alter-var-root #'noir (fn [old] server)))
+
+    ;; Start event scheduler
+    (ctrl/start)))
+
 
 (defn stop []
   (ctrl/stop)

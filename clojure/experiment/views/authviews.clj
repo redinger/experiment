@@ -97,21 +97,24 @@
         [true nil]))
 
 (def reg-notice-body "User '%s' (%s) just registered on personalexperiments.org")
+(def reg-message-body "Your username is: %s
+We will contact you shortly when the site or the site's study is ready to launch")
 
-(defn register-new-user [user]
-  (user/create-user! (:username user) (:password user) (:email user) (:name user))
+(defn register-new-user [{:keys [username password email name] :as user}]
+  (user/create-user! username password email name)
   (mail/send-site-message
    {:subject "New registration"
-    :body (format reg-notice-body (:username user) (:name user))})
-  (mail/send-message-to (:email user)
+    :body (format reg-notice-body username name)})
+  (mail/send-message-to email
    {:subject "Thank you for registering at PersonalExperiments.org"
-    :body (format "Your username is: %s
-We will contact you shortly when the site or the site's study is ready to launch" (:username user))}))
+    :body (format reg-message-body username)}))
 
 (defapi do-register [:post "/action/register"] {:as user}
   (let [[result message] (valid-registration-rec? user)]
     (if result
-      {:result "success"}
+      (do
+        (register-new-user user)
+        {:result "success"})
       {:result "fail"
        :message message})))
 

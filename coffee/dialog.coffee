@@ -21,7 +21,9 @@ class ModalView extends Backbone.View
            @enterPressed() if @enterPressed
 
 class ModalMessage extends ModalView
-  id: 'modalDialogWrap'
+  attributes:
+        id: 'modalDialogWrap'
+        class: 'modal hide modalDialogWrap'
   initialize: ->
         super()
         @
@@ -29,17 +31,17 @@ class ModalMessage extends ModalView
   render: =>
         @$el.html @template
                 id: 'modalDialog'
-                header: '<h2>' + options.header + '</h2>'
-                body: options.message
+                header: '<h2>' + @options.header + '</h2>'
+                body: @options.message
                 footer: "<a class='btn accept'>Ok</a>"
         @$el.css('display', 'none')
         @
 
   showMessage: (data) =>
         if data
-           options.header = data.header
-           options.message = data.message
-        $('#modalDialogWrap').remove()
+           @options.header = data.header
+           @options.message = data.message
+        $('.modalDialogWrap').remove()
         $('.templates').append @render().el
         @show()
 
@@ -238,7 +240,9 @@ class RegisterModal extends ModalForm
            @form.fields['password2'].setError(data.message || "Unknown Error")
         else
            @hide()
-           window.modalDialog
+           window.modalMessage.showMessage
+                header: "Thank you"
+                message: "<p>Thank you for registering, you should receive an e-mail confirming your registration shortly.</p>"
 
 window.regModal = new RegisterModal()
 
