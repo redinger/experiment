@@ -34,6 +34,7 @@ class ModalMessage extends ModalView
                 header: '<h2>' + @options.header + '</h2>'
                 body: @options.message
                 footer: "<a class='btn accept'>Ok</a>"
+        @delegateEvents()
         @$el.css('display', 'none')
         @
 
@@ -41,6 +42,7 @@ class ModalMessage extends ModalView
         if data
            @options.header = data.header
            @options.message = data.message
+        @undelegateEvents()
         $('.modalDialogWrap').remove()
         $('.templates').append @render().el
         @show()
