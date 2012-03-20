@@ -122,7 +122,9 @@
     (let [message {:subject (comment-notification-subject comment)
                    :body (comment-notification-body comment)}
           emails (distinct (map :email (thread-users comment)))]
-      (mail/send-message-to-group message (concat "ianeslick@gmail.com" emails)))
+      (mail/send-message-to-group
+       (concat "ianeslick@gmail.com" emails)
+       message))
     (catch java.lang.Throwable e
       (log/error e "Error sending notifications")
       nil)))

@@ -120,14 +120,12 @@ We will contact you shortly when the site or the site's study is ready to launch
 
 (defapi check-username [:get "/action/check-username"]
   {:keys [username] :as data}
-  (println username)
   {:exists (if (models/fetch-model :user {:username username})
              "true"
              "false")})
 
 (defapi check-email [:get "/action/check-email"]
   {:keys [email] :as data}
-  (println email)
   {:exists (if (models/fetch-model :user {:email email})
              "true" "false")})
 

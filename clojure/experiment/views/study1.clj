@@ -93,42 +93,31 @@
      [:div.page-header
       [:h1 "Welcome to the Authoring study"]
       [:br]
-      [:p "This research study seeks to understand how people
-          react to and think about self-experimentation
-          and the questions and concerns that arise when they
-          try to design their own experiments."]
-
-      [:p "Please read the following documents.  If you want to
-         participate in the study, " [:a.register-button {:href "#"} "register"]
-         " for an account on this site.  This will
-         enable you to login and then to consent to the study (step 2 under Procedures)."]
+      [:p "This is the home page for a one-time research study about authoring experiments.  We are running this study to better understand how patients think about self-experimentation and figuring out how making changes impacts them.  If you would like to help, we will ask you to read some introductory material, research a specific treatment, and write down your " [:b "best guess"] " as to how an experiment should be constructed so you would have confidence if you ran the experiment you would be confident that it worked."]
+      [:p "We are not asking you to actually perform an experiment, simply to try to describe how it should go.  The best outcome for us is that you don't get everyong wrong or everything right, but somewhere in-between. We're looking to understand what specifically is hard and what is easy for non-specialists so we can build the best tool for you.  Honest, best-guess answers are what we're looking for."]
+      [:p (when (not (session/logged-in?))
+            "To participate, please " [:a.register-button {:href "#"} "register"] " for an account, login and then follow the procedures below.  ")
+       "As you proceed through steps of the study, this page and the procedures will be updated." ]
       (when (session/logged-in?)
-        [:p "To withdraw or have your account deleted, please send e-mail eslick@media.mit.edu"])]
+        [:p "To withdraw or have your account deleted, please send e-mail eslick@media.mit.edu"]
+        )
+      [:p "If at any time you want help, go to our " (link-to "/study1/discuss" "Online Q&A") " page and ask your question."]]
+      
      [:h2 "Procedures"]
      [:ol
-      [:li (link-to "/study1/doc/study1-protocol" "Review the Study Protocol")]
       (if (session/logged-in?)
         (if (not (patient-consented?))
-          [:li (link-to "/study1/consent" "Register for the study")]
-          (list [:li "Succesfully Registered"]
-                [:li (link-to "/study1/doc/study1-background" "Introduction to Single-Subject Experimentation")]
-                [:li (link-to "/study1/doc/study1-example" "Example Experiments")]
-                ))
-        [:li [:a.login-button {:href "#loginModal"} "Login"] " or " [:a.register-button {:href "#regModal"} "Register" " to get an account."]])]
-     (if (patient-consented?)
-       (list [:h2 "Actions"]
-             [:p "After you have reviewed the preparatory materials above, you need to choose a treatment and create your studies.  You can start working on an experiment at any time.  If you save the experiment, it will show up on this overview page and you can click on it to review or make changes at any time until you finish the study."]
-             [:ul
-              [:li (link-to "/study1/doc/study1-suggestions" "Choose Treatments to Research")]
-              [:li (link-to "/study1/author" "Author an Experiments")]
-              [:li "If you need help, go to our " (link-to "/study1/discuss" "Online Q&A") " page"]
-              (when (study1-complete?)
-                [:li "When you are done with two or more experiments, please take the " (link-to "http://qualtrics.com" "Exit Survey")])])
-       (list [:h3 "Actions"]
-             [:ul
-              [:li (link-to "/study1/discuss" "If you need help, go to our " "Online Q&A")]]))
+          (list [:li (link-to "/study1/doc/study1-protocol" "Read: The Study Protocol")]
+                [:li (link-to "/study1/consent" "Consent to the study")])
+          (list [:li "Read: " (link-to "/study1/doc/study1-background" "Introduction to Single-Subject Experimentation")]
+                [:li "Read: " (link-to "/study1/doc/study1-example" "Example Experiments")]
+                [:li "Read: " (link-to "/study1/doc/study1-suggestions" "Treatments to Research")]
+                [:li "Do: " (link-to "/study1/author" "Author Experiments")]
+                [:li "Do: take the " (link-to "https://atrial.qualtrics.com/SE/?SID=SV_3l3Ix9bjgCxYpj6" "Exit Survey") " (we request you complete at least 2 studies, but if you have significant problems, please fill out the survey anyway)"]))
+        (list [:li "Preview the " (link-to "/study1/consent" "Study Consent Form")]
+              [:li [:a.login-button {:href "#loginModal"} "Login"] " or " [:a.register-button {:href "#regModal"} "Register" " to get an account."]]))]
      (when (and (patient-consented?) (not (empty? (get-experiments))))
-       (list [:h3 "Your Experiments"]
+       (list [:h2 "Your Experiments"]
              [:ul
               (map (fn [exp]
                      [:li (link-to (format "/study1/author?id=%s" (:_id exp))
@@ -291,8 +280,8 @@
      [:div.page-header
       [:h1 "Author an Experiment"]
       [:br]
-      [:p "Here we ask you to describe all the essential elements of an experiment designed to test a treatment, or a collection of simultaneous treatments.  You can read the introductory material, look at an example experiment, and review the questions on the Q&A page for more information.  The <a href=\"/study1/doc/study1-suggestions\">treatment suggestion page</a> gives you some starting points for treatments and ways to find information about them"]
-      [:p "There are no wrong answers here, if you aren't sure about something and can't get what you want from the Q&A section, then write down what is hard or confusing.  The goal is to learn how you react and think about experimentation so we can help make the process easier."]]
+      [:p "Here we ask you to describe all the essential elements of an experiment designed to test a treatment, or a collection of simultaneous treatments.  You can read the introductory material, look at an example experiment, and review the questions on the Q&A page for more information.  The <a href=\"/study1/doc/study1-suggestions\">treatment suggestion page</a> gives you two specific treatments to choose from and ways to find information about them"]
+      [:p "There are no wrong answers here, if you aren't sure about something and can't get what you want from the Q&A section, then write down what is hard or confusing.  The goal is to learn how you react and think about experimentation so we can help make the process easier for non-experts."]]
      (experiment-form
       (if-let [id (:id options)]
         (get-experiment id)
@@ -310,17 +299,17 @@
          (list [:h2 "Example: " (:name exp)]
                [:dl.dl-horizontal
                 [:dt "Treatment"]
-                [:dd (markdown/md (:treatment exp))]
+                [:dd (markdown/md (or (:treatment exp) ""))]
                 [:dt "Outcome"]
-                [:dd (markdown/md (:outcome exp))]
+                [:dd (markdown/md (or (:outcome exp) ""))]
                 [:dt "Measures"]
-                [:dd (markdown/md (:measures exp))]
+                [:dd (markdown/md (or (:measures exp) ""))]
                 [:dt "Schedule"]
-                [:dd (markdown/md (:schedule exp))]
+                [:dd (markdown/md (or (:schedule exp) ""))]
                 [:dt "Predictors"]
-                [:dd (markdown/md (:predictors exp))]
+                [:dd (markdown/md (or (:predictors exp) ""))]
                 [:dt "Notes"]
-                [:dd (markdown/md (:notes exp))]]))]])))
+                [:dd (markdown/md (or (:notes exp) ""))]]))]])))
    
 (defn experiment-valid? [spec]
   true)
