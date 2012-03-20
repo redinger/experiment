@@ -94,13 +94,11 @@
       [:h1 "Welcome to the Authoring study"]
       [:br]
       [:p "This is the home page for a one-time research study about authoring experiments.  We are running this study to better understand how patients think about self-experimentation and figuring out how making changes impacts them.  If you would like to help, we will ask you to read some introductory material, research a specific treatment, and write down your " [:b "best guess"] " as to how an experiment should be constructed so you would have confidence if you ran the experiment you would be confident that it worked."]
-      [:p "We are not asking you to actually perform an experiment, simply to try to describe how it should go.  The best outcome for us is that you don't get everyong wrong or everything right, but somewhere in-between. We're looking to understand what specifically is hard and what is easy for non-specialists so we can build the best tool for you.  Honest, best-guess answers are what we're looking for."]
+      [:p "We are not asking you to engage in any experimentation, but simply to write down how you think it should be done.  The best result for us is that you don't get everyong wrong nor everything right, but are somewhere in the middle. We're looking to understand what is easy and what is hard so we can build the best tools for non-specialists."]
       [:p (when (not (session/logged-in?))
-            "To participate, please " [:a.register-button {:href "#"} "register"] " for an account, login and then follow the procedures below.  ")
-       "As you proceed through steps of the study, this page and the procedures will be updated." ]
+            "To participate, please " [:a.register-button {:href "#"} "register"] " for an account, login and then follow the procedures below.  ") "As you proceed through consenting to the study, the procedure list will be updated." ]
       (when (session/logged-in?)
-        [:p "To withdraw or have your account deleted, please send e-mail eslick@media.mit.edu"]
-        )
+        [:p "To withdraw or have your account deleted, please send e-mail eslick@media.mit.edu"])
       [:p "If at any time you want help, go to our " (link-to "/study1/discuss" "Online Q&A") " page and ask your question."]]
       
      [:h2 "Procedures"]

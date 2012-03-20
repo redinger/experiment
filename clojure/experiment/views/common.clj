@@ -99,7 +99,9 @@
   [{:name "Authoring Study" :href "/study1"}
 ;;   {:name "Site Analysis" :href "/article/analysis"}
    {:lprops {:class "divider"}}
-   {:name "New Media Medicine" :href "http://newmed.media.mit.edu/"}])
+   {:name "MIT's New Media Medicine" :href "http://newmed.media.mit.edu/"}
+   {:name "Lybba.org" :href "http://lybba.org"}
+   {:name "C3N Project At CCHMC" :href "Http://c3nproject.org"}])
 
 (defn- user-submenu []
   [{:name '([:i.icon-cog] " Settings")
