@@ -1,8 +1,7 @@
 (ns experiment.libs.zeo
   (:use experiment.infra.models)
   (:require [clj-http.client :as http]
-            [experiment.libs.datetime :as dt]
-	    [clojure.data.json :as json]))
+            [experiment.libs.datetime :as dt]))
 
 
 ;; "ACE41D854610E84DAF16419E087C2ADF" ;; mit.edu

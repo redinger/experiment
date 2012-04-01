@@ -4,7 +4,7 @@
    [noir.session :as session]
    [noir.request :as req]
    [noir.response :as resp]
-   [clojure.data.json :as json]
+   [cheshire.core :as json]
    [clojure.string :as str]))
 
 
@@ -38,7 +38,10 @@
      (if-let [ctype (get-in req [:headers "content-type"])]
        (if (and (string? ctype) (re-find #"application/json" ctype))
          (update-in req [:params] assoc :json-payload
-                    (json/read-json (slurp (:body req)) true false nil))
+                    (try
+                      (json/parse-string (slurp (:body req)) true)
+                      (catch java.lang.Throwable e
+                        nil)))
          req)
        req))))
 

@@ -1,0 +1,459 @@
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/functions\.styl}line{font-family:\000031}}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\000033}}
+/* Infrastructure */
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\000035}}
+.spinner {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  margin-left: -50px;
+  margin-top: -50px;
+  text-align: center;
+  z-index: 1234;
+  overflow: auto;
+  width: 100px;
+  height: 102px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\0000317}}
+/* Main Page Frame */
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\0000319}}
+.subnav {
+  width: 100%;
+  height: 36px;
+  background-color: #eee;
+  background-repeat: repeat-x;
+  background-image: -moz-linear-gradient(top, #f5f5f5 0%, #eee 100%);
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #f5f5f5), color-stop(100%, #eee));
+  background-image: -webkit-linear-gradient(top, #f5f5f5 0%, #eee 100%);
+  background-image: -ms-linear-gradient(top, #f5f5f5 0%, #eee 100%);
+  background-image: -o-linear-gradient(top, #f5f5f5 0%, #eee 100%);
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\0000329}}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\0000333}}
+.subnav filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f5f5f5' -moz-border-radius 4px,
+.subnav endColorstr="#eeeeee" -moz-border-radius 4px,
+.subnav GradientType=0) -moz-border-radius 4px,
+.subnav background-image linear-gradient(top -moz-border-radius 4px,
+.subnav #f5f5f5 0% -moz-border-radius 4px,
+.subnav #eeeeee 100%) -moz-border-radius 4px,
+.subnav border 1pxsolid #e5e5e5 -moz-border-radius 4px,
+.subnav -webkit-border-radius 4px -moz-border-radius 4px {
+  border-radius: 4px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\0000336}}
+.subnav .nav {
+  margin-bottom: 0;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\0000339}}
+.subnav .nav > li > a {
+  margin: 0;
+  padding-top: 11px;
+  padding-bottom: 11px;
+  border-left: 1px solid #f5f5f5;
+  border-right: 1px solid #e5e5e5;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\0000345}}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\0000346}}
+.subnav .nav > li > a -webkit-border-radius: 0 -moz-border-radius: 0 {
+  border-radius: 0;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\0000349}}
+.subnav .nav > .active > a,
+.subnav .nav > .active > a:hover {
+  padding-left: 13px;
+  color: #777;
+  background-color: #e9e9e9;
+  border-right-color: #ddd;
+  border-left: 0;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\0000356}}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\0000357}}
+.subnav .nav > .active > a -webkit-box-shadow: inset 03px5pxrgba(0 -moz-box-shadow: inset 03px5pxrgba(0,
+.subnav .nav > .active > a:hover -webkit-box-shadow: inset 03px5pxrgba(0 -moz-box-shadow: inset 03px5pxrgba(0,
+.subnav .nav > .active > a 0 -moz-box-shadow: inset 03px5pxrgba(0,
+.subnav .nav > .active > a:hover 0 -moz-box-shadow: inset 03px5pxrgba(0,
+.subnav .nav > .active > a 0 -moz-box-shadow: inset 03px5pxrgba(0,
+.subnav .nav > .active > a:hover 0 -moz-box-shadow: inset 03px5pxrgba(0,
+.subnav .nav > .active > a 0.05) -moz-box-shadow: inset 03px5pxrgba(0,
+.subnav .nav > .active > a:hover 0.05) -moz-box-shadow: inset 03px5pxrgba(0,
+.subnav .nav > .active > a -webkit-box-shadow: inset 03px5pxrgba(0 0,
+.subnav .nav > .active > a:hover -webkit-box-shadow: inset 03px5pxrgba(0 0,
+.subnav .nav > .active > a 0 0,
+.subnav .nav > .active > a:hover 0 0,
+.subnav .nav > .active > a 0 0,
+.subnav .nav > .active > a:hover 0 0,
+.subnav .nav > .active > a 0.05) 0,
+.subnav .nav > .active > a:hover 0.05) 0,
+.subnav .nav > .active > a -webkit-box-shadow: inset 03px5pxrgba(0 0,
+.subnav .nav > .active > a:hover -webkit-box-shadow: inset 03px5pxrgba(0 0,
+.subnav .nav > .active > a 0 0,
+.subnav .nav > .active > a:hover 0 0,
+.subnav .nav > .active > a 0 0,
+.subnav .nav > .active > a:hover 0 0,
+.subnav .nav > .active > a 0.05) 0,
+.subnav .nav > .active > a:hover 0.05) 0,
+.subnav .nav > .active > a -webkit-box-shadow: inset 03px5pxrgba(0 0.05),
+.subnav .nav > .active > a:hover -webkit-box-shadow: inset 03px5pxrgba(0 0.05),
+.subnav .nav > .active > a 0 0.05),
+.subnav .nav > .active > a:hover 0 0.05),
+.subnav .nav > .active > a 0 0.05),
+.subnav .nav > .active > a:hover 0 0.05),
+.subnav .nav > .active > a 0.05) 0.05),
+.subnav .nav > .active > a:hover 0.05) 0.05) {
+  box-shadow: inset 0 3px 5px rgba(0,0,0,0.05);
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\0000360}}
+.subnav .nav > .active > a .caret,
+.subnav .nav > .active > a:hover .caret {
+  border-top-color: #777;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\0000364}}
+.subnav .nav > li:first-child > a,
+.subnav .nav > li:first-child > a:hover {
+  border-left: 0;
+  padding-left: 12px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\0000368}}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\0000369}}
+.subnav .nav > li:first-child > a -webkit-border-radius: 4px004px -moz-border-radius: 4px004px,
+.subnav .nav > li:first-child > a:hover -webkit-border-radius: 4px004px -moz-border-radius: 4px004px {
+  border-radius: 4px 0 0 4px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\0000372}}
+.subnav .nav > li:last-child > a {
+  border-right: 0;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\0000375}}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\0000376}}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\0000377}}
+.subnav .dropdown-menu -webkit-border-radius: 004px4px -moz-border-radius: 004px4px {
+  border-radius: 0 0 4px 4px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\0000380}}
+.subnav-fixed-top {
+  position: fixed;
+  top: 40px;
+  right: 0;
+  left: 0;
+  z-index: 1020;
+  margin-bottom: 0;
+  border-color: #d5d5d5;
+  border-width: 0 0 1px;
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  -border-radius: 0;
+  -webkit-box-shadow: inset 0 1px 0 #fff, 0 1px 5px rgba(0,0,0,0.10);
+  -moz-box-shadow: inset 0 1px 0 #fff, 0 1px 5px rgba(0,0,0,0.10);
+  -box-shadow: inset 0 1px 0 #fff, 0 1px 5px rgba(0,0,0,0.10);
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\0000395}}
+.subnav-fixed-top filter progid:DXImageTransform.Microsoft.gradient(enabled=false),
+.subnav-fixed-top .container {
+  width: 940px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003100}}
+.subnav-fixed-top .nav-inner {
+  padding-left: 0;
+  padding-right: 0;
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  border-radius: 0;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003108}}
+/*
+.navbar-fixed-top
+  .navbar-inner
+    background-color #08C
+    background-image none
+  .nav li a
+    color #BBB
+*/
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003117}}
+.footer {
+  background-color: #f6f6f6;
+  clear: both;
+  margin: 30px 0px 40px 0px;
+  padding: 15px 0px 15px 0px;
+  border: 1px solid #ddd;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003124}}
+.footer-bar {
+  text-align: center;
+  vertical-align: middle;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003128}}
+.footer-bar a.footer-link {
+  font-size: small;
+  padding: 0px 8px 0px 8px;
+  text-decoration: none;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003133}}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003134}}
+.nav-fixed-top .dropdown-menu:before {
+  display: none;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003137}}
+/********************************/
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003138}}
+/* HOME PAGE AND STATIC CONTENT */
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003139}}
+/********************************/
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003141}}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003143}}
+.home-page .carousel {
+  margin-top: 20px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003145}}
+.home-page .carousel .item {
+  height: 247px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003148}}
+.home-page .thumbnails {
+  margin-top: 40px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003151}}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003153}}
+.home-page .home-detail .thumbnail {
+  min-height: 130px;
+  margin-bottom: 40px;
+  border: none;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003158}}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003160}}
+.home-page .sponsor-bar .byline {
+  font-weight: bold;
+  padding-bottom: 10px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003164}}
+.home-page .sponsor-bar .thumbnail {
+  border: none;
+  box-shadow: none;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003168}}
+.home-page .sponsor-bar img {
+  margin-left: 100px;
+  margin-bottom: 20px;
+  text-align: center;
+  max-width: 200px;
+  max-height: 120px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003175}}
+.home-page .hero-unit {
+  padding: 75px;
+  background-color: #f0f0f0;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003179}}
+.home-page .carousel {
+  border: solid #888 1px 1px;
+  box-shadow: #333 4px 4px 6px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003183}}
+/*
+  #study1
+    text-align right
+    background url('/img/stock/ocean1.jpg') 50% 50% no-repeat
+    color #EEE
+    text-shadow #333 3px 3px 2px
+
+    h1
+      color #EEE
+      text-shadow #333 4px 4px 3px
+*/
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003195}}
+/* Modal Dialogs */
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003197}}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003198}}
+.modal-body .forgot-line {
+  text-align: center;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003201}}
+/********************************/
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003202}}
+/* ARTICLE PAGE                 */
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003203}}
+/********************************/
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003205}}
+.hidden {
+  display: none;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003208}}
+.admin-link {
+  float: right;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003211}}
+.article {
+  padding-bottom: 20px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003214}}
+.article img {
+  border: 1px solid;
+  padding: 5px 5px 5px 5px;
+  margin-top: 20px;
+  margin-left: 10px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003220}}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003221}}
+.study1-author dd {
+  margin-bottom: 20px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003224}}
+/*********************/
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003225}}
+/* DISCUSSION WIDGET */
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003226}}
+/*********************/
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003228}}
+div.comment-form textarea {
+  min-width: 400px;
+  min-height: 100px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003232}}
+div.discussion {
+  margin-left: 30px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003235}}
+.discussion-byline {
+  font-size: 80%;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003238}}
+div.discussion-0 {
+  margin-left: 0px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003240}}
+div.discussion-0 p {
+  font-weight: bold;
+  font-size: 120%;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003244}}
+div.discussion-1 p {
+  font-weight: normal;
+  font-size: 100%;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003248}}
+/* STUDY 1 */
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003250}}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003252}}
+.study1-author .head {
+  margin-top: 10px;
+  width: 500px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003256}}
+.study1-author label {
+  font-weight: bold;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003259}}
+.study1-author i {
+  font-size: x-small;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003263}}
+.chart2 {
+  font: 10px sans-serif;
+  color: #000;
+  fill: none;
+  padding: 5px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003269}}
+.chart2 .glyph {
+  fill: none;
+  stroke: #4682b4;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003273}}
+.chart2 rect {
+  fill: #4682b4;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003276}}
+.chart2 text {
+  fill: #fff;
+  stroke: none;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003280}}
+.chart2 path {
+  fill: none;
+  stroke: #c0d;
+  stroke-width: 2px;
+  stroke-opacity: 0.5;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003286}}
+.rule {
+  stroke: #808080;
+  fill: #808080;
+}

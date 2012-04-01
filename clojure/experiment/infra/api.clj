@@ -2,7 +2,7 @@
   (:use noir.core
 	experiment.infra.models)
   (:require
-   [clojure.data.json :as json]
+   [cheshire.core :as json]
    [noir.response :as response]
    [noir.request :as request]))
 
@@ -49,12 +49,25 @@
     (server->client 
      (update-model! model))))
 
+;; Convenience for setting kv-pairs at an interior point in a document
+(defn modify-response [write]
+  (let [cmdRes (.getCachedLastError write)]
+    (if (.ok cmdRes)
+      {:result "success"}
+      {:result "error" :message (.getErrorMessage cmdRes)})))
+
+(defapi backbone-api-update-path [:put "/api/bone/:type/:id/:path"]
+  {:keys [type id path json-payload]}
+  (modify-response
+   (modify-model! {:type type :_id id}
+                  (update-by-modifiers json-payload path))))
+                   
 ;; Read - GET
 (defapi backbone-api-read-all [:get "/api/bone/:type"]
   {:keys [type options] :as params}
   (vec
    (map server->client
-        (apply fetch-models type (when options (json/read-json options true))))))
+        (apply fetch-models type (when options (json/parse-string options true))))))
 
 (defapi backbone-api-read [:get "/api/bone/:type/:id"]
   {:keys [type id] :as params}
@@ -83,41 +96,41 @@
 ;; - Submodels adhere to client-server protocol?
 ;; - Submodels also use the :_id field for consistency
 ;;
-(defapi backbone-sub-api-create [:post "/api/bones/:mtype/:mid/:location"]
+(defapi backbone-sub-api-create [:post "/api/embed/:mtype/:mid/:location"]
   {:keys [mtype mid location json-payload] :as args}
   (let [parent (resolve-dbref mtype mid)]
     (when-let [submodel (and parent (new-client->server json-payload))]
       (create-submodel! parent location submodel))))
 
 ;; Get Submodel at location + id
-(defapi backbone-sub-api-read [:get "/api/bones/:mtype/:mid/:location/:id"]
+(defapi backbone-sub-api-read [:get "/api/embed/:mtype/:mid/:location/:id"]
   {:keys [mtype mid location id] :as args}
   (let [parent (resolve-dbref mtype mid)]
     (server->client
      (get-submodel parent (submodel-path location id)))))
 
 ;; Get All Submodels at Location
-(defapi backbone-sub-api-read-all [:get "/api/bones/:mtype/:mid/:location"]
+(defapi backbone-sub-api-read-all [:get "/api/embed/:mtype/:mid/:location*"]
   {:keys [mtype mid location] :as args}
   (let [parent (resolve-dbref mtype mid)]
     (server->client
      (vals (get-submodel parent location)))))
 
 ;; Update Submodel 
-(defapi backbone-sub-api-update [:put "/api/bones/:mtype/:mid/:location/:id"]
+(defapi backbone-sub-api-update [:put "/api/embed/:mtype/:mid/:location*"]
   {:keys [mtype mid location id json-payload] :as args}
-  (set-submodel! {:type mtype :_id (deserialize-id mid)}
+  (set-submodel! {:type (:type json-payload) :_id (deserialize-id mid)}
                  (submodel-path location id)
                  (client->server json-payload)))
 
 ;; Update all submodels (this overwrites everything)
 ;; NOTE: Does this do the right thing with submodel updates?
-(defapi backbone-sub-api-update-all [:put "/api/bones/:mtype/:mid/:location"]
+(defapi backbone-sub-api-update-all [:put "/api/embed/:mtype/:mid/:location*"]
   {:keys [mtype mid location json-payload] :as args}
   (assert (and (sequential? json-payload) false)) ;; Test before allowing
   (server->client 
    (let [objects (zipmap (map :id json-payload) (map client->server json-payload))]
-     (set-submodel! {:type mtype :_id (deserialize-id mid)}
+     (set-submodel! {:type (:type json-payload) :_id (deserialize-id mid)}
                     location
                     objects))))
 
@@ -131,6 +144,8 @@
   {:keys [type json-payload]}
   (server->client
    (delete-submodel! (client->server json-payload))))
+
+
 
 
 ;; -------------------------------------------

@@ -10,7 +10,7 @@
             [experiment.infra.session :as session]
             [experiment.libs.properties :as props]
             [oauth.signature :as sig]
-            [clj-json.core :as json]
+            [cheshire.core :as json]
             [clj-http.client :as http]))
 
 (def consumer

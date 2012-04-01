@@ -2,7 +2,6 @@
   (:require [somnium.congomongo :as mongo]
 	    [noir.response :as response]
 	    [noir.request :as request]
-	    [clojure.data.json :as json]
 	    [clojure.string :as str])
   (:import [org.bson.types ObjectId])
   (:use noir.core

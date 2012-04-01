@@ -8,7 +8,8 @@
    experiment.views.menu)
   (:require 
    [clojure.tools.logging :as log]
-   [clj-json.core :as json]
+   [clojure.string :as str]
+   [cheshire.core :as json]
    [noir.request :as req]
    [noir.response :as resp]
    [experiment.libs.properties :as props]
@@ -34,11 +35,12 @@
 (defn layout-header [title]
   (list
    [:title title]
+   [:meta {:charset "utf-8"}]
+   [:meta {:http-equiv "X-UA-Compatible" :content "chrome=1"}]
+   [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]
    [:meta {:name "author" :content "Ian Eslick"}]
    [:meta {:name "description" :content "Personal Experiments"}]
-   [:link {:rel "shortcut icon" :href "/img/favicon.ico"}]
-   [:meta {:http-equiv "X-UA-Compatible" :content "chrome=1"}]
-   [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]))
+   [:link {:rel "shortcut icon" :href "/img/favicon.ico"}]))
 
 
 ;; ## CSS Libraries
@@ -46,46 +48,23 @@
   (include-css "/css/bootstrap.css")
   (include-css "/css/override.css")
   (include-css "/css/autoSuggest.css")
-  (include-css "/css/calendar.css"))
+  (include-css "/css/calendar.css")
+  (include-css "/css/smoothness/jquery-ui-1.8.18.custom.css"))
 
 ;; ## Javascript Libraries
-(defn- include-jquery
-  []
-  (if (= (props/get :mode) :dev)
-    [:script {:type "text/javascript", :src "http://code.jquery.com/jquery-1.7.1.js"}]
-    [:script {:type "text/javascript", :src "http://code.jquery.com/jquery-1.7.1.min.js"}]))
-
-(defn- include-js-libs
-  "Development versions of JS libraries"
-  []
-  (if (= (props/get :mode) :dev)
-    (include-js "/js/vendor/jquery.autoSuggest.js"
-                "/js/vendor/bootstrap.js"
-                "/js/vendor/d3.js"
-                "/js/vendor/d3.time.js"
-                "/js/qi-chart.js"
-                "/js/vendor/handlebars.1.0.0.beta.3.js"
-                "/js/vendor/underscore-131.js"
-                "/js/vendor/backbone-091.js"
-                "/js/vendor/backbone-forms.js"
-                "/js/vendor/backbone-forms-bootstrap.js"
-                "/js/vendor/jquery-ui-editors.js"
-                "/js/dialog.js"
-                )
-    (include-js "/js/vendor/jquery.autoSuggest.packed.js"
-                "/js/vendor/bootstrap.min.js"
-                "/js/vendor/d3.min.js"
-                "/js/vendor/d3.time.min.js"
-                "/js/qi-chart.js"
-                "/js/vendor/handlebars.1.0.0.beta.3.js"
-                "/js/vendor/underscore-min-131.js"
-                "/js/vendor/backbone-min-091.js"
-                "/js/vendor/backbone-forms.js"
-                "/js/vendor/backbone-forms-bootstrap.js"
-                "/js/vendor/jquery-ui-editors.js"
-                "/js/dialog.js"
-                )))
-
+(defpartial require-js [deps]
+  [:script
+   {:type "text/javascript"
+    :src "/js/libs/require/require.js"
+    :data-main "/js/load"}]
+  (when-let [depstring (map #(format "'%s'" %) deps)]
+    (println depstring)
+    [:script
+     {:type "text/javascript"}
+     "console.log('loading dependencies for: " (format "%s" deps) "');\n"
+     "require(["
+     (str/join ", " (map #(format "'%s'" %) deps))
+     "], function () { console.log('loaded dependencies for: " (format "%s" deps) "') });"]))
 
 ;;
 ;; Support Standard Page Layouts and Structure
@@ -100,12 +79,12 @@
 ;;   {:name "Site Analysis" :href "/article/analysis"}
    {:lprops {:class "divider"}}
    {:name "MIT's New Media Medicine" :href "http://newmed.media.mit.edu/"}
-   {:name "Lybba.org" :href "http://lybba.org"}
+   {:name "Lybba.org" :href "http://lybba.org"} 
    {:name "C3N Project At CCHMC" :href "Http://c3nproject.org"}])
 
 (defn- user-submenu []
-  [{:name '([:i.icon-cog] " Settings")
-    :href "/settings"}
+  [{:name '([:i.icon-cog] "Account")
+    :href "/account"}
    {:name '([:i.icon-question-sign] " Help")
     :href "/help"}
    {:lprops {:class "divider"}}
@@ -116,25 +95,25 @@
   (if-let [user (session/current-user)]
     {:nav
      {:active active
-      :main [{:name "Dashboard" :href "/"}
-             {:name "Explore"   :href "/explore"
+      :main [{:tag "dashboard" :name "Dashboard" :href "/"}
+             {:tag "explore" :name "Explore"   :href "/explore"
               :aprops {:class "explore-link"}}
              {:name "Research" :href "#"
               :submenu (research-submenu)}
-             {:name "About" :href "/article/about"}]
+             {:tag "about" :name "About" :href "/article/about"}]
       :ctrl [{:name (nav-user-name user)
               :submenu (user-submenu)}]}}
 ;;     :crumbs [{:name "Home" :href "/"}
 ;;             {:name "Dashboard" :href "/dashboard"}]}
     {:nav
      {:active active
-      :main [{:name "Home" :href "/"}
-             {:name "Research" :href "#"
+      :main [{:tag "home" :name "Home" :href "/"}
+             {:tag "research" :name "Research" :href "#"
               :submenu (research-submenu)}
-             {:name "About" :href "/article/about"}]
-      :ctrl [{:name "Register" :href "#registerModal"
+             {:tag "about" :name "About" :href "/article/about"}]
+      :ctrl [{:tag "register" :name "Register" :href "#registerModal"
               :aprops {:class "register-button"}}
-             {:name "Login" :href "#loginModal"
+             {:tag "login" :name "Login" :href "#loginModal"
               :aprops {:class "login-button"}}]}}))
 
 
@@ -153,30 +132,40 @@
 
 ;; ## Default Page
 
+(defn render-spinner []
+  [:div#spinner.spinner
+   {:style "display:none"}
+   [:img#img-spinner
+    {:src "/img/spinner.gif" :alt "Loading"}]])
+
 (declare render-dialogs)
 
-(defpartial page-frame [[title & [fixed-size]] & body-content]
+(defpartial page-frame [[title & {:keys [fixed-size deps]}] & body-content]
   (html5
    [:head
     (layout-header title)
-    (include-jquery)
-    (include-css-libs)
+    (require-js deps)
     (google/include-analytics)
+    (include-css-libs)
     ]
    [:body {:style (str "padding-top:" (or fixed-size 40) "px; padding-bottom:40px;")}
-;;    (facebook/include-jsapi)
     body-content
     (render-footer)
     (render-dialogs)
-    (include-js-libs)]))
+    (render-spinner)]))
+
+;;    (facebook/include-jsapi)
+;;    (include-js-libs)
     
-(defpartial layout [title nav & content]
-  (page-frame [title (if (:subnav nav) 80 40)]
-   (nav-fixed (:nav nav))
-   (subnav-fixed (:subnav nav))
-   (when-let [crumbs (:crumbs nav)]
-     (breadcrumbs crumbs))
-   content))
+(defpartial layout [[title nav & rest] & content]
+  (page-frame (vec
+               (concat (list title :fixed-size (if (:subnav nav) 80 40))
+                       rest))
+    (nav-fixed (:nav nav))
+    (subnav-fixed (:subnav nav))
+    (when-let [crumbs (:crumbs nav)]
+      (breadcrumbs crumbs))
+    content))
 
 
 ;; ## Simple content pages
@@ -210,18 +199,18 @@
 (defn bootstrap-collection-expr [name coll]
   (str name ".reset("
        (json/generate-string
-	(models/server->client coll))
+        (models/server->client coll))
        ");"))
 
 (defn bootstrap-instance-expr [name coll]
   (str name ".set("
        (json/generate-string
-	(models/server->client coll))
+        (models/server->client coll))
        ");"))
 
 (defpartial send-user []
   [:script {:type "text/javascript"}
-   (bootstrap-instance-expr "window.ExApp.User" (session/current-user))])
+   (bootstrap-instance-expr "window.PE.App.User" (session/current-user))])
 
 
 ;; ## Send client-side templates

@@ -1,6 +1,8 @@
 (ns experiment.infra.models
-  (:use noir.core)
+  (:use
+   noir.core)
   (:require
+   clojure.set
    [noir.response :as response]
    [noir.request :as request]
    [somnium.congomongo :as mongo]
@@ -32,6 +34,11 @@
        (:_id model)
        (instance? ObjectId (:_id model))))
 
+(defn submodel? 
+  "A predict to test that we have a valid submodel"
+  [submodel]
+  (and (:type submodel)))
+
 (defmulti valid-model? 
   "Enforces invariant properties of a specific model.  Model
    creation and updating both must satisfy this test for
@@ -52,6 +59,16 @@
    the parent's collection + id + path"
   (fn [model] (when-let [type (:type model)]
                 (keyword type))))
+
+(defmulti submodel-path
+  "Maps a submodel type to a path in the parent model"
+  (fn [model submodel]
+    (let [ptype (:type model)
+          stype (:type submodel)]
+      (when (and ptype stype)
+        [(keyword ptype)
+         (keyword stype)]))))
+  
 
 (defmulti public-keys 
   "Performs a select-keys on client data so we don't store
@@ -94,7 +111,7 @@
     (do (assert (:type model))
         (name (:type model)))
     (do (assert (or (string? model) (keyword? model)))
-        (model-collection {:type type}))))
+        (name model))))
 
 (defmethod db-reference-params :default
   [model]
@@ -118,6 +135,9 @@
 
 (defn objectid? [id]
   (= (type id) ObjectId))
+
+(defn dbref? [ref]
+  (= (type ref) DBRef))
 
 (defn embedded-objectid? [id]
   (and (= (count id) 25)
@@ -234,8 +254,16 @@
 
 (defn assign-uid [model]
   (if (not (:_id model))
-    (assoc model :_id (str "*" (ObjectId/get)))))
-  
+    (assoc model :_id (str "SM" (ObjectId/get)))))
+
+(defn embed-dbrefs [model]
+  (clojure.walk/prewalk
+   (fn [node]
+     (if (dbref? node)
+       (resolve-dbref node)
+       node))
+   model))
+
 
 ;; Extend DBRef with IDeref protocol for dereferencing?
 ;;
@@ -254,32 +282,42 @@
         (let [fields (str/split location #"\.")]
           (get-in model (map keyword fields)))
         (keyword? location)
-        (model location)))
+        (model location)
+        (sequential? location)
+        (get-in model location)))
+        
 
-(defn submodel-path
+(defn serialize-path
   "Make a mongo-friendly sub-object path from a dotted location
    string, an array of keys"
-  [location leaf]
-  (if (sequential? location)
-    (str/join \. (conj (map name location) (name leaf)))
-    (str/join \. (list (name location) (name leaf)))))
+  ([location leaf]
+     (if (sequential? location)
+       (serialize-path (concat location (list leaf)))
+       (serialize-path (list (name location) (name leaf)))))
+  ([location]
+     (if (sequential? location)
+       (str/join \. (map name location))
+       location)))
 
-(defn submodel-slot-paths
+(defn- serialize-slot-paths
   "Return a map from model keys to keys that are paths
    to the keys of an embedded model"
   [model path]
   (zipmap (keys model)
-          (map (comp (partial submodel-path path) name)
+          (map (comp (partial serialize-path path) name)
                (keys model))))
 
-(defn- update-by-modifiers
+(defn null-value-keys [model]
+  (map first (filter #(nil? (second %)) model)))
+
+(defn update-by-modifiers
   ([model]
      (let [bare (dissoc model :_id :id :type)]
        {:$set bare}))
   ([submodel path]
      {:$set (clojure.set/rename-keys
-             (dissoc submodel :_id :id :type)
-             (submodel-slot-paths submodel path))}))
+             submodel
+             (serialize-slot-paths submodel path))}))
 
 (defmacro nil-on-empty [body]
   `(let [result# ~body]
@@ -290,9 +328,18 @@
 (defn translate-options
   "Convert our options to an mongo argument list"
   [options]
-  (cond (empty? options) '()
-        (keyword? (first options)) options
-        true (cons :where options)))
+  (let [lead (first options)]
+    (assert lead)
+    (cond (or (keyword? lead) (string? lead))
+          (cond (empty? (rest options))
+                (list lead)
+                (map? (second options))
+                (concat (list lead :where)
+                        (rest options))
+                true options)
+          (map? lead)
+          (concat (list (:type lead) :where (dissoc lead :type))
+                  (rest options)))))
 
 ;; ### Main internal API for Client-Server transforms
 
@@ -369,6 +416,8 @@
 ;; Model CRUD API implementation
 
 (defn create-model!
+  "Create a new model in the database using all the model hooks defined
+   above"
   [model]
   (assert (not (model? model)))
   (if (valid-model? model)
@@ -376,6 +425,10 @@
     (noir.response/status 500 "Invalid Model")))
 
 (defn update-model!
+  "Update model merges the provided key-value pairs with the
+   database key-value pair set.  Setting any key-value pair
+   with embedded objects will overwrite the entire set (i.e.
+   no merging or appending of elements in a value"
   [model]
   (if (valid-model? model)
     (mongo/update! (model-collection model)
@@ -385,6 +438,8 @@
     (noir.response/status 500 "Invalid Model")))
 
 (defn modify-model!
+  "A cheap hack to open up the use of raw Mongo APIs for modifying
+   a document."
   [model modifier]
   (assert (map? modifier))
   (mongo/update! (model-collection model)
@@ -393,21 +448,22 @@
                  :upsert false))
                  
 (defn fetch-model
-  [type & options]
+  "Get a model from the database"
+  [& options]
   (nil-on-empty
-   (apply mongo/fetch-one
-          (model-collection {:type type})
-          (translate-options options))))
+   (let [[type & args] (translate-options options)]
+     (apply mongo/fetch-one (model-collection type) args))))
 
 (defn fetch-models
-  [type & options]
-  (apply mongo/fetch
-	 (model-collection {:type type})
-	 (translate-options options)))
+  "Get a seq of models from the database"
+  [& options]
+  (let [[type & args] (translate-options options)]
+    (apply mongo/fetch (model-collection type) args)))
 
 (defn delete-model!
+  "Delete a model from the database; must have a valid :_id"
   [model]
-  (assert (:type model) (:_id model))
+  (assert (and (:type model) (:_id model)))
   (delete-model-hook model)
   (mongo/destroy! (model-collection {:type (:type model)})
 		  (select-keys model [:_id]))
@@ -432,25 +488,40 @@
          get-submodel get-submodels
          delete-submodel!)
 
+(defmethod submodel-path :default [model submodel]
+  [(:type submodel) (:_id submodel)])
+
 (defn create-submodel!
-  [model location submodel]
-  (let [new (assign-uid submodel)]
+  [model submodel]
+  (assert (and (model? model) (submodel? submodel)))
+  (let [new (assign-uid submodel)
+        path (submodel-path model submodel)
+        leaf (:_id new)
+        leafpath (serialize-path path leaf)]
+    ;; Ensure that the leaf entry exists to hold our slots
     (mongo/update! (model-collection model)
                    (select-keys model [:_id])
-                   (update-by-modifiers
-                    new
-                    (submodel-path location new)))))
+                   {:$set {(serialize-path path) {leaf {}}}})
+    ;; Insert all the slots
+    (mongo/update! (model-collection model)
+                   (select-keys model [:_id])
+                   (update-by-modifiers new path))))
+                    
 
-(defn get-submodel [model location]
-  (lookup-location
-   (mongo/fetch-one (model-collection model)
-                    :where (select-keys model [:_id])
-                    :only [location])
-   location))
+(defn get-submodel [model ref]
+  (assert (and (:type ref) (:_id ref)))
+  (let [path (submodel-path model ref)]
+    (lookup-location
+     (mongo/fetch-one (model-collection model)
+                      :where (select-keys model [:_id])
+                      :only [(serialize-path path)])
+     path)))
 
 (defn get-submodels
-  [model location]
-  (get-submodel model location))
+  [model type]
+  (mongo/fetch (model-collection model)
+               :where (select-keys model [:_id])
+               :only (serialize-path (submodel-path model {:type type}))))
 
 (defn set-submodel!
   [model location submodel]
@@ -465,14 +536,6 @@
   (mongo/update! (model-collection model)
                  (select-keys model [:_id])
                  {:$unset {location 1}}))
-  
-;; Legacy
-(defmethod annotate-model! :default
-  [model location annotation]
-  (mongo/update! (model-collection model)
-                  (select-keys model [:_id])
-                  {:$push { location annotation }}
-                  :upsert false))
 
 ;; ## Misc Store Utilities
 

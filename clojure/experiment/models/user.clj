@@ -30,7 +30,8 @@
 ;;    ...
 ;;
 ;;  :trackers []
-;;  :active_trials []
+;;  :trials []
+;;  :past_trials []
 
 ;; ## Convenience methods
 
@@ -50,7 +51,8 @@
   "Model for reference"
   [reference]
   (cond (string? reference)
-	(fetch-model :user {:username reference})
+	(or (fetch-model :user {:username reference})
+            (fetch-model :user {:email reference}))
 	true
 	(resolve-dbref reference)))
 
@@ -63,6 +65,32 @@
 (defmethod public-keys :user [user]
   (keys (apply dissoc user
                [:updates :permissions :password :salt :dataid :state])))
+
+;; ## Trials
+
+(defn trials [user]
+  (vals (:trials user)))
+
+(defn has-trials? [user]
+  (if (not (empty? (:trials user))) true false))
+
+;; ## Trackers
+
+(defn add-tracker! [user instrument schedule]
+  (create-submodel!
+   user
+   {:type "tracker"
+    :instrument (as-dbref instrument)
+    :schedule schedule}))
+
+(defn trackers [user]
+  (vals (:trakers user)))
+
+(defn has-trackers? [user]
+  (if (not (empty? (trackers user))) true false))
+
+(defn remove-tracker! [user tracker]
+  (delete-submodel! user tracker))
 
 ;; ## Services
 

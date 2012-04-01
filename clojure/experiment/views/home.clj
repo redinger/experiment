@@ -2,14 +2,13 @@
   (:require
    [experiment.views.common :as common]
    [experiment.infra.session :as session]
-   [clojure.data.json :as json]
    [somnium.congomongo :as mongo]
    [noir.response :as resp]
    [noir.util.crypt :as crypt])
   (:use noir.core
         hiccup.core
         hiccup.page-helpers
-	[hiccup.form-helpers :exclude [input form-to]]
+        [hiccup.form-helpers :exclude [input form-to]]
         experiment.views.bootstrap))
 
 ;; Home Page Layout
@@ -120,8 +119,8 @@
 
 (defpage public-home-page "/" {}
   (common/layout
-   "Welcome to Personal Experiments"
-   (common/default-nav "Home")
+   ["Welcome to Personal Experiments"
+    (common/default-nav "Home")]
    [:div.container.home-page
     (home-carousel "homeCarousel")
     (home-page-details)

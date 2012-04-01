@@ -14,8 +14,9 @@
 (defmethod db-reference-params :trial [model]
   [:experiment])
 
-;;(defmethod client-keys :trial [model]
-;;  [:_id :type :duration :experiment :sms? :user])
+(defmethod public-keys :trial [model]
+  [:_id :type :user :experiment
+   :schedule :status])
 
 (defn human-status [trial]
   ({:active "Active"

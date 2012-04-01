@@ -1,21 +1,23 @@
 (ns experiment.views.dashboard
+  (:use
+   noir.core
+   hiccup.core
+   hiccup.page-helpers
+   hiccup.form-helpers
+   experiment.models.suggestions
+   experiment.views.common
+   experiment.views.menu
+   handlebars.templates)
   (:require
-   [clojure.data.json :as json]
+   [cheshire.core :as json]
    [noir.response :as resp]
-   [experiment.infra.models :as models]
    [experiment.infra.session :as session]
+   [experiment.infra.models :as models]
    [experiment.models.user :as user]
    [experiment.models.profile]
    [experiment.models.events :as events]
-   [experiment.views.google :as google])
-  (:use noir.core
-        hiccup.core
-        hiccup.page-helpers
-	hiccup.form-helpers
-	experiment.models.suggestions
-        experiment.views.common
-        experiment.views.menu
-	handlebars.templates))
+   [experiment.views.trials :as trials]))
+
 
 ;; ---------------------------------
 ;; Dashboard 
@@ -28,15 +30,12 @@
 ;; See views/common.clj for the static page template and menu
 ;; rendering
 
-(defn current-trials []
-  (:trials (session/current-user)))
-
 (defn menu-content []
   [["dashboard" "Dashboard"]
    (concat ["trials" "Trials"]
            (map (fn [model num]
                   [(:_id model) (str "Trial " num)])
-                (current-trials)
+                (user/trials)
                 (range 1 10)))
    ["search" "Search"]
    (when (user/is-admin?)
@@ -63,42 +62,61 @@
      (map #(apply bootstrap-collection-expr %)
 	  [["window.ExApp.Instruments" (models/fetch-models :instrument)]
 	   ["window.ExApp.Experiments" (models/fetch-models :experiment)]
-	   ["window.ExApp.MyTrials"
-	    (models/fetch-models :trial {:user username})]
 	   ["window.ExApp.Treatments" (models/fetch-models :treatment)]
-	   ["window.ExApp.MyTrackers"
-	    (models/fetch-models :tracker {:user.$id (:_id user)}
-				 :only [:user :instrument :type :state])]
            ["window.ExApp.Users"
             (models/fetch-models :user :only [:username :type])]])
      (str "window.ExApp.Suggestions.reset("
-	  (json/json-str (compute-suggestions))
+	  (json/generate-string (compute-suggestions))
 	  ");")]))
 
-(defpartial dashboard-layout []
+(defn dashboard-subnav [current]
+  {:menu
+   [{:tag "overview" :name "Overview" :href "/dashboard/overview"}
+;;    {:name "Trials" :href "#"}
+    {:tag "timeline" :name "Timeline" :href "/dashboard/timeline"}
+    {:tag "events" :name "Events" :href "/dashboard/events"}
+;;    {:name "Activity" :href "#"}
+    {:tag "journal" :name "Journal" :href "/dashboard/journal"}]
+   :active current})
+
+(defpartial dashboard-layout [options]
   (page-frame
-   ["Personal Experiments Dashboard" 80]
-   (nav-fixed (:nav (default-nav "Dashboard")))
-   (subnav-fixed (:subnav (default-nav "Dashboard")))
+   ["Personal Experiments Dashboard"
+    :fixed-size 80
+    :deps ["views/dialog", "views/dashboard"]]
+   (nav-fixed (:nav (default-nav "dashboard")))
+   (subnav-fixed (dashboard-subnav (:subnav options)))
    [:div.container
-;;     (app-pane)
-;;     (nav-layout)
-    [:div.page-header
-     [:h1 "Your Personal Experiment Dashboard (COMING SOON)"]]
-    [:div.hidden
-      (render-all-templates)
-      (include-js "/js/app.js")
-      (send-user)
-      (bootstrap-data)]]))
+    [:br]
+    [:div.row
+     [:div.span12
+      (trials/trial-summary
+       (session/current-user)
+       options)]]
+    [:hr]
+    [:div.row
+     [:div.span4 {:style "height:250px;"}
+      "Calendar"]
+     [:div.span4 {:style "height:250px;"}
+      "Trackers"]
+     [:div.span4 {:style "height:250px;"}
+      "Feed"]]]
+   [:div.hidden
+    (render-all-templates)
+;;    (send-user)
+;;    (bootstrap-data)
+    ]))
 
-(defpage "/dashboard*" {}
-  (dashboard-layout))
+(defpage dashboard-dispatch "/dashboard/:subnav" {:as options}
+  (dashboard-layout options))
 
+(defpage dashboard-redir "/dashboard" {:as options}
+  (resp/redirect "/dashboard/overview"))
 
-(defpage "/explore*" {}
+(defpage "/explore*" {:as options}
   (page-frame
    ["Explore Experiments"]
-   (nav-fixed (:nav (default-nav "Explore")))
+   (nav-fixed (:nav (default-nav "explore")))
    [:div.container
     [:div.page-header
      [:h1 "Browse and Search Experiments (COMING SOON)"]]]))

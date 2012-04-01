@@ -11,7 +11,6 @@
    [experiment.libs.properties :as props]
    [experiment.models.events :as events]
    [experiment.models.trackers :as track]
-   [clojure.data.json :as json]
    [somnium.congomongo :as mongo]
    [experiment.infra.api]))
 
@@ -81,7 +80,7 @@
                     {:level :debug
                      :pattern "%d - %m%n"}
                     "org.mortbay.log"
-                    {:level :debug}
+                    {:level :error}
                     "org.quartz.core.QuartzSchedulerThread"
                     {:level :error})
       (set-logger! "default"

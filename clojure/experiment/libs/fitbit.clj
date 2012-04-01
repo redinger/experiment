@@ -3,7 +3,7 @@
         hiccup.core
         experiment.infra.models)
   (:require [clojure.math.numeric-tower :as math]
-            [clj-json.core :as json]
+            [cheshire.core :as json]
             [clj-http.client :as http]
             [clj-time.core :as time]
             [oauth.client :as oauth]

@@ -3,7 +3,7 @@
   (:require [clj-http.client :as http]
 	    [clj-time.core :as time]
 	    clj-time.format
-	    [clojure.data.json :as json]
+	    [cheshire.core :as json]
 	    [somnium.congomongo :as mongo]))
 
 
@@ -14,7 +14,7 @@
 
 (defn strava-request [command & args]
   (let [argmap (apply hash-map args)]
-    (json/read-json
+    (json/parse-string
      (:body (http/get (strava-url command)
 		      {:query-params argmap}))
      true)))

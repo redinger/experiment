@@ -3,17 +3,13 @@
         hiccup.core
         hiccup.page-helpers
         [hiccup.form-helpers :exclude [form-to label]]
-	experiment.infra.models
-	experiment.models.user
+        experiment.infra.models
+        experiment.models.user
         experiment.models.article
         experiment.views.bootstrap
         experiment.views.discuss)
   (:require
-   [clojure.string :as str]
-   [clojure.data.json :as json]
-   [experiment.libs.datetime :as dt]
    [clojure.tools.logging :as log]
-   [somnium.congomongo :as mongo]
    [noir.response :as resp]
    [noir.request :as req]
    [experiment.infra.session :as session]
@@ -26,8 +22,8 @@
 
 (defpage "/help" {}
   (common/layout
-   "Help Page"
-   (common/default-nav (common/nav-user-name))
+   ["Help Page"
+    (common/default-nav (common/nav-user-name))]
    [:div.container
     [:div.page-header
      [:h1 "Help for Personal Experiments"]

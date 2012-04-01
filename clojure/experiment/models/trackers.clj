@@ -21,6 +21,17 @@
 ;; - :instrument
 ;; - :schedule
 
+(defmethod submodel-path [:user :tracker] [parent child]
+  [:trackers])
+
+(defn tracker-summary [tracker]
+  {:name tracker})
+
+(defn tracker-summary-list [user]
+  (map (comp tracker-summary embed-dbrefs)
+       (trackers user)))
+
+
 ;; SMS-based Trackers
 ;; -------------------------------
 

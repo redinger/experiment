@@ -6,7 +6,7 @@
    [clojure.contrib.string :as string]
    [clojure.tools.logging :as log]
    [clj-http.client :as http]
-   [clojure.data.json :as json]
+   [cheshire.core :as json]
    [clj-time.core :as time]
    [experiment.libs.datetime :as dt]
    [somnium.congomongo :as mongo]
@@ -89,11 +89,12 @@
 
 (defn account-balance [& [credentials]]
   (with-credentials [credentials]
-    (json/read-json
+    (json/parse-string
      (:body
       (http/get (compose-request-url
                  "https://app.grouptexting.com/api/credits/check/"
-                 {}))))))
+                 {})))
+     true)))
 
 ;;
 ;; SMS Inbox Handler

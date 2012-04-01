@@ -17,7 +17,11 @@ Control Charts
 
 *****/
 
-window.QIchart = {
+(function () {
+define( "QIcharts", ["jquery", "use!Underscore", "use!D3time", ], 
+function ($, _, d3) { 
+
+var QIchart = {
     renderTimeAxis: function (chart,xScale,cfg) {
 
 	var x_fmt = xScale.tickFormat(8);
@@ -194,6 +198,8 @@ window.QIchart = {
         this.renderTimeAxis(chart,x,cfg);
 	this.renderValueAxis(chart,y,0,cfg);
 	this.renderSeries(chart,data,cfg,true);
+
+	// Temporary demo data
 	this.renderRegionHighlight(chart, x,
 	   {"start": 1329091200000, 
 	    "end": 1329436800000, 
@@ -208,23 +214,29 @@ window.QIchart = {
 	alert( 'not implemented' );
     }
 };
-
-
-var data = [[1328313600000, 2.21], [1328400000000, 1.19], [1328486400000, 0.59], [1328572800000, 6.8], [1328659200000, 4.74], [1328745600000, 12.72], [1328832000000, 9.49], [1328918400000, 3.94], [1329004800000, 4.95], [1329091200000, 4.79], [1329177600000, 7.78], [1329264000000, 5.62], [1329350400000, 6.76], [1329436800000, 7.28], [1329523200000, 3.03], [1329609600000, 2.83], [1329696000000, 8.28], [1329782400000, 8.54], [1329868800000, 2.73], [1330041600000, 6.28], [1330128000000, 0.62], [1330300800000, 10.39], [1330387200000, 12.08], [1330473600000, 12.38], [1330560000000, 9.17], [1330646400000, 3.88], [1330732800000, 0.31]];
-
-var width = 850;
-var height = 180;
-var margin = 20;
-
-var cfg = {w: width,
-	   h: height,
-	   defaults: { glyph: "glyph",
-                       chart: "chart2",
-		       timeaxis: "rule"},
-	   margin: margin,
-	  };
-
-
-$(document).ready(function () {
-    window.QIchart.runChart("#qichart",data,cfg);
+    return QIchart;
 });
+
+})();
+
+// Example:
+
+// var data = [[1328313600000, 2.21], [1328400000000, 1.19], [1328486400000, 0.59], [1328572800000, 6.8], [1328659200000, 4.74], [1328745600000, 12.72], [1328832000000, 9.49], [1328918400000, 3.94], [1329004800000, 4.95], [1329091200000, 4.79], [1329177600000, 7.78], [1329264000000, 5.62], [1329350400000, 6.76], [1329436800000, 7.28], [1329523200000, 3.03], [1329609600000, 2.83], [1329696000000, 8.28], [1329782400000, 8.54], [1329868800000, 2.73], [1330041600000, 6.28], [1330128000000, 0.62], [1330300800000, 10.39], [1330387200000, 12.08], [1330473600000, 12.38], [1330560000000, 9.17], [1330646400000, 3.88], [1330732800000, 0.31]];
+
+// var width = 850;
+// var height = 180;
+// var margin = 20;
+
+// var cfg = {w: width,
+// 	   h: height,
+// 	   defaults: { glyph: "glyph",
+//                       chart: "chart2",
+// 		       timeaxis: "rule"},
+// 	   margin: margin,
+// 	  };
+
+
+// $(document).ready(function () {
+//   window.QIchart.runChart("#qichart",data,cfg);
+// });
+

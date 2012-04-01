@@ -2,22 +2,23 @@
   (:require [clj-http.client :as http]
             [experiment.libs.datetime :as dt]
             [experiment.libs.properties :as props]
-	    [clojure.data.json :as json]))
+            [cheshire.core :as json]))
 
 (def ^:dynamic *api-key* nil)
 (def api-base "https://www.rescuetime.com/anapi/data")
 
 (defn api-request [params]
-  (json/read-json
+  (json/parse-string
    (:body
     (http/get api-base
-	      {:query-params
-	       (merge
-		params
-		{:key *api-key*
-		 :format "json"})
+              {:query-params
+               (merge
+                params
+                {:key *api-key*
+                 :format "json"})
                :content-type :json
-               :accept :json}))))
+               :accept :json}))
+   true))
 
 (defmacro with-key [value & body]
   `(binding [*api-key* (or ~value (props/get :rescuetime.api-key))]
