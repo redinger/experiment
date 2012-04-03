@@ -1,0 +1,123 @@
+<!DOCTYPE html>  <html> <head>   <title>trial.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="dashboard.html">                 dashboard.coffee               </a>                                           <a class="source" href="dialog.html">                 dialog.coffee               </a>                                           <a class="source" href="events.html">                 events.coffee               </a>                                           <a class="source" href="explore.html">                 explore.coffee               </a>                                           <a class="source" href="journal.html">                 journal.coffee               </a>                                           <a class="source" href="settings.html">                 settings.coffee               </a>                                           <a class="source" href="social.html">                 social.coffee               </a>                                           <a class="source" href="trial.html">                 trial.coffee               </a>                                           <a class="source" href="widgets.html">                 widgets.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               trial.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <hr />
+
+<h2>  Trial Viewer</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">TrialSummaryView</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
+      <span class="nx">@implements</span> <span class="nx">TemplateView</span>
+      <span class="nv">initialize: </span><span class="nf">(exp) -&gt;</span>
+            <span class="nx">@initTemplate</span> <span class="s1">&#39;#trial-list-view&#39;</span>
+
+      <span class="nv">render: </span><span class="o">=&gt;</span>
+            <span class="nx">@renderTemplate</span><span class="p">()</span>
+
+      <span class="nv">events:</span>
+            <span class="s1">&#39;click&#39;</span><span class="o">:</span> <span class="s1">&#39;viewModel&#39;</span>
+
+      <span class="nv">finalize: </span><span class="o">-&gt;</span>
+            <span class="nx">@delegateEvents</span><span class="p">()</span>
+
+      <span class="nv">viewModel: </span><span class="o">=&gt;</span>
+            <span class="nx">App</span><span class="p">.</span><span class="nx">socialView</span><span class="p">.</span><span class="nx">setContext</span> <span class="nx">model</span><span class="p">.</span><span class="nx">get</span> <span class="s1">&#39;experiment&#39;</span>
+            <span class="nx">App</span><span class="p">.</span><span class="nx">socialView</span><span class="p">.</span><span class="nx">setEdit</span> <span class="kc">true</span>
+            <span class="nv">id = </span><span class="nx">@model</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
+            <span class="nx">App</span><span class="p">.</span><span class="nx">router</span><span class="p">.</span><span class="nx">navigate</span> <span class="s2">&quot;trials/#{id}&quot;</span><span class="p">,</span> <span class="kc">true</span>
+
+    <span class="k">class</span> <span class="nx">TrialPane</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
+      <span class="nx">@implements</span> <span class="nx">TemplateView</span><span class="p">,</span> <span class="nx">SwitchPane</span>
+      <span class="nv">id: </span><span class="s1">&#39;trial&#39;</span>
+      <span class="nv">newTrial: </span><span class="nf">(trial) -&gt;</span>
+            <span class="k">new</span> <span class="nx">TrialSummaryView</span>
+                    <span class="nv">model: </span><span class="nx">trial</span>
+
+      <span class="nv">initialize: </span><span class="nf">(exp) -&gt;</span>
+            <span class="vi">@views = </span><span class="nx">App</span><span class="p">.</span><span class="nx">MyTrials</span><span class="p">.</span><span class="nx">map</span> <span class="nx">@newTrial</span>
+            <span class="nx">@initTemplate</span> <span class="s1">&#39;#trial-view-header&#39;</span>
+            <span class="vi">@chartTemplate = </span><span class="nx">@getTemplate</span> <span class="s1">&#39;#highchart-div&#39;</span>
+            <span class="vi">@calendarTemplate = </span><span class="nx">@getTemplate</span> <span class="s1">&#39;#small-calendar&#39;</span>
+            <span class="vi">@instTableTemplate = </span><span class="nx">@getTemplate</span> <span class="s1">&#39;#instrument-short-table&#39;</span>
+            <span class="err">@</span>
+
+      <span class="nv">dispatch: </span><span class="nf">(path) -&gt;</span>
+            <span class="k">if</span> <span class="nx">path</span>
+               <span class="vi">@model = </span><span class="nx">findModel</span> <span class="nx">App</span><span class="p">.</span><span class="nx">MyTrials</span><span class="p">,</span> <span class="nx">path</span>
+               <span class="nx">alert</span> <span class="s2">&quot;no model found for #{ path }&quot;</span> <span class="nx">unless</span> <span class="nx">@model</span>
+               <span class="vi">@journal = </span><span class="k">new</span> <span class="nx">JournalView</span>
+                    <span class="nv">className: </span><span class="s1">&#39;trial-journal&#39;</span>
+                    <span class="nv">type: </span><span class="s1">&#39;Trial&#39;</span>
+                    <span class="nv">model: </span><span class="nx">@model</span>
+                    <span class="nv">paging: </span><span class="kc">true</span>
+                    <span class="nv">editable: </span><span class="kc">true</span>
+                    <span class="nv">page: </span><span class="mi">1</span>
+                    <span class="nv">pagesize: </span><span class="mi">1</span>
+               <span class="nx">@viewModel</span> <span class="nx">@model</span>
+            <span class="k">else</span>
+               <span class="nx">App</span><span class="p">.</span><span class="nx">socialView</span><span class="p">.</span><span class="nx">setEdit</span> <span class="kc">false</span>
+               <span class="vi">@model = </span><span class="kc">null</span>
+            <span class="nx">@render</span><span class="p">()</span>
+
+      <span class="nv">render: </span><span class="o">=&gt;</span>
+            <span class="k">if</span> <span class="nx">@model</span>
+               <span class="nx">@renderModel</span><span class="p">()</span>
+            <span class="k">else</span>
+               <span class="nx">@renderList</span><span class="p">()</span>
+            <span class="err">@</span>
+
+      <span class="nv">viewModel: </span><span class="p">(</span><span class="nx">model</span><span class="p">)</span> <span class="o">=&gt;</span>
+            <span class="nx">App</span><span class="p">.</span><span class="nx">socialView</span><span class="p">.</span><span class="nx">setContext</span> <span class="nx">model</span><span class="p">.</span><span class="nx">get</span> <span class="s1">&#39;experiment&#39;</span>
+            <span class="nx">App</span><span class="p">.</span><span class="nx">socialView</span><span class="p">.</span><span class="nx">setEdit</span> <span class="kc">true</span>
+
+      <span class="nv">renderModel: </span><span class="o">-&gt;</span>
+            <span class="nv">experiment = </span><span class="nx">@model</span><span class="p">.</span><span class="nx">get</span> <span class="s1">&#39;experiment&#39;</span>
+            <span class="nv">treatment = </span><span class="nx">experiment</span><span class="p">.</span><span class="nx">get</span> <span class="s1">&#39;treatment&#39;</span>
+            <span class="nv">outcome = </span><span class="nx">experiment</span><span class="p">.</span><span class="nx">get</span> <span class="s1">&#39;outcome&#39;</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">empty</span><span class="p">()</span>
+            <span class="nx">@inlineTemplate</span><span class="p">()</span>
+            <span class="nx">@renderCalendar</span><span class="p">(</span><span class="nx">experiment</span><span class="p">)</span>
+            <span class="nx">@renderInstruments</span><span class="p">(</span><span class="nx">experiment</span><span class="p">)</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="s2">&quot;&lt;div class=&#39;clear&#39;/&gt;&quot;</span>
+            <span class="nx">@renderOutcome</span><span class="p">(</span><span class="nx">experiment</span><span class="p">)</span> <span class="c1"># TODO: outcome)</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="nx">@journal</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span>
+            <span class="nx">@journal</span><span class="p">.</span><span class="nx">finalize</span><span class="p">()</span>
+            <span class="err">@</span>
+
+      <span class="nv">renderOutcome: </span><span class="nf">(outcome) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>TODO
+Get instrument reference from trial
+Make sure template renders correctly
+Ensure that javascript renders in place</p>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="nv">outcome = </span><span class="nx">outcome</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;instruments&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="s1">&#39;&lt;h1&gt;Results&lt;/h1&gt;&#39;</span>
+            <span class="nx">@inlineTemplate</span>
+                    <span class="nv">cssid: </span><span class="s1">&#39;chart1&#39;</span>
+                    <span class="nv">height: </span><span class="s1">&#39;150px&#39;</span>
+                    <span class="nv">width: </span><span class="s1">&#39;500px&#39;</span><span class="p">,</span>
+                    <span class="nx">@chartTemplate</span>
+            <span class="nx">renderTrackerChart</span> <span class="s1">&#39;chart1&#39;</span><span class="p">,</span> <span class="nx">outcome</span><span class="p">,</span> <span class="mi">0</span>
+
+      <span class="nv">renderCalendar: </span><span class="nf">(experiment) -&gt;</span>
+            <span class="nv">mydiv = </span><span class="nx">$</span><span class="p">(</span><span class="s2">&quot;&lt;div class=&#39;trial-calendar-wrap&#39;/&gt;&quot;</span><span class="p">)</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="nx">mydiv</span>
+            <span class="nx">mydiv</span><span class="p">.</span><span class="nx">append</span> <span class="s1">&#39;&lt;h2&gt;Schedule&lt;/h2&gt;&#39;</span>
+            <span class="nv">id = </span><span class="nx">experiment</span><span class="p">.</span><span class="nx">get</span> <span class="s1">&#39;id&#39;</span>
+            <span class="nv">month = </span><span class="s2">&quot;now&quot;</span>
+            <span class="nx">mydiv</span><span class="p">.</span><span class="nx">append</span> <span class="nx">@calendarTemplate</span> <span class="p">{</span><span class="nv">id: </span><span class="s1">&#39;trial-cal&#39;</span><span class="p">}</span>
+            <span class="nx">initCalendar</span><span class="p">(</span><span class="s2">&quot;/api/calendar/experiment/#{ id }&quot;</span><span class="p">,</span> <span class="s1">&#39;#trial-cal&#39;</span><span class="p">,</span> <span class="nx">month</span><span class="p">)</span>
+
+      <span class="nv">renderInstruments: </span><span class="nf">(experiment) -&gt;</span>
+            <span class="nv">mydiv = </span><span class="nx">$</span><span class="p">(</span><span class="s2">&quot;&lt;div class=&#39;trial-measures&#39;/&gt;&quot;</span><span class="p">)</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="nx">mydiv</span>
+            <span class="nx">mydiv</span><span class="p">.</span><span class="nx">append</span> <span class="s1">&#39;&lt;h2&gt;Tracking Instruments&lt;/h2&gt;&#39;</span>
+            <span class="nv">instruments = </span><span class="nx">experiment</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;instruments&#39;</span><span class="p">)</span>
+            <span class="nv">data = </span><span class="p">{</span><span class="nv">instruments: </span><span class="nx">_</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">instruments</span><span class="p">,</span> <span class="nf">(x) -&gt;</span> <span class="nx">x</span><span class="p">.</span><span class="nx">toJSON</span><span class="p">())}</span>
+            <span class="nx">mydiv</span><span class="p">.</span><span class="nx">append</span> <span class="nx">@instTableTemplate</span> <span class="nx">data</span>
+
+      <span class="nv">renderTrials: </span><span class="nf">(trialViews) -&gt;</span>
+            <span class="nv">mydiv = </span><span class="nx">$</span><span class="p">(</span><span class="s2">&quot;&lt;div class=&#39;trial-views&#39;/&gt;&quot;</span><span class="p">)</span>
+            <span class="nx">mydiv</span><span class="p">.</span><span class="nx">append</span> <span class="s1">&#39;&lt;h1&gt;My Trials&lt;/h1&gt;&#39;</span>
+            <span class="nx">mydiv</span><span class="p">.</span><span class="nx">append</span> <span class="nx">view</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span> <span class="k">for</span> <span class="nx">view</span> <span class="k">in</span> <span class="nx">@views</span>
+            <span class="nx">view</span><span class="p">.</span><span class="nx">finalize</span><span class="p">()</span> <span class="k">for</span> <span class="nx">view</span> <span class="k">in</span> <span class="nx">@views</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="nx">mydiv</span>
+            <span class="err">@</span>
+
+      <span class="nv">renderList: </span><span class="o">=&gt;</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">empty</span><span class="p">()</span>
+            <span class="nx">@renderTrials</span><span class="p">()</span>
+            <span class="err">@</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 

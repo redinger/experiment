@@ -1,0 +1,41 @@
+<!DOCTYPE html>  <html> <head>   <title>events.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="dashboard.html">                 dashboard.coffee               </a>                                           <a class="source" href="dialog.html">                 dialog.coffee               </a>                                           <a class="source" href="events.html">                 events.coffee               </a>                                           <a class="source" href="explore.html">                 explore.coffee               </a>                                           <a class="source" href="journal.html">                 journal.coffee               </a>                                           <a class="source" href="settings.html">                 settings.coffee               </a>                                           <a class="source" href="social.html">                 social.coffee               </a>                                           <a class="source" href="trial.html">                 trial.coffee               </a>                                           <a class="source" href="widgets.html">                 widgets.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               events.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <h6>#</h6>
+
+<p>Event Views</p>
+
+<h6>#</h6>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">define</span> <span class="p">[</span><span class="s1">&#39;models/infra&#39;</span><span class="p">],</span>
+  <span class="nf">(Infra) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <h2>Events and Calendar</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">calendarBehavior = </span><span class="nf">() -&gt;</span>
+      <span class="nv">distance = </span><span class="mi">10</span>
+      <span class="nv">time = </span><span class="mi">250</span>
+      <span class="nv">hideDelay = </span><span class="mi">500</span>
+      <span class="nv">hideDelayTimer = </span><span class="kc">null</span>
+      <span class="nv">beingShown = </span><span class="kc">false</span>
+      <span class="nv">shown = </span><span class="kc">false</span>
+      <span class="nv">trigger = </span><span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">)</span>
+      <span class="nv">popup = </span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.events ul&#39;</span><span class="p">,</span> <span class="k">this</span><span class="p">).</span><span class="nx">css</span><span class="p">(</span><span class="s1">&#39;opacity&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+      <span class="nx">$</span><span class="p">([</span><span class="nx">trigger</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="nx">popup</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="mi">0</span><span class="p">)]).</span><span class="nx">mouseover</span> <span class="nf">() -&gt;</span>
+            <span class="k">if</span> <span class="nx">hideDelayTimer</span>
+                    <span class="nx">clearTimeout</span><span class="p">(</span><span class="nx">hideDelayTimer</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nx">beingShown</span> <span class="o">or</span> <span class="nx">shown</span>
+                    <span class="k">return</span>
+            <span class="k">else</span>
+                    <span class="nv">beingShown = </span><span class="kc">true</span>
+            <span class="nx">popup</span><span class="p">.</span><span class="nx">css</span>
+                    <span class="nv">bottom: </span><span class="mi">20</span>
+                    <span class="nv">left: </span><span class="o">-</span><span class="mi">76</span>
+                    <span class="nv">display: </span><span class="s1">&#39;block&#39;</span>
+            <span class="p">.</span><span class="nx">animate</span> <span class="p">{</span><span class="nv">bottom: </span><span class="s2">&quot;+=#{ distance }px&quot;</span><span class="p">,</span> <span class="nv">opacity: </span><span class="mi">1</span><span class="p">},</span> <span class="nx">time</span><span class="p">,</span> <span class="s1">&#39;swing&#39;</span><span class="p">,</span> <span class="o">-&gt;</span>
+                      <span class="nv">beingShown = </span><span class="kc">false</span>
+                      <span class="nv">shown = </span><span class="kc">true</span>
+       <span class="p">.</span><span class="nx">mouseout</span> <span class="nf">() -&gt;</span>
+               <span class="nx">clearTimeout</span> <span class="nx">hideDelayTimer</span> <span class="k">if</span> <span class="nx">hideDelayTimer</span>
+               <span class="nx">popup</span><span class="p">.</span><span class="nx">animate</span> <span class="p">{</span><span class="nv">bottom: </span><span class="s2">&quot;-=#{ distance }px&quot;</span><span class="p">,</span> <span class="nv">opacity: </span><span class="mi">0</span><span class="p">},</span><span class="nx">time</span><span class="p">,</span><span class="s1">&#39;swing&#39;</span><span class="p">,</span> <span class="o">-&gt;</span>
+                       <span class="nv">shown = </span><span class="kc">false</span>
+                       <span class="nx">popup</span><span class="p">.</span><span class="nx">css</span> <span class="s1">&#39;display&#39;</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span>
+
+    <span class="nv">initCalendar = </span><span class="nf">(url, id, month) -&gt;</span>
+            <span class="nx">$</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">url</span> <span class="o">+</span> <span class="nx">id</span><span class="p">,</span> <span class="p">{</span><span class="nv">month: </span><span class="nx">month</span><span class="p">},</span> <span class="p">(</span><span class="nx">cal</span><span class="p">)</span> <span class="o">=&gt;</span>
+                    <span class="nx">$</span><span class="p">(</span><span class="nx">id</span><span class="p">).</span><span class="nx">html</span> <span class="nx">cal</span>
+                    <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.date_has_event&#39;</span><span class="p">).</span><span class="nx">each</span> <span class="nx">calendarBehavior</span><span class="p">)</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 

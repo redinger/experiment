@@ -1,0 +1,153 @@
+<!DOCTYPE html>  <html> <head>   <title>settings.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="dashboard.html">                 dashboard.coffee               </a>                                           <a class="source" href="dialog.html">                 dialog.coffee               </a>                                           <a class="source" href="events.html">                 events.coffee               </a>                                           <a class="source" href="explore.html">                 explore.coffee               </a>                                           <a class="source" href="journal.html">                 journal.coffee               </a>                                           <a class="source" href="settings.html">                 settings.coffee               </a>                                           <a class="source" href="social.html">                 social.coffee               </a>                                           <a class="source" href="trial.html">                 trial.coffee               </a>                                           <a class="source" href="widgets.html">                 widgets.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               settings.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p>Account Page and Tabs</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">define</span> <span class="p">[</span><span class="s1">&#39;models/core&#39;</span><span class="p">,</span> <span class="s1">&#39;use!BackboneFormsBS&#39;</span><span class="p">,</span> <span class="s1">&#39;use!BackboneFormsEditors&#39;</span><span class="p">],</span>
+  <span class="nf">(Models) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <h1>Account Settings Definitions</h1>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">accountSchemas =</span>
+     <span class="s1">&#39;personal&#39;</span><span class="o">:</span>
+           <span class="nv">firstname:</span>
+                <span class="nv">title: </span><span class="s2">&quot;First Name&quot;</span>
+           <span class="nv">lastname:</span>
+                <span class="nv">title: </span><span class="s2">&quot;Last Name&quot;</span>
+           <span class="nv">bio:</span>
+                <span class="nv">title: </span><span class="s2">&quot;Bio&quot;</span>
+                <span class="nv">type: </span><span class="s2">&quot;TextArea&quot;</span>
+                <span class="nv">editorAttrs:</span>
+                        <span class="nv">maxlength: </span><span class="mi">256</span>
+                        <span class="nv">rows: </span><span class="mi">4</span>
+                        <span class="nv">style: </span><span class="s2">&quot;resize: none;&quot;</span>
+           <span class="nv">gender:</span>
+                <span class="nv">type: </span><span class="s1">&#39;Select&#39;</span>
+                <span class="nv">options: </span><span class="p">[</span>
+                        <span class="p">{</span>
+                         <span class="nv">val: </span><span class="s1">&#39;female&#39;</span>
+                         <span class="nv">label: </span><span class="s1">&#39;Female&#39;</span>
+                        <span class="p">},</span> <span class="p">{</span>
+                         <span class="nv">val: </span><span class="s1">&#39;male&#39;</span>
+                         <span class="nv">label: </span><span class="s1">&#39;Male&#39;</span>
+                        <span class="p">}</span> <span class="p">]</span>
+           <span class="nv">dob:</span>
+                <span class="nv">title: </span><span class="s2">&quot;Date of Birth&quot;</span>
+                <span class="nv">type: </span><span class="s2">&quot;Date&quot;</span>
+           <span class="nv">email:</span>
+                <span class="nv">title: </span><span class="s2">&quot;Email&quot;</span>
+                <span class="nv">validators: </span><span class="p">[</span><span class="s2">&quot;required&quot;</span><span class="p">,</span> <span class="s2">&quot;email&quot;</span><span class="p">]</span>
+                <span class="nv">dataType: </span><span class="s1">&#39;email&#39;</span>
+           <span class="nv">cell:</span>
+                <span class="nv">title: </span><span class="s2">&quot;Cell Phone&quot;</span>
+                <span class="nv">help: </span><span class="s2">&quot;Used to send SMS messages when requested&quot;</span>
+                <span class="nv">dataType: </span><span class="s1">&#39;phn&#39;</span>
+     <span class="s1">&#39;password&#39;</span><span class="o">:</span>
+           <span class="nv">oldPass:</span>
+                <span class="nv">title: </span><span class="s2">&quot;Old Password&quot;</span>
+                <span class="nv">type: </span><span class="s1">&#39;Password&#39;</span>
+                <span class="nv">validators: </span><span class="p">[</span><span class="s1">&#39;required&#39;</span><span class="p">]</span>
+           <span class="nv">newPass1:</span>
+                <span class="nv">title: </span><span class="s2">&quot;New Password&quot;</span>
+                <span class="nv">type: </span><span class="s1">&#39;Password&#39;</span>
+                <span class="nv">validators: </span><span class="p">[</span><span class="s1">&#39;required&#39;</span><span class="p">]</span>
+           <span class="nv">newPass2:</span>
+                <span class="nv">title: </span><span class="s2">&quot;Confirm Password&quot;</span>
+                <span class="nv">type: </span><span class="s1">&#39;Password&#39;</span>
+                <span class="nv">validators: </span><span class="p">[</span><span class="s1">&#39;required&#39;</span><span class="p">,</span>
+                     <span class="nv">type: </span><span class="s1">&#39;match&#39;</span>
+                     <span class="nv">field: </span><span class="s1">&#39;newPass1&#39;</span>
+                     <span class="nv">message: </span><span class="s1">&#39;Passwords must match&#39;</span>
+                <span class="p">]</span>
+
+    <span class="nv">accountFieldsets =</span>
+      <span class="s1">&#39;personal&#39;</span><span class="o">:</span>
+        <span class="p">[{</span>
+              <span class="nv">legend: </span><span class="s1">&#39;Personal&#39;</span>
+              <span class="nv">fields: </span><span class="p">[</span><span class="s1">&#39;firstname&#39;</span><span class="p">,</span> <span class="s1">&#39;lastname&#39;</span><span class="p">,</span> <span class="s1">&#39;bio&#39;</span><span class="p">,</span> <span class="s1">&#39;gender&#39;</span><span class="p">,</span> <span class="s1">&#39;dob&#39;</span><span class="p">,</span> <span class="s1">&#39;email&#39;</span><span class="p">]</span>
+        <span class="p">},</span> <span class="p">{</span>
+              <span class="nv">legend: </span><span class="s1">&#39;Services&#39;</span>
+              <span class="nv">fields: </span><span class="p">[</span><span class="s1">&#39;cell&#39;</span><span class="p">]</span>
+        <span class="p">}]</span>
+
+    <span class="nv">accountTitles =</span>
+      <span class="s1">&#39;personal&#39;</span><span class="o">:</span> <span class="s2">&quot;Personal Preferences&quot;</span>
+      <span class="s1">&#39;password&#39;</span><span class="o">:</span> <span class="s2">&quot;Change Password&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <h1>Generic Settings View</h1>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">AccountView</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
+      <span class="nv">initialize: </span><span class="nf">() -&gt;</span>
+        <span class="vi">@pane = </span><span class="nx">@options</span><span class="p">.</span><span class="nx">pane</span>
+        <span class="vi">@form = </span><span class="k">new</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Form</span>
+                <span class="nv">schema: </span><span class="nx">accountSchemas</span><span class="p">[</span><span class="nx">@pane</span><span class="p">]</span>
+                <span class="nv">fieldsets: </span><span class="nx">accountFieldsets</span><span class="p">[</span><span class="nx">@pane</span><span class="p">]</span>
+                <span class="nv">data: </span><span class="nx">@options</span><span class="p">.</span><span class="nx">data</span> <span class="o">or</span> <span class="p">{}</span>
+
+      <span class="nv">render: </span><span class="p">()</span> <span class="o">=&gt;</span>
+        <span class="nv">heading = </span><span class="s1">&#39;&lt;h1&gt;&#39;</span> <span class="o">+</span> <span class="nx">accountTitles</span><span class="p">[</span><span class="nx">@pane</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;&lt;/h1&gt;&#39;</span>
+        <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="nx">heading</span>
+        <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="nx">@form</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span>
+        <span class="k">if</span> <span class="nx">@pane</span> <span class="o">is</span> <span class="s1">&#39;password&#39;</span>
+           <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="s2">&quot;&lt;button class=&#39;btn pwcommit&#39;&gt;Update&lt;/button&gt;&quot;</span>
+        <span class="nx">@delegateEvents</span><span class="p">()</span>
+        <span class="err">@</span>
+
+      <span class="nv">events:</span>
+        <span class="s1">&#39;change [type=checkbox]&#39;</span><span class="o">:</span> <span class="s1">&#39;handleCheckBox&#39;</span>
+        <span class="s1">&#39;keyup input&#39;</span><span class="o">:</span> <span class="s1">&#39;handleKeyup&#39;</span>
+        <span class="s1">&#39;focus input&#39;</span><span class="o">:</span> <span class="s1">&#39;handleFocus&#39;</span>
+        <span class="s1">&#39;click .pwcommit&#39;</span><span class="o">:</span> <span class="s1">&#39;handlePasswordUpdate&#39;</span>
+
+      <span class="nv">handleCheckBox: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">alert</span> <span class="s1">&#39;checkbox&#39;</span>
+
+      <span class="nv">handleChange: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="k">if</span> <span class="o">not</span> <span class="nx">@form</span><span class="p">.</span><span class="nx">validate</span><span class="p">()</span>
+           <span class="nx">@updateUser</span> <span class="nx">@form</span><span class="p">.</span><span class="nx">getValue</span><span class="p">()</span>
+
+      <span class="nv">handleKeyup: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="k">if</span> <span class="nx">event</span><span class="p">.</span><span class="nx">which</span> <span class="o">==</span> <span class="mi">13</span>
+           <span class="nx">event</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">()</span>
+           <span class="k">if</span> <span class="nx">@pane</span> <span class="o">is</span> <span class="s1">&#39;password&#39;</span>
+              <span class="nx">@handlePasswordUpdate</span><span class="p">()</span>
+           <span class="k">else</span>
+              <span class="nx">@handleChange</span>
+        <span class="k">else</span>
+           <span class="nx">@form</span><span class="p">.</span><span class="nx">validate</span><span class="p">()</span>
+
+      <span class="nv">handlePasswordUpdate: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="k">if</span> <span class="o">not</span> <span class="nx">@form</span><span class="p">.</span><span class="nx">validate</span><span class="p">()</span>
+           <span class="nx">$</span><span class="p">.</span><span class="nx">ajax</span>
+                <span class="nv">url: </span><span class="s1">&#39;/action/changepw&#39;</span>
+                <span class="nv">type: </span><span class="s1">&#39;POST&#39;</span>
+                <span class="nv">data: </span><span class="nx">@form</span><span class="p">.</span><span class="nx">getValue</span><span class="p">()</span>
+                <span class="nv">success: </span><span class="nx">@passwordValidate</span>
+                <span class="nv">error: </span><span class="nx">@passwordValidateError</span>
+                <span class="nv">timeout: </span><span class="mi">5000</span>
+
+      <span class="nv">passwordValidate: </span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="k">if</span> <span class="nx">data</span><span class="p">.</span><span class="nx">result</span> <span class="o">is</span> <span class="s2">&quot;success&quot;</span>
+           <span class="nx">@form</span><span class="p">.</span><span class="nx">fields</span><span class="p">[</span><span class="s1">&#39;oldPass&#39;</span><span class="p">].</span><span class="nx">clearError</span><span class="p">()</span>
+           <span class="p">(</span><span class="nx">@form</span><span class="p">.</span><span class="nx">fields</span><span class="p">[</span><span class="nx">key</span><span class="p">].</span><span class="nx">setValue</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="nx">own</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">val</span> <span class="k">of</span> <span class="nx">@form</span><span class="p">.</span><span class="nx">getValue</span><span class="p">())</span>
+           <span class="nb">window</span><span class="p">.</span><span class="nx">PE</span><span class="p">.</span><span class="nx">modalMessage</span><span class="p">.</span><span class="nx">showMessage</span>
+                <span class="nv">header: </span><span class="s2">&quot;Password Set&quot;</span>
+                <span class="nv">message: </span><span class="s2">&quot;Your password was set to the new value&quot;</span>
+        <span class="k">if</span> <span class="nx">data</span><span class="p">.</span><span class="nx">result</span> <span class="o">is</span> <span class="s2">&quot;fail&quot;</span>
+           <span class="nx">@form</span><span class="p">.</span><span class="nx">fields</span><span class="p">[</span><span class="s1">&#39;oldPass&#39;</span><span class="p">].</span><span class="nx">clearError</span><span class="p">()</span>
+           <span class="nx">@form</span><span class="p">.</span><span class="nx">fields</span><span class="p">[</span><span class="s1">&#39;oldPass&#39;</span><span class="p">].</span><span class="nx">setError</span> <span class="nx">data</span><span class="p">.</span><span class="nx">message</span>
+
+      <span class="nv">passwordValidateError: </span><span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="nx">status</span><span class="p">,</span> <span class="nx">error</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="nx">data</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="nx">status</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="nx">error</span>
+
+      <span class="nv">handleFocus: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
+
+      <span class="nv">updateUser: </span><span class="nf">(values) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <h1>Account Page Setup</h1>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">renderSettings = </span><span class="nf">(pane) -&gt;</span>
+      <span class="nv">view = </span><span class="k">new</span> <span class="nx">AccountView</span>
+                <span class="nv">el: </span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.accountSettings&#39;</span><span class="p">)</span>
+                <span class="nv">pane: </span><span class="nx">pane</span>
+                <span class="nv">data: </span><span class="p">{}</span>
+      <span class="nx">view</span><span class="p">.</span><span class="nx">render</span><span class="p">()</span>
+
+    <span class="nv">renderServices = </span><span class="nf">() -&gt;</span>
+      <span class="nv">view = </span><span class="k">new</span> <span class="nx">ServicesView</span>
+                <span class="nv">el: </span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#services&#39;</span><span class="p">)</span>
+                <span class="nv">data: </span><span class="p">{}</span>
+      <span class="nx">view</span><span class="p">.</span><span class="nx">render</span><span class="p">()</span>
+
+    <span class="nx">$</span><span class="p">(</span><span class="nb">document</span><span class="p">).</span><span class="nx">ready</span> <span class="o">-&gt;</span>
+        <span class="k">if</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.accountSettings&#39;</span><span class="p">)</span>
+           <span class="nx">renderSettings</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.accountSettings&#39;</span><span class="p">).</span><span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.serviceSettings&#39;</span><span class="p">)</span>
+           <span class="nx">renderServices</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 

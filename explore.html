@@ -1,0 +1,229 @@
+<!DOCTYPE html>  <html> <head>   <title>explore.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="dashboard.html">                 dashboard.coffee               </a>                                           <a class="source" href="dialog.html">                 dialog.coffee               </a>                                           <a class="source" href="events.html">                 events.coffee               </a>                                           <a class="source" href="explore.html">                 explore.coffee               </a>                                           <a class="source" href="journal.html">                 journal.coffee               </a>                                           <a class="source" href="settings.html">                 settings.coffee               </a>                                           <a class="source" href="social.html">                 social.coffee               </a>                                           <a class="source" href="trial.html">                 trial.coffee               </a>                                           <a class="source" href="widgets.html">                 widgets.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               explore.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p>++++++++++++++++++++++++++++++
+Search App
+++++++++++++++++++++++++++++++</p>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <hr />
+
+<h2>  NLP Filter Box</h2>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>The BB Model for the current filter state</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">SearchFilterModel</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Model</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>Configuration for the autocomplete</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">searchSuggestDefaults =</span>
+       <span class="nv">startText: </span><span class="s1">&#39;What are you looking for?&#39;</span>
+       <span class="nv">keyDelay: </span><span class="mi">200</span>
+       <span class="nv">resultsHighlight: </span><span class="kc">false</span>
+       <span class="nv">neverSubmit: </span><span class="kc">true</span>
+       <span class="nv">retrieveLimit: </span><span class="mi">20</span>
+       <span class="nv">selectedValuesProp: </span><span class="s1">&#39;value&#39;</span>
+       <span class="nv">selectedItemProp: </span><span class="s1">&#39;title&#39;</span>
+       <span class="nv">searchObjProps: </span><span class="s1">&#39;trigger,title,search&#39;</span>
+       <span class="nv">resultsHighlight: </span><span class="kc">false</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>The UI View for the filter state, handles autocomplete for phrases</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">SearchFilterView</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
+      <span class="nx">@implements</span> <span class="nx">TemplateView</span>
+      <span class="nv">initialize: </span><span class="o">-&gt;</span>
+            <span class="vi">@model = </span><span class="nx">App</span><span class="p">.</span><span class="nx">searchFilter</span> <span class="o">or=</span> <span class="k">new</span> <span class="nx">SearchFilterModel</span>
+            <span class="nx">@initTemplate</span> <span class="s1">&#39;#search-filter&#39;</span>
+
+      <span class="nv">update: </span><span class="p">(</span><span class="nx">elt</span><span class="p">)</span> <span class="o">=&gt;</span>
+            <span class="nv">results = </span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;input.as-values&#39;</span><span class="p">).</span><span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">).</span><span class="nx">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">).</span><span class="nx">filter</span><span class="p">(</span> <span class="nf">(x) -&gt;</span>
+                    <span class="nx">x</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="p">)</span>
+            <span class="nx">@model</span><span class="p">.</span><span class="nx">set</span> <span class="nv">filters: </span><span class="nx">results</span>
+
+      <span class="nv">removeUpdate: </span><span class="p">(</span><span class="nx">elt</span><span class="p">)</span> <span class="o">=&gt;</span>
+            <span class="nx">elt</span><span class="p">.</span><span class="nx">remove</span><span class="p">()</span>
+            <span class="nx">@update</span><span class="p">()</span>
+
+      <span class="nv">allObjects: </span><span class="o">-&gt;</span>
+            <span class="nx">App</span><span class="p">.</span><span class="nx">Suggestions</span><span class="p">.</span><span class="nx">toJSON</span><span class="p">()</span>
+
+      <span class="nv">render: </span><span class="o">=&gt;</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">empty</span><span class="p">()</span>
+            <span class="nx">@inlineTemplate</span><span class="p">()</span>
+            <span class="err">@</span>
+
+      <span class="nv">finalize: </span><span class="o">=&gt;</span>
+            <span class="nv">defaults = </span><span class="nx">searchSuggestDefaults</span>
+            <span class="nv">defaults.selectionAdded = </span><span class="nx">@update</span>
+            <span class="nv">defaults.selectionRemoved = </span><span class="nx">@removeUpdate</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="s1">&#39;#search-filter-input&#39;</span><span class="p">).</span><span class="nx">autoSuggest</span> <span class="nx">@allObjects</span><span class="p">(),</span> <span class="nx">defaults</span>
+            <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;input.as-values&#39;</span><span class="p">).</span><span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Help Dialog</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">events:</span>
+            <span class="s1">&#39;click a.help-link&#39;</span><span class="o">:</span> <span class="s1">&#39;showHelpDialog&#39;</span>
+
+      <span class="nv">showHelpDialog: </span><span class="nf">(e) -&gt;</span>
+            <span class="nx">e</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">()</span>
+            <span class="nx">root</span><span class="p">.</span><span class="nx">renderDialog</span> <span class="s2">&quot;Search Help&quot;</span><span class="p">,</span> <span class="s2">&quot;Type &#39;show X&#39; to filter by experiment&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <hr />
+
+<h2>  NLP filter list according to selected tags</h2>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>Views for individual models
+- requires @model and @parent to be valid</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">SearchItemView</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
+      <span class="nv">className: </span><span class="s1">&#39;search-list-item&#39;</span>
+      <span class="nv">initTemplate: </span><span class="o">-&gt;</span>
+            <span class="vi">@template = </span><span class="nx">@parent</span><span class="p">.</span><span class="nx">lookupTemplate</span> <span class="nx">@model</span>
+
+      <span class="nv">initialize: </span><span class="o">-&gt;</span>
+            <span class="vi">@parent = </span><span class="nx">@options</span><span class="p">.</span><span class="nx">parent</span>
+            <span class="nx">@initTemplate</span><span class="p">()</span>
+            <span class="err">@</span>
+
+      <span class="nv">events:</span>
+            <span class="s1">&#39;mouseover&#39;</span><span class="o">:</span> <span class="s1">&#39;inspect&#39;</span>
+            <span class="s1">&#39;click&#39;</span><span class="o">:</span> <span class="s1">&#39;viewModel&#39;</span>
+
+      <span class="nv">render: </span><span class="o">=&gt;</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">html</span> <span class="nx">@template</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">toJSON</span><span class="p">()</span>
+            <span class="err">@</span>
+
+      <span class="nv">inspect: </span><span class="o">=&gt;</span>
+            <span class="nx">App</span><span class="p">.</span><span class="nx">socialView</span><span class="p">.</span><span class="nx">setContext</span> <span class="nx">@model</span>
+
+      <span class="nv">viewModel: </span><span class="o">=&gt;</span>
+            <span class="nx">App</span><span class="p">.</span><span class="nx">socialView</span><span class="p">.</span><span class="nx">setContext</span> <span class="nx">@model</span>
+            <span class="nv">type = </span><span class="nx">@model</span><span class="p">.</span><span class="nx">get</span> <span class="s1">&#39;type&#39;</span>
+            <span class="nv">id = </span><span class="nx">@model</span><span class="p">.</span><span class="nx">get</span> <span class="s1">&#39;id&#39;</span>
+            <span class="nx">App</span><span class="p">.</span><span class="nx">router</span><span class="p">.</span><span class="nx">navigate</span> <span class="s2">&quot;search/#{ type }/#{ id }&quot;</span><span class="p">,</span> <span class="kc">true</span></pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <p>The UI View for the filtered object set</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">SearchListView</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <p>State</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">limit: </span><span class="mi">20</span></pre></div>             </td>           </tr>                               <tr id="section-11">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-11">&#182;</a>               </div>               <p>View configuration and setup</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">className: </span><span class="s1">&#39;search-list&#39;</span>
+
+      <span class="nv">subviews:</span>
+            <span class="nv">experiment: </span><span class="s1">&#39;#experiment-list-view&#39;</span>
+            <span class="nv">treatment: </span><span class="s1">&#39;#treatment-list-view&#39;</span>
+            <span class="nv">instrument: </span><span class="s1">&#39;#instrument-list-view&#39;</span>
+
+      <span class="nv">buildTemplates: </span><span class="o">-&gt;</span>
+            <span class="nv">results = </span><span class="p">{}</span>
+            <span class="nx">_</span><span class="p">.</span><span class="nx">map</span> <span class="nx">@subviews</span><span class="p">,</span> <span class="nf">(id, type) -&gt;</span>
+                    <span class="nx">results</span><span class="p">[</span><span class="nx">type</span><span class="p">]</span> <span class="o">=</span> <span class="nx">Handlebars</span><span class="p">.</span><span class="nx">compile</span> <span class="nx">$</span><span class="p">(</span><span class="nx">id</span><span class="p">).</span><span class="nx">html</span><span class="p">()</span>
+            <span class="nx">results</span>
+
+      <span class="nv">lookupTemplate: </span><span class="nf">(model) -&gt;</span>
+            <span class="nv">type = </span><span class="nx">model</span><span class="p">.</span><span class="nx">get</span> <span class="s1">&#39;type&#39;</span>
+            <span class="nx">@templates</span><span class="p">[</span><span class="nx">type</span><span class="p">]</span>
+
+      <span class="nv">initialize: </span><span class="o">-&gt;</span>
+            <span class="vi">@views = </span><span class="p">[]</span>
+            <span class="vi">@templates = </span><span class="nx">@buildTemplates</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-12">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-12">&#182;</a>               </div>               <p>Handle search bar changes</p>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="nx">@model</span><span class="p">.</span><span class="kc">on</span><span class="p">(</span><span class="s1">&#39;change&#39;</span><span class="p">,</span> <span class="nx">@updateModels</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-13">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-13">&#182;</a>               </div>               <p>Handle new models</p>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="vi">@models = </span><span class="k">new</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Collection</span>
+            <span class="nx">@models</span><span class="p">.</span><span class="kc">on</span><span class="p">(</span><span class="s1">&#39;reset&#39;</span><span class="p">,</span> <span class="nx">@updateView</span><span class="p">)</span>
+            <span class="nx">@updateModels</span><span class="p">()</span> <span class="c1"># called when new filters added</span>
+            <span class="err">@</span></pre></div>             </td>           </tr>                               <tr id="section-14">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-14">&#182;</a>               </div>               <p>Handling changes</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">allModels: </span><span class="o">-&gt;</span>
+             <span class="nx">App</span><span class="p">.</span><span class="nx">Experiments</span><span class="p">.</span><span class="nx">models</span><span class="p">.</span><span class="nx">concat</span> <span class="nx">App</span><span class="p">.</span><span class="nx">Treatments</span><span class="p">.</span><span class="nx">models</span><span class="p">.</span><span class="nx">concat</span> <span class="nx">App</span><span class="p">.</span><span class="nx">Instruments</span><span class="p">.</span><span class="nx">models</span>
+
+      <span class="nv">selectModels: </span><span class="nf">(selects) -&gt;</span>
+            <span class="nx">selects</span> <span class="o">or=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="nx">selects</span><span class="p">.</span><span class="nx">length</span> <span class="o">==</span> <span class="mi">0</span>
+                    <span class="nv">models = </span><span class="nx">@allModels</span><span class="p">()</span>
+                    <span class="nx">@models</span><span class="p">.</span><span class="nx">reset</span> <span class="nx">models</span>
+            <span class="k">else</span>
+                    <span class="nx">$</span><span class="p">.</span><span class="nx">get</span> <span class="s2">&quot;/api/fsearch?query=#{ selects }&amp;limit=#{ @limit }&quot;</span><span class="p">,</span>
+                          <span class="p">{},</span>
+                          <span class="p">(</span> <span class="nx">refs</span><span class="p">,</span> <span class="nx">status</span><span class="p">,</span> <span class="nx">jqxhr</span> <span class="p">)</span> <span class="o">=&gt;</span>
+                              <span class="nx">@models</span><span class="p">.</span><span class="nx">reset</span> <span class="nx">App</span><span class="p">.</span><span class="nx">lookupModels</span> <span class="nx">refs</span>
+
+      <span class="nv">updateModels: </span><span class="o">=&gt;</span>
+            <span class="nv">filters = </span><span class="nx">@model</span><span class="p">.</span><span class="nx">get</span> <span class="s1">&#39;filters&#39;</span>
+            <span class="nx">@selectModels</span> <span class="nx">filters</span></pre></div>             </td>           </tr>                               <tr id="section-15">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-15">&#182;</a>               </div>               <p>Rendering current result list</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">asItemView: </span><span class="p">(</span><span class="nx">model</span><span class="p">)</span> <span class="o">=&gt;</span>
+            <span class="k">new</span> <span class="nx">SearchItemView</span>
+                    <span class="nv">model: </span><span class="nx">model</span>
+                    <span class="nv">parent: </span><span class="k">this</span>
+
+      <span class="nv">updateView: </span><span class="o">=&gt;</span>
+            <span class="vi">@views = </span><span class="nx">_</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">@models</span><span class="p">.</span><span class="nx">models</span><span class="p">,</span> <span class="nx">@asItemView</span><span class="p">)</span>
+            <span class="nx">@render</span><span class="p">()</span>
+
+      <span class="nv">render: </span><span class="o">=&gt;</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">empty</span><span class="p">()</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="nx">view</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span> <span class="k">for</span> <span class="nx">view</span> <span class="k">in</span> <span class="nx">@views</span>
+            <span class="err">@</span>
+
+      <span class="nv">finalize: </span><span class="o">-&gt;</span>
+            <span class="nx">view</span><span class="p">.</span><span class="nx">delegateEvents</span><span class="p">()</span> <span class="k">for</span> <span class="nx">view</span> <span class="k">in</span> <span class="nx">@views</span>
+
+    <span class="k">class</span> <span class="nx">SearchView</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
+      <span class="nx">@implements</span> <span class="nx">TemplateView</span>
+      <span class="nv">className: </span><span class="s2">&quot;search-view&quot;</span>
+      <span class="nv">initialize: </span><span class="o">-&gt;</span>
+            <span class="vi">@filterView = </span><span class="k">new</span> <span class="nx">SearchFilterView</span>
+            <span class="nx">@filterView</span><span class="p">.</span><span class="nx">render</span><span class="p">()</span>
+            <span class="vi">@listView = </span><span class="k">new</span> <span class="nx">SearchListView</span>
+                    <span class="nv">model: </span><span class="nx">@filterView</span><span class="p">.</span><span class="nx">model</span>
+            <span class="nx">@listView</span><span class="p">.</span><span class="nx">render</span><span class="p">()</span>
+
+      <span class="nv">show: </span><span class="o">-&gt;</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">show</span><span class="p">()</span>
+      <span class="nv">hide: </span><span class="o">-&gt;</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">hide</span><span class="p">()</span>
+
+      <span class="nv">render: </span><span class="o">=&gt;</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="nx">@filterView</span><span class="p">.</span><span class="nx">el</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="nx">@listView</span><span class="p">.</span><span class="nx">el</span>
+            <span class="err">@</span>
+
+      <span class="nv">finalize: </span><span class="o">=&gt;</span>
+            <span class="nx">@filterView</span><span class="p">.</span><span class="nx">finalize</span><span class="p">()</span>
+            <span class="nx">@listView</span><span class="p">.</span><span class="nx">finalize</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-16">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-16">&#182;</a>               </div>               <p>SINGLE OBJECT VIEW</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">ObjectView</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
+      <span class="nx">@implements</span> <span class="nx">TemplateView</span>
+      <span class="nv">className: </span><span class="s2">&quot;object-view&quot;</span>
+      <span class="nv">viewMap:</span>
+            <span class="nv">experiment: </span><span class="s1">&#39;#experiment-view&#39;</span>
+            <span class="nv">treatment: </span><span class="s1">&#39;#treatment-view&#39;</span>
+            <span class="nv">instrument: </span><span class="s1">&#39;#instrument-view&#39;</span>
+      <span class="nv">templateMap: </span><span class="p">{}</span>
+      <span class="nv">initialize: </span><span class="o">-&gt;</span>
+            <span class="k">try</span>
+                    <span class="nx">_</span><span class="p">.</span><span class="nx">map</span> <span class="nx">@viewMap</span><span class="p">,</span> <span class="p">(</span><span class="nx">id</span><span class="p">,</span> <span class="nx">type</span><span class="p">)</span> <span class="o">=&gt;</span>
+                            <span class="nx">@templateMap</span><span class="p">[</span><span class="nx">type</span><span class="p">]</span> <span class="o">=</span> <span class="nx">Handlebars</span><span class="p">.</span><span class="nx">compile</span> <span class="nx">$</span><span class="p">(</span><span class="nx">id</span><span class="p">).</span><span class="nx">html</span><span class="p">()</span>
+            <span class="k">catch</span> <span class="nx">error</span>
+                    <span class="nx">alert</span> <span class="s1">&#39;Failed to load object view templates&#39;</span></pre></div>             </td>           </tr>                               <tr id="section-17">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-17">&#182;</a>               </div>               <p>Actions</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">show: </span><span class="o">-&gt;</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">show</span><span class="p">()</span>
+
+      <span class="nv">hide: </span><span class="o">-&gt;</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">hide</span><span class="p">()</span>
+
+      <span class="nv">setModel: </span><span class="p">(</span><span class="nx">model</span><span class="p">)</span> <span class="o">=&gt;</span>
+            <span class="vi">@model = </span><span class="nx">model</span>
+            <span class="nx">@render</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-18">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-18">&#182;</a>               </div>               <p>Rendering</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">render: </span><span class="o">=&gt;</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">empty</span><span class="p">()</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="s2">&quot;&lt;span class=&#39;breadcrumb&#39;&gt;&lt;a href=&#39;search&#39;&gt;Search&lt;/a&gt; -&gt; &lt;a href=&#39;search&#39;&gt;#{ @model.attributes.type }&lt;/a&gt; -&gt; &lt;a href=&#39;search/#{ @model.attributes.type }/#{ @model.attributes.id }&#39;&gt;#{ @model.attributes.name }&lt;/a&gt;&lt;/span&gt;&quot;</span> <span class="k">if</span> <span class="nx">@model</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="s2">&quot;&lt;span class=&#39;breadcrumb&#39;&gt;&lt;a  href=&#39;search&#39;&gt;Search&lt;/a&gt;&lt;/span&gt;&quot;</span> <span class="nx">unless</span> <span class="nx">@model</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="nx">@templateMap</span><span class="p">[</span><span class="nx">@model</span><span class="p">.</span><span class="nx">get</span> <span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">toJSON</span><span class="p">()</span> <span class="k">if</span> <span class="nx">@model</span>
+            <span class="k">if</span> <span class="nx">@model</span>
+                <span class="nx">App</span><span class="p">.</span><span class="nx">socialView</span><span class="p">.</span><span class="nx">setContext</span> <span class="nx">@model</span>
+                <span class="nx">App</span><span class="p">.</span><span class="nx">socialView</span><span class="p">.</span><span class="nx">setEdit</span> <span class="kc">true</span>
+            <span class="err">@</span>
+
+      <span class="nv">finalize: </span><span class="o">=&gt;</span>
+            <span class="nx">@delegateEvents</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-19">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-19">&#182;</a>               </div>               <p>Events</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">events:</span>
+            <span class="s1">&#39;click .run&#39;</span><span class="o">:</span> <span class="s1">&#39;startExperiment&#39;</span>
+
+      <span class="nv">startExperiment: </span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="o">=&gt;</span>
+            <span class="nx">e</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">()</span>
+            <span class="nx">root</span><span class="p">.</span><span class="nx">renderDialog</span> <span class="s2">&quot;Configure Experiment&quot;</span><span class="p">,</span> <span class="s2">&quot;Placeholder Dialog pending Forms Package&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-20">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-20">&#182;</a>               </div>               <hr />
+
+<h2> Main browser window - rarely refreshed</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">SearchPane</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
+      <span class="nx">@implements</span> <span class="nx">TemplateView</span><span class="p">,</span> <span class="nx">SwitchPane</span>
+      <span class="nv">id: </span><span class="s1">&#39;search&#39;</span>
+      <span class="nv">initialize: </span><span class="o">-&gt;</span>
+            <span class="vi">@search = </span><span class="k">new</span> <span class="nx">SearchView</span>
+            <span class="nx">@search</span><span class="p">.</span><span class="nx">render</span><span class="p">()</span>
+            <span class="vi">@view = </span><span class="k">new</span> <span class="nx">ObjectView</span>
+            <span class="err">@</span></pre></div>             </td>           </tr>                               <tr id="section-21">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-21">&#182;</a>               </div>               <p>Dispatch object</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">dispatchObject: </span><span class="p">(</span><span class="nx">ref</span><span class="p">)</span> <span class="o">=&gt;</span>
+               <span class="nv">models = </span><span class="nx">App</span><span class="p">.</span><span class="nx">lookupModels</span> <span class="p">[</span> <span class="nx">ref</span> <span class="p">]</span>
+               <span class="k">if</span> <span class="nx">models</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span>
+                    <span class="nx">@view</span><span class="p">.</span><span class="nx">setModel</span> <span class="nx">models</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="nb">document</span><span class="p">.</span><span class="nv">name = </span><span class="nx">models</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">get</span> <span class="s1">&#39;name&#39;</span>
+                    <span class="k">return</span> <span class="kc">true</span>
+               <span class="k">else</span>
+                    <span class="nx">alert</span> <span class="s2">&quot;no model found for #{ ref }&quot;</span> <span class="nx">unless</span> <span class="nx">models</span>
+                    <span class="nx">App</span><span class="p">.</span><span class="nx">router</span><span class="p">.</span><span class="nx">navigate</span> <span class="s2">&quot;search&quot;</span><span class="p">,</span> <span class="kc">true</span>
+                    <span class="k">return</span> <span class="kc">false</span></pre></div>             </td>           </tr>                               <tr id="section-22">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-22">&#182;</a>               </div>               <p>Dispatch view type</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">dispatch: </span><span class="p">(</span><span class="nx">path</span><span class="p">)</span> <span class="o">=&gt;</span>
+            <span class="k">if</span> <span class="nx">@$el</span><span class="p">.</span><span class="nx">children</span><span class="p">().</span><span class="nx">size</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span>
+               <span class="nx">@render</span><span class="p">()</span>
+
+            <span class="nv">ref = </span><span class="nx">path</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="nx">path</span>
+            <span class="k">if</span> <span class="nx">ref</span> <span class="o">and</span> <span class="nv">ref.length = </span><span class="mi">2</span>
+               <span class="k">if</span> <span class="nx">@dispatchObject</span><span class="p">(</span><span class="nx">ref</span><span class="p">)</span>
+                  <span class="nx">@search</span><span class="p">.</span><span class="nx">hide</span><span class="p">()</span>
+                  <span class="nx">@view</span><span class="p">.</span><span class="nx">show</span><span class="p">()</span>
+            <span class="k">else</span>
+               <span class="nx">@search</span><span class="p">.</span><span class="nx">show</span><span class="p">()</span>
+               <span class="nx">@view</span><span class="p">.</span><span class="nx">hide</span><span class="p">()</span>
+            <span class="err">@</span>
+
+      <span class="nv">render: </span><span class="o">=&gt;</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">empty</span><span class="p">()</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="nx">@search</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="nx">@view</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span>
+            <span class="nx">@search</span><span class="p">.</span><span class="nx">finalize</span><span class="p">()</span>
+            <span class="nx">@view</span><span class="p">.</span><span class="nx">finalize</span><span class="p">()</span>
+            <span class="err">@</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 

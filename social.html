@@ -1,0 +1,39 @@
+<!DOCTYPE html>  <html> <head>   <title>social.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="dashboard.html">                 dashboard.coffee               </a>                                           <a class="source" href="dialog.html">                 dialog.coffee               </a>                                           <a class="source" href="events.html">                 events.coffee               </a>                                           <a class="source" href="explore.html">                 explore.coffee               </a>                                           <a class="source" href="journal.html">                 journal.coffee               </a>                                           <a class="source" href="settings.html">                 settings.coffee               </a>                                           <a class="source" href="social.html">                 social.coffee               </a>                                           <a class="source" href="trial.html">                 trial.coffee               </a>                                           <a class="source" href="widgets.html">                 widgets.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               social.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p>+++++++++++++++++++++
+Social Viewer
++++++++++++++++++++++</p>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>View dispatch sends message that new social data is available
+handler on social viewer grabs data from event and updates view
+to point at the current 'sociable' model</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">SocialView</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
+      <span class="nx">@implements</span> <span class="nx">TemplateView</span>
+      <span class="nv">initialize: </span><span class="nf">() -&gt;</span>
+            <span class="nx">@initTemplate</span> <span class="s1">&#39;#comment-short-view&#39;</span>
+            <span class="vi">@edit = </span><span class="kc">false</span>
+            <span class="nx">@render</span><span class="p">()</span> <span class="k">if</span> <span class="nx">@model</span>
+            <span class="err">@</span>
+
+      <span class="nv">setContext: </span><span class="nf">(model) -&gt;</span>
+            <span class="nx">@model</span><span class="p">.</span><span class="kc">off</span><span class="p">(</span><span class="s1">&#39;change&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="nx">@model</span>
+            <span class="vi">@model = </span><span class="nx">model</span>
+            <span class="nx">@model</span><span class="p">.</span><span class="kc">on</span><span class="p">(</span><span class="s1">&#39;change&#39;</span><span class="p">,</span> <span class="nx">@render</span><span class="p">)</span>
+            <span class="vi">@edit = </span><span class="kc">false</span>
+            <span class="nx">@render</span><span class="p">()</span>
+
+      <span class="nv">setEdit: </span><span class="nf">(flag) -&gt;</span>
+            <span class="vi">@edit = </span><span class="nx">flag</span>
+            <span class="nx">@render</span><span class="p">()</span>
+
+      <span class="nv">render: </span><span class="o">=&gt;</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">empty</span><span class="p">()</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="s1">&#39;&lt;h1&gt;Public Comments&lt;/h1&gt;&#39;</span>
+            <span class="k">if</span> <span class="nx">@edit</span>
+               <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="s2">&quot;&lt;textarea rows=&#39;5&#39; cols=&#39;20&#39;/&gt;&lt;button class=&#39;comment&#39; type=&#39;button&#39;&gt;Comment&lt;/button&gt;&quot;</span>
+            <span class="k">if</span> <span class="nx">@parent</span>
+               <span class="nv">comments = </span><span class="nx">@parent</span><span class="p">.</span><span class="nx">get</span> <span class="s1">&#39;comments&#39;</span>
+               <span class="nx">@inlineTemplate</span> <span class="nx">c</span> <span class="k">for</span> <span class="nx">c</span> <span class="k">in</span> <span class="nx">_</span><span class="p">.</span><span class="nx">sortBy</span><span class="p">(</span><span class="nx">comments</span><span class="p">,</span> <span class="nf">(x) -&gt;</span> <span class="nx">x</span><span class="p">.</span><span class="nx">date</span><span class="p">).</span><span class="nx">reverse</span><span class="p">()</span> <span class="k">if</span> <span class="nx">comments</span>
+            <span class="nx">@delegateEvents</span><span class="p">()</span>
+            <span class="err">@</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>Events</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">events:</span>
+            <span class="s1">&#39;click button.comment&#39;</span><span class="o">:</span> <span class="s1">&#39;addComment&#39;</span>
+
+      <span class="nv">addComment: </span><span class="o">=&gt;</span>
+            <span class="nx">@parent</span><span class="p">.</span><span class="nx">annotate</span> <span class="s1">&#39;comment&#39;</span><span class="p">,</span> <span class="nx">@$</span><span class="p">(</span><span class="s1">&#39;textarea&#39;</span><span class="p">).</span><span class="nx">val</span><span class="p">()</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 
