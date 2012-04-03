@@ -16,29 +16,44 @@ A mobile app client can use the APIs directly and bypass the /app
 namespace.
 
 A client app consists of:
-   - HTML skeleton for site frame and place holder divs for app modules
-   - Application javascript files
-   - Model templates for dynamic rendering
-   - Boostrap data for the specific sub-view being requested [This means the server needs to have a way of determining what data is being rendered and some duplication of URL parsing between server and client]
+
+- HTML skeleton for site frame and place holder divs for app modules
+- Application javascript files
+- Model templates for dynamic rendering
+- Boostrap data for the specific sub-view being requested [This means the server needs to have a way of determining what data is being rendered and some duplication of URL parsing between server and client]
 
 The server exposes various APIs to clients:
-   - /api/root/...  - A backbone API to enable fetching and updating of models
-   - /api/embed/...  - A submodel backbone extension API for embedded models
-   - /api/suggest/... - A set of autoSuggest AJAX APIs for helping the UI
-   - /api/chart/... - Renders chart content for various model / data types
-   - /api/events/calendar - Renders a calendar of reminders or past events
-   - /api/events/upcoming - Renders a calendar of reminders or past events
 
-## Models
+- /api/root/...  - A backbone API to enable fetching and updating of models
+- /api/embed/...  - A submodel backbone extension API for embedded models
+- /api/suggest/... - A set of autoSuggest AJAX APIs for helping the UI
+- /api/chart/... - Renders chart content for various model / data types
+- /api/events/calendar - Renders a calendar of reminders or past events
+- /api/events/upcoming - Renders a calendar of reminders or past events
+
+## Technical Architecture
+
+- Clojure+Noir Server Side Logic
+  - Uses MongoDB Document Store for Persistence
+  - Exports a Backbone.js compatible REST API (+ Backbone.Embedded extension)
+  - Exports higher-level API for autocomplete, suggests, search, etc.
+  - Internal Client-Server model architecture (experiment.infra.models)
+  - Supports server-generated pages for parts of the application
+  - Uses handlebars-clj to define templates in server-side code that
+    can be used by the server or sent to the client
+- Coffeescript+Backbone Rich-Client Front-end
+  - Uses d3.js for data visualizations (see QIchart.js library)
+- Leverages Twitter Bootstrap for UI Elements
+
+## Data Model
 
 The server manages and provides core and function-specific APIs for a rich-client
 model and some of the supplemental page logic.  
 
-
-   - User
-   - Embedded Objects for various objects
-      - Journals
-      - Comments
+- User
+- Embedded Objects for various objects
+   - Journals
+   - Comments
 
 ### Schematic layer 
 
@@ -61,12 +76,13 @@ model and some of the supplemental page logic.
 A study has a schedule (one of a number of templates). A dispatch
 function against the schedule type can transform a schedule into
 reminders or serve as the backdrop for user-generated events.
-   - Generates reminders
-       - Reminders can be put on a calendar
-   - User PROs are stored as time series in 'trackers'
-       - Background API dumps generated events (dep on instrument)
-       - Tracker objects record a series of data points from an instrument
-       - Trackers can also be extracted to show recording events on a calendar
+
+- Generates reminders
+   - Reminders can be put on a calendar
+- User PROs are stored as time series in 'trackers'
+   - Background API dumps generated events (dep on instrument)
+   - Tracker objects record a series of data points from an instrument
+   - Trackers can also be extracted to show recording events on a calendar
    - Trackers are processed to create canned reports or charts for a time period
 
      
@@ -123,7 +139,7 @@ Feature tasks
      - Object create / edit screens
    - Social components
 
-## Tasks for v0.2 - Stability Release
+## Tasks for v0.3 - Stability Release
 
 Architecture design tasks
 
@@ -139,6 +155,7 @@ Architecture design tasks
 Feature tasks
 
    - Full UX and UI review   
+
 
 # Open Platform Issues
 # ----------------------------------------------------------
