@@ -22,27 +22,41 @@ A client app consists of:
    - Boostrap data for the specific sub-view being requested [This means the server needs to have a way of determining what data is being rendered and some duplication of URL parsing between server and client]
 
 The server exposes various APIs to clients:
-   - /api/bone/...  - A backbone API to enable fetching and updating of models
+   - /api/root/...  - A backbone API to enable fetching and updating of models
+   - /api/embed/...  - A submodel backbone extension API for embedded models
    - /api/suggest/... - A set of autoSuggest AJAX APIs for helping the UI
    - /api/chart/... - Renders chart content for various model / data types
    - /api/events/calendar - Renders a calendar of reminders or past events
+   - /api/events/upcoming - Renders a calendar of reminders or past events
 
-### Models
+## Models
 
-The server manages the logic and integrity of a set of models that the
-UI shows to the user.  
+The server manages and provides core and function-specific APIs for a rich-client
+model and some of the supplemental page logic.  
+
+
    - User
-   - Treatment
-   - Instrument
-   - Experiment
-      - Schedule
-   - Trial
-   - Reminder
    - Embedded Objects for various objects
       - Journals
       - Comments
 
-### Tracking Workflow
+### Schematic layer 
+
+- Experiment
+  - Treatment
+  - Instrument[]
+  - Schedule (schema)
+
+- Trial
+  - Treatment
+  - Trackers[]
+  - Reminder
+  - Schedule (realized)
+
+### Operative Layer
+
+
+## Tracking Workflow
 
 A study has a schedule (one of a number of templates). A dispatch
 function against the schedule type can transform a schedule into
@@ -56,114 +70,100 @@ reminders or serve as the backdrop for user-generated events.
    - Trackers are processed to create canned reports or charts for a time period
 
      
+
 # Releases
 
-### Tasks for v0.1 - Demo Release
+## v0.1 - Academy Health Prototype Release (November 15th, 2011)
+
+## Tasks for v0.2 - Beta Release (April 10th, 2012)
 
 Architectural design tasks
 
    - X Model abstraction on server
      - X Backbone-based abstraction layer (base classes, protocols) for the 'model model'
      - X Handle references
-     - X Bootstrapping data into views (transmit entire DB for phase I)
+     - - Bootstrapping data into views (transmit entire DB for phase I)
      - X Nested object REST API support for Backbone
    - X Auto-complete for tags, model names, etc.
    - X Structured treatment descriptions using auto-complete
    - X Site navigation model using dispatch
-
-Feature tasks
-
-   - Style search object views
-   - Date range selection for tracker page / trial view
-   - X Tracker backend services
-   - X Dashboard main page
-   - Start trial from experiment view
-   - Illustrate missing data chart
-   - Trial View needs treatment description
-     - I want to click on tracking to change data
-     - If click on calendar, show me data points for the day
-
-   - Trial schedule and view
-     - Handle schedule and reminders 
-   - Profile editing / forms
-     - X Pretty forms CSS or JS
-   - Generate content
-
-   - NO IE popup on login
-   - Outcome control chart
-
-   - X Study registration
-   - Object create / edit screens
-   - Social components
-   - Site auxilary content
-   - Styling interior pages
-
-### Tasks for v0.2 - Stability Release
-
-Architecture design tasks
-
-   - Google analytics integration
-   - Proper support for dev/prod mode and versioning
-   - Break coffeescript into multiple independent UI modules
-   - Support proper logging through server and client side
-   - Cache model templates in external files for release
-   - Release model for aggregated/versioned javascript files
+   - X Proper support for dev/prod mode and versioning
+   - X Break coffeescript into multiple independent UI modules
+   - X Support proper logging through server and client side
+   - X Google analytics integration
    - Error handling across server & client
-   - Pallet distribution model
-      - X pallet, git, keys
-      ~ Mongo installation, nginx as proxy and static files
-      - X TODO: Leinengin
-      - TODO: Site upgrade scripts
    - Database and server backup
    - Sensible dump and reload database
+   - ? Pallet distribution model
+      - pallet, git, keys
+      ~ Mongo installation, nginx as proxy and static files
+      - TODO: Leinengin
+      - TODO: Site upgrade scripts
+   - NO IE popup on login
 
 Feature tasks
 
-   - Refactor Trial UI into components
-   - Full UX and UI review   
+   - X Study registration
+   - X Editorial content
+   - X Refactor Trial UI into components
+   - X Tracker backend services
+   - X Profile editing / forms
+     - X Pretty forms CSS or JS
+   - X Dashboard main page
+     - X Outcome control chart
+     - Illustrate missing data chart
+     - Trial schedule and view
+     - Date range selection for tracker page / trial view
+     - Calendar click support
+     - I want to click on tracking to change data
+   - Explore Page
+     - Style search object views
+     - Start trial from experiment view
+       - Handle schedule and reminders 
+     - Object create / edit screens
+   - Social components
 
-### Tasks for v0.3 - Tuning Release
+## Tasks for v0.2 - Stability Release
 
 Architecture design tasks
 
-   - Incremental bootstrapping of models to the server (how to diff?)
+   - ~ Cache model templates in external files for release
+   - ~ Release model for aggregated/versioned javascript files
    - Model abstraction on server
       - Handle synchronization conflicts for models
       - Define important properties like type checks, etc
-   - Caching layer for static content or snippets?
-   - General error handling and form updating
+   - Review / Improve error handling and validation
+   - Dynamic loading, caching, and pre-rendering Templates, etc.
+   - Server-side caching of rendered templates
 
 Feature tasks
 
-   - Failed login messages
-
-### Tasks for v0.4 - Public Release
-
-   - X Pick a name
-   - Logo
-   - Final CSS design tune
+   - Full UX and UI review   
 
 # Open Platform Issues
+# ----------------------------------------------------------
 
-### Longer term architectural issues
+## Longer term architectural issues
 
+   - X Server-side dispatch to client 'views' based on user-agent.  E.g. iphone
+     sends mobile client-app, search engine gets simple HTML view, web clients
+     get web app and older browsers get 'install new browser' page.
    - Support search indexibility and SEO by rendering sub-views with
      proper links on the server side for search crawlers or
      accessibility.  The server-side of a given application will have
      to handle this.  (For example, we want nice SEO URLs for all
      browseable objects such as treatments, experiments, and public
      discussions.
-   - X Server-side dispatch to client 'views' based on user-agent.  E.g. iphone
-     sends mobile client-app, search engine gets simple HTML view, web clients
-     get web app and older browsers get 'install new browser' page.
      
-### Wishlist / Notes
+## Wishlist / Notes
 
    - Site introduction similar to Coda's: http://www.panic.com/coda/
    - I like github's look at feel!  (as you can tell)
 
 
+
 # Design Notes
+# --------------------------------------------------------------
 
 ## Schedules and events
 
@@ -177,7 +177,7 @@ TimeOfDay
 Schedule Protocol
 (events schedule interval)
 
-### Event
+### Events
 
 Events have types w/ parameters that determine how the action plays out
 

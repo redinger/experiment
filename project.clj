@@ -1,30 +1,30 @@
 (defproject experiment "1.0.0-SNAPSHOT"
-            :description "Evaluation platform of a new model for running, recording and sharing self-experiments"
-	    :url "http://personalexperiments.org"
-	    :source-path "clojure"
-        :dependencies
-        [;; Clojure Core
-         [org.clojure/clojure "1.3.0"]
-         [org.clojure/tools.logging "0.2.3"]
-         [org.clojure/math.numeric-tower "0.0.1"]
-         ;; Backends
-         [congomongo "0.1.8"]
-         [swank-clojure "1.4.0"]
-         ;; Frameworks
-         [noir "1.3.0-beta1"]
-         [quartz-clj "1.1.0-SNAPSHOT"]
-         [handlebars-clj "0.9-SNAPSHOT"]
-         ;; Clojure Libs
-         [clj-logging-config "1.9.1"]
-         [clj-time "0.3.2"]
-         [clj-http "0.3.0"]
-         [clj-oauth "1.3.1-SNAPSHOT"]
-         [cheshire "3.0.0"]
-         [clodown "1.0.2"]
-         [com.draines/postal "1.7-SNAPSHOT"]
-         ;; Java libs
-         [log4j "1.2.16"]
-         [org.slf4j/slf4j-log4j12 "1.6.1"]]
+  :description "Evaluation platform of a new model for running, recording and sharing self-experiments"
+  :url "http://personalexperiments.org"
+  :source-path "clojure"
+  :dependencies
+  [ ;; Clojure Core
+   [org.clojure/clojure "1.3.0"]
+   [org.clojure/tools.logging "0.2.3"]
+   [org.clojure/math.numeric-tower "0.0.1"]
+   ;; Backends
+   [congomongo "0.1.8"]
+   [swank-clojure "1.4.0"]
+   ;; Frameworks
+   [noir "1.3.0-beta1"]
+   [quartz-clj "1.1.0-SNAPSHOT"]
+   [handlebars-clj "0.9-SNAPSHOT"]
+   ;; Clojure Libs
+   [clj-logging-config "1.9.1"]
+   [clj-time "0.3.2"]
+   [clj-http "0.3.0"]
+   [clj-oauth "1.3.1-SNAPSHOT"]
+   [cheshire "3.0.0"]
+   [clodown "1.0.2"]
+   [com.draines/postal "1.7-SNAPSHOT"]
+   ;; Java libs
+   [log4j "1.2.16"]
+   [org.slf4j/slf4j-log4j12 "1.6.1"]]
 	    :main experiment.server
 	    :daemon {:server {:ns experiment.server
 			      :pidfile "./server.pid"}}

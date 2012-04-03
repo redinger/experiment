@@ -113,11 +113,4 @@
 (defpage dashboard-redir "/dashboard" {:as options}
   (resp/redirect "/dashboard/overview"))
 
-(defpage "/explore*" {:as options}
-  (page-frame
-   ["Explore Experiments"]
-   (nav-fixed (:nav (default-nav "explore")))
-   [:div.container
-    [:div.page-header
-     [:h1 "Browse and Search Experiments (COMING SOON)"]]]))
   
