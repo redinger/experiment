@@ -2,11 +2,11 @@
 # JOURNAL VIEW
 #
 
-define ['models/infra', 'models/core', 'use!Handlebars', 'use!Backbone'],
-  (Infra, Models) ->
+define ['models/infra', 'models/core', 'views/widgets', 'use!Handlebars', 'use!Backbone'],
+  (Infra, Core, Widgets) ->
 
     class JournalView extends Backbone.View
-      @implements Infra.TemplateView
+      @implements Widgets.TemplateView
       initialize: ->
             @initTemplate '#journal-viewer'
             @model.on('change', @render) if @model

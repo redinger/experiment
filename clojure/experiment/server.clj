@@ -73,16 +73,17 @@
   ;; Setup logging
   (let [mode (keyword (or mode (props/get :mode) :dev))]
     (if (= mode :dev)
-      (set-loggers! "default"
-                    {:level :warn
-                     :pattern "%d - %m%n"}
-                    "experiment"
-                    {:level :debug
-                     :pattern "%d - %m%n"}
-                    "org.mortbay.log"
-                    {:level :error}
-                    "org.quartz.core.QuartzSchedulerThread"
-                    {:level :error})
+      (do (server/add-middleware swank-connection)
+          (set-loggers! "default"
+                        {:level :warn
+                         :pattern "%d - %m%n"}
+                        "experiment"
+                        {:level :debug
+                         :pattern "%d - %m%n"}
+                        "org.mortbay.log"
+                        {:level :error}
+                        "org.quartz.core.QuartzSchedulerThread"
+                        {:level :error}))
       (set-logger! "default"
 		   :level :warn
 		   :pattern "%d - %m%n"

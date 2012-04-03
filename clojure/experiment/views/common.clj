@@ -58,10 +58,8 @@
     :src "/js/libs/require/require.js"
     :data-main "/js/load"}]
   (when-let [depstring (map #(format "'%s'" %) deps)]
-    (println depstring)
     [:script
      {:type "text/javascript"}
-     "console.log('loading dependencies for: " (format "%s" deps) "');\n"
      "require(["
      (str/join ", " (map #(format "'%s'" %) deps))
      "], function () { console.log('loaded dependencies for: " (format "%s" deps) "') });"]))

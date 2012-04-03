@@ -9,7 +9,6 @@
   };
   define(['jquery', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEditors'], function() {
     var Dialogs, ForgotModal, LoginModal, ModalForm, ModalMessage, ModalView, RegisterModal, extractParams, forgotSchema, loginSchema, regSchema;
-    console.log('loaded deps for dialog');
     if (!Dialogs) {
       Dialogs = {};
     }

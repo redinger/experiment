@@ -1,5 +1,6 @@
 (ns experiment.infra.middleware
   (:require
+   [clojure.tools.logging :as log]
    [somnium.congomongo :as mongo]
    [noir.session :as session]
    [noir.request :as req]
@@ -7,6 +8,20 @@
    [cheshire.core :as json]
    [clojure.string :as str]))
 
+
+;;
+;; # Middleware: Support breaking to swank in handlers
+;;
+
+(defn swank-connection
+  "RING Middleware: Binds *current-connection* to the
+   swank connection that was active at the time the server
+   was started."
+  [handler] 
+  (let [conn swank.core.connection/*current-connection*] 
+    (fn [request] 
+      (binding [swank.core.connection/*current-connection* conn] 
+        (handler request)))))
 
 ;;
 ;; # Middleware: Bind the current user
@@ -17,7 +32,8 @@
 (defn session-user
   "RING MIDDLEWARE: Binds the current session user, when logged in.
    Use tools in infra/sessions and infra/auth to login and logout
-   users" [handler]
+   users"
+  [handler]
   (fn [req]
     (let [userid (session/get :userid)]
       (binding [*current-user*
@@ -29,21 +45,23 @@
 ;; # Middleware: pre-parse JSON payloads
 ;;
    
+(defn- extract-json [req]
+  (if-let [ctype (get-in req [:headers "content-type"])]
+    (if (and (string? ctype) (re-find #"application/json" ctype))
+      (update-in req [:params] assoc :json-payload
+                 (try
+                   (json/parse-string (slurp (:body req)) true)
+                   (catch java.lang.Throwable e
+                     (log/error "Ignoring JSON payload"))))
+      req)
+    req))
+
 (defn extract-json-payload
-  "RING MIDDLEWARE: When the POST content type is application/json,
+  "RING MIDDLEWARE: When the content type is application/json,
    parse the data and make available in parameter list as :json-payload"
   [handler]
   (fn [req]
-    (handler
-     (if-let [ctype (get-in req [:headers "content-type"])]
-       (if (and (string? ctype) (re-find #"application/json" ctype))
-         (update-in req [:params] assoc :json-payload
-                    (try
-                      (json/parse-string (slurp (:body req)) true)
-                      (catch java.lang.Throwable e
-                        nil)))
-         req)
-       req))))
+    (handler (extract-json req))))
 
 ;;
 ;; # Middleware: redirect to a URL based on the user agent

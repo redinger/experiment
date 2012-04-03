@@ -1,5 +1,5 @@
 (function() {
-  var __slice = Array.prototype.slice, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; }, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
+  var __slice = Array.prototype.slice, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
     for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
     function ctor() { this.constructor = child; }
     ctor.prototype = parent.prototype;
@@ -8,7 +8,7 @@
     return child;
   };
   define(['jquery', 'use!Backbone'], function($, Backbone) {
-    var Cache, Collection, Model, PaneSwitcher, SubCollection, SubModel, SwitchPane, TemplateView, _implements, _initialize, _loaded, _parse, _set;
+    var Collection, Model, ReferenceCache, __prepareModel, _get, _implements, _loaded, _set, _toJSONColl, _toJSONModel;
     _implements = function() {
       var classes, getter, klass, prop, setter, _i, _len;
       classes = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
@@ -41,121 +41,262 @@
     } else {
       Function.prototype.implements = _implements;
     }
-    _parse = Backbone.Model.prototype.parse;
-    _initialize = Backbone.Model.prototype.initialize;
     _set = Backbone.Model.prototype.set;
-    Backbone.Cache = function() {
-      return this._collections = [];
-    };
-    _.extend(Backbone.Cache.prototype, Backbone.Events, {
-      resolve: function(type, id) {
-        var collection, instance;
-        collection = _collections[type] || {};
-        if (collection && collection[id]) {
-          return collection[id];
+    _get = Backbone.Model.prototype.get;
+    _toJSONModel = Backbone.Model.prototype.toJSON;
+    ReferenceCache = (function() {
+      function ReferenceCache() {
+        this.types = {};
+        this.instances = {};
+        this;
+      }
+      return ReferenceCache;
+    })();
+    _.extend(ReferenceCache.prototype, {
+      registerTypes: function(map) {
+        return _.extend(this.types, map);
+      },
+      lookupConstructor: function(type) {
+        if (_.isString(type)) {
+          return this.types[type];
         } else {
-          instance = new type({
-            id: id
-          });
-          instance._loaded = false;
-          return this.register(type, instance);
+          return type;
         }
       },
-      register: function(type, instance) {
-        instance.bind('destroy', this.unregister, this);
-        this._collections[type][instance.id] = instance;
+      resolve: function(type, id, options) {
+        var instance;
+        if (options == null) {
+          options = {
+            lazy: false
+          };
+        }
+        if (!((id != null) || (type != null))) {
+          throw new Error('ReferenceCache.resolve requires valid type and id');
+        }
+        instance = this.instances[id];
+        if (!instance) {
+          instance = new (this.lookupConstructor(type))({
+            id: id
+          });
+          instance._refType = type;
+          instance._embedLocation = function() {
+            return null;
+          };
+          instance._embedParent = null;
+          if (!options.lazy && !instance._loaded) {
+            instance._loaded = instance.fetch().complete(function() {
+              return instance._loaded = true;
+            }).fail(function() {
+              console.log('failed to load:');
+              return console.log(instance);
+            });
+          } else if (options.lazy) {
+            instance._loaded = false;
+            throw new Error('Lazy loading not implemented');
+          }
+          this.register(instance);
+        }
+        return instance;
+      },
+      register: function(instance) {
+        instance.on('destroy', this.unregister);
+        this.instances[instance.id] = instance;
         return instance;
       },
       unregister: function(instance) {
-        var type;
-        instance.unbind('destroy', this.unregister);
-        type = instance.constructor;
-        return delete collections[type][instance.id];
+        instance.off('destroy', this.unregister);
+        return delete this.instances[instance.id];
       }
     });
-    Cache = Backbone.Cache;
-    ({
+    Backbone.ReferenceCache = new ReferenceCache;
+    _.extend(Backbone.Model.prototype, _loaded = true, {
       _importers: {
-        reference: function(attr, model, type, ref) {
-          return Cache.resolve(type, ref[1]);
+        reference: function(attr, model, conType, ref) {
+          var id, servType;
+          if (_.isArray(ref)) {
+            servType = ref[0], id = ref[1];
+            return Backbone.ReferenceCache.resolve(servType, id, {
+              lazy: false
+            });
+          } else {
+            return ref;
+          }
         },
-        references: function(attr, coll, type, ref_array) {
-          coll || (coll = new type);
-          coll.reset(_.map(ref_array, __bind(function(ref) {
-            return Cache.resolve(type, ref[1]);
-          }, this)));
-          coll.parent = this;
-          coll.location = attr;
+        references: function(attr, coll, conType, ref_array) {
+          if (coll == null) {
+            coll = new (Backbone.ReferenceCache.lookupConstructor(conType));
+          }
+          coll.reset(_.map(ref_array, function(ref) {
+            var id, servType;
+            if (_.isArray(ref)) {
+              servType = ref[0], id = ref[1];
+              return Backbone.ReferenceCache.resolve(servType, id, {
+                lazy: false
+              });
+            } else {
+              return ref;
+            }
+          }));
+          coll._embedParent = this;
+          coll._embedLocation = attr;
+          coll._referenceCollection = true;
           return coll;
         },
         submodel: function(attr, model, type, attrs) {
-          if (!model) {
-            model = new type;
+          if (model == null) {
+            model = new (Backbone.ReferenceCache.lookupConstructor(type));
           }
-          if (attrs_array && attrs.length > 0) {
-            model.reset(attrs);
-            model.loaded = true;
+          if (attrs && attrs.length > 0) {
+            model.set(attrs);
           } else {
-            model.reset;
-            model.loaded = false;
+            model.clear;
+            model._loaded = false;
           }
-          model.parent = this;
-          model.location = attr;
+          model._embedParent = this;
+          model._embedLocation = function() {
+            return attr;
+          };
           return model;
         },
         submodels: function(attr, coll, type, attrs_array) {
-          if (!coll) {
-            coll = new type;
+          var importModel;
+          if (coll == null) {
+            coll = new (Backbone.ReferenceCache.lookupConstructor(type));
           }
-          if (attrs_array && attrs_array.length > 0) {
-            model.reset(attrs_array);
-            model.loaded = true;
+          coll._embedParent = this;
+          coll._embedLocation = function() {
+            return attr;
+          };
+          if (!_.isEmpty(attrs_array)) {
+            importModel = function(attrs) {
+              var model;
+              if (!_.isObject(attrs)) {
+                throw new Error('Invalid submodel attributes');
+              }
+              model = new coll.model;
+              model.set(attrs);
+              model._embedParent = coll;
+              model._embedLocation = function() {
+                if (this.id) {
+                  return this.id;
+                } else {
+                  return null;
+                }
+              };
+              if (!(model.id != null)) {
+                throw new Error('Cannot import embedded models without id');
+              }
+              return model;
+            };
+            coll.reset(_.map(_.values(attrs_array), importModel, this));
           } else {
-            model.reset;
-            model.loaded = false;
+            coll.reset();
+            coll._loaded = false;
           }
-          coll.parent = this;
-          coll.location = attr;
-          return model;
+          return coll;
         }
-      }
-    });
-    _.extend(Backbone.Model.prototype, _loaded = true, {
-      parse: function(response) {
-        var attributes;
-        attributes = _parse(response);
-        if (this.embedded) {
-          _.each(this.embedded, function(record, attr) {
-            var importer, type, value;
-            type = record[0];
-            importer = record[1];
-            value = attributes[attr];
-            this[attr] = _importers[importer].call(this, attr, this[attr], type, value);
-            return delete attributes[attr];
-          });
+      },
+      isLoaded: function() {
+        return this._loaded;
+      },
+      getEmbedPath: function() {
+        if (this._embedParent) {
+          return this._embedParent.getEmbedPath().push(this);
+        } else {
+          return _.chain([this]);
         }
-        return attributes;
+      },
+      asReference: function() {
+        if (this.getEmbedPath().value()[0] === this) {
+          return [this._refType, this.id];
+        } else {
+          throw new Error('Cannot return a reference for an embedded model');
+        }
+      },
+      _setEmbedded: function(attr, value) {
+        var conType, importer, _ref;
+        _ref = this.embedded[attr], importer = _ref[0], conType = _ref[1];
+        if (!importer) {
+          throw new Error('Trying to set non-embedded attribute ' + attr);
+        }
+        this[attr] = this._importers[importer].call(this, attr, this[attr], conType, value);
+        return this;
+      },
+      set: function(attr, value, options) {
+        if (!(this.embedded != null)) {
+          return _set.apply(this, arguments);
+        }
+        if (_.isObject(attr)) {
+          return _.each(attr, function(val, key) {
+            if (this.embedded[key]) {
+              return this._setEmbedded(key, val);
+            } else {
+              return _set.call(this, key, val, options);
+            }
+          }, this);
+        } else if (this.embedded[attr]) {
+          return this._setEmbedded(attr, value);
+        } else {
+          return _set.apply(this, arguments);
+        }
       },
       get: function(attr) {
-        if (this.embedded && this.embedded[attr]) {
-          throw new Error('Cannot get an embedded attribute');
+        if (this.embedded && this.embedded[attr] && this[attr]) {
+          return this[attr];
         }
-        if (_loaded === false) {
-          this.fetch();
+        if (!this._loaded && !attr === 'id' && !attr === 'type') {
+          throw new Error('Object is not loaded');
         }
-        return _get.call(model, attr);
+        return _get.call(this, attr);
       },
-      set: function(attr, value) {
-        if (this.embedded && this.embedded[attr]) {
-          throw new Error('Cannot get an embedded attribute');
+      toJSON: function(options) {
+        var json;
+        json = _toJSONModel.call(this, options);
+        _.each(this.embedded, function(record, attr) {
+          var exporter;
+          exporter = record[0];
+          if (exporter === 'reference' && this[attr]) {
+            return json[attr] = this[attr].asReference();
+          }
+        }, this);
+        return json;
+      }
+    });
+    __prepareModel = Backbone.Collection.prototype._prepareModel;
+    _toJSONColl = Backbone.Collection.prototype.toJSON;
+    _.extend(Backbone.Collection.prototype, {
+      getEmbedPath: function() {
+        if (this._embedParent) {
+          return this._embedParent.getEmbedPath().push(this);
+        } else {
+          return _.chain([this]);
         }
-        if (_loaded === false) {
-          return this.fetch({
-            success: function(model, response) {
-              return _set.call(model, attr, value);
-            }
+      },
+      toJSON: function(options) {
+        if (this._referenceCollection) {
+          return this.models.map(function(model) {
+            return model.asReference();
           });
+        } else {
+          return _toJSONColl.call(this, options);
         }
+      },
+      _prepareModel: function(model, options) {
+        var _ref;
+        model = __prepareModel.call(this, model, options);
+        if (this._embedParent) {
+          if ((_ref = model._embedParent) == null) {
+            model._embedParent = this;
+          }
+          model._embedLocation = function() {
+            if (this.id) {
+              return this.id;
+            } else {
+              return null;
+            }
+          };
+        }
+        return model;
       }
     });
     Model = (function() {
@@ -163,47 +304,7 @@
       function Model() {
         Model.__super__.constructor.apply(this, arguments);
       }
-      Model.prototype.getLocation = function() {
-        if (this.location) {
-          return this.location;
-        } else if (this.get('type')) {
-          return this.get('type');
-        } else if (this.serverType) {
-          return this.serverType;
-        } else {
-          throw new Error('No server type provided for URL');
-        }
-      };
-      Model.prototype.getPath = function() {
-        var local;
-        local = "/{ @getLocation }/{ @get 'id' }";
-        if (this.parent) {
-          return "{ @parent.getPath() }/{ local }";
-        } else {
-          return local;
-        }
-      };
-      Model.prototype.url = function() {
-        return "/api/root/{ @getPath() }";
-      };
-      return Model;
-    })();
-    SubModel = (function() {
-      __extends(SubModel, Model);
-      function SubModel() {
-        SubModel.__super__.constructor.apply(this, arguments);
-      }
-      SubModel.prototype.url = function() {
-        return "/api/embed/{ @getPath() }";
-      };
-      return SubModel;
-    })();
-    Collection = (function() {
-      __extends(Collection, Backbone.Collection);
-      function Collection() {
-        Collection.__super__.constructor.apply(this, arguments);
-      }
-      Collection.prototype.getServerType = function() {
+      Model.prototype.getServerType = function() {
         if (this.serverType) {
           return this.serverType;
         } else if (this.get('type')) {
@@ -212,197 +313,58 @@
           throw new Error('No server type provided for Model');
         }
       };
+      Model.prototype.url = function() {
+        var embeds, locations, root, _ref;
+        if (this._embedParent) {
+          _ref = this.getEmbedPath().value(), root = _ref[0], embeds = 2 <= _ref.length ? __slice.call(_ref, 1) : [];
+          locations = _.map(embeds, function(obj) {
+            return obj._embedLocation();
+          });
+          if (this.isNew()) {
+            return "/api/embed/" + (root.getServerType()) + "/" + root.id + "/" + (_.initial(locations).join('/'));
+          } else {
+            return "/api/embed/" + (root.getServerType()) + "/" + root.id + "/" + (locations.join('/'));
+          }
+        } else {
+          return "/api/root/" + (this.getServerType()) + "/" + this.id;
+        }
+      };
+      Model.prototype.toJSON = function(options) {
+        var json;
+        json = Model.__super__.toJSON.call(this, options);
+        if (!json.type) {
+          json.type = this.getServerType();
+        }
+        return json;
+      };
+      return Model;
+    })();
+    Collection = (function() {
+      __extends(Collection, Backbone.Collection);
+      function Collection() {
+        Collection.__super__.constructor.apply(this, arguments);
+      }
+      Collection.prototype.getServerType = function() {
+        return this.model.prototype.getServerType();
+      };
       Collection.prototype.url = function() {
-        return "/api/bone/" + type;
+        var embeds, locations, root, _ref;
+        if (this._embedParent) {
+          _ref = this.getEmbedPath().value(), root = _ref[0], embeds = 2 <= _ref.length ? __slice.call(_ref, 1) : [];
+          locations = _.map(embeds, function(obj) {
+            return obj._embedLocation();
+          });
+          return "/api/embed/coll/" + (root.getServerType()) + "/" + root.id + "/" + (locations.join('/'));
+        } else {
+          return "/api/root/" + (this.model.getServerType());
+        }
       };
       return Collection;
     })();
-    SubCollection = (function() {
-      __extends(SubCollection, Backbone.Collection);
-      function SubCollection() {
-        SubCollection.__super__.constructor.apply(this, arguments);
-      }
-      SubCollection.prototype.url = function() {
-        var pid, ptype, type;
-        ptype = this.parent.getServerType();
-        pid = this.parent.id;
-        type = this.getServerType();
-        return "/api/embed/" + ptype + "/" + pid + "/" + type;
-      };
-      return SubCollection;
-    })();
-    TemplateView = (function() {
-      function TemplateView() {}
-      TemplateView.prototype.getTemplate = function(name) {
-        var html;
-        try {
-          html = $(name).html();
-          if (!name) {
-            alert('No template found for #{ name }');
-          }
-          return Handlebars.compile(html);
-        } catch (error) {
-          return alert("Error loading template " + name + " ... " + error);
-        }
-      };
-      TemplateView.prototype.initTemplate = function(name) {
-        this.template = this.getTemplate(name);
-        return this;
-      };
-      TemplateView.prototype.resolveModel = function(model) {
-        if (!model) {
-          model = this.model;
-        }
-        if (!model) {
-          model = new Backbone.Model({});
-        }
-        if (!model.toJSON) {
-          model = new Backbone.Model(model);
-        }
-        return model;
-      };
-      TemplateView.prototype.renderTemplate = function(model, template) {
-        model = this.resolveModel(model);
-        template || (template = this.template);
-        this.$el.html(template(model.toJSON()));
-        return this;
-      };
-      TemplateView.prototype.inlineTemplate = function(model, template) {
-        model = this.resolveModel(model);
-        template || (template = this.template);
-        return this.$el.append(template(model.toJSON()));
-      };
-      return TemplateView;
-    })();
-    SwitchPane = (function() {
-      function SwitchPane() {
-        this.dispatch = __bind(this.dispatch, this);
-        this.showPane = __bind(this.showPane, this);
-        this.hidePane = __bind(this.hidePane, this);
-        this.visiblep = __bind(this.visiblep, this);
-      }
-      SwitchPane.prototype.visiblep = function() {
-        if (this.$el.is(':visible')) {
-          return true;
-        } else {
-          return false;
-        }
-      };
-      SwitchPane.prototype.hidePane = function() {
-        if (this.visiblep()) {
-          return this.$el.hide();
-        }
-      };
-      SwitchPane.prototype.showPane = function() {
-        if (!this.visiblep()) {
-          return this.$el.show();
-        }
-      };
-      SwitchPane.prototype.dispatch = function(path) {
-        return this;
-      };
-      return SwitchPane;
-    })();
-    PaneSwitcher = (function() {
-      __extends(PaneSwitcher, Backbone.View);
-      function PaneSwitcher() {
-        this["switch"] = __bind(this["switch"], this);
-        this.render = __bind(this.render, this);
-        PaneSwitcher.__super__.constructor.apply(this, arguments);
-      }
-      PaneSwitcher.prototype.panes = {};
-      PaneSwitcher.prototype.initialize = function() {
-        this.panes = this.options.panes;
-        return this;
-      };
-      PaneSwitcher.prototype.render = function() {
-        var name, pane, _ref;
-        this.$el.empty();
-        _ref = this.panes;
-        for (name in _ref) {
-          pane = _ref[name];
-          this.$el.append(pane.render().el);
-        }
-        return this;
-      };
-      PaneSwitcher.prototype.hideOtherPanes = function(target) {
-        var name, pane, _ref, _ref2, _ref3, _results, _results2, _results3;
-        if (!target) {
-          _ref = this.panes;
-          _results = [];
-          for (name in _ref) {
-            pane = _ref[name];
-            _results.push((pane ? pane.hidePane() : void 0));
-          }
-          return _results;
-        } else if (typeof target === 'string') {
-          _ref2 = this.panes;
-          _results2 = [];
-          for (name in _ref2) {
-            if (!__hasProp.call(_ref2, name)) continue;
-            pane = _ref2[name];
-            _results2.push((pane && name !== target ? pane.hidePane() : void 0));
-          }
-          return _results2;
-        } else {
-          _ref3 = this.panes;
-          _results3 = [];
-          for (name in _ref3) {
-            if (!__hasProp.call(_ref3, name)) continue;
-            pane = _ref3[name];
-            _results3.push((pane && pane !== target ? pane.hidePane() : void 0));
-          }
-          return _results3;
-        }
-      };
-      PaneSwitcher.prototype["switch"] = function(name) {
-        var pane;
-        this.active = name;
-        pane = this.getPane(name);
-        if (pane === null) {
-          alert('no pane for name ' + name);
-        }
-        this.hideOtherPanes(name);
-        return pane.showPane();
-      };
-      PaneSwitcher.prototype.addPane = function(name, pane) {
-        this.panes[name] = pane;
-        this.trigger('switcher:add');
-        this.render();
-        return this;
-      };
-      PaneSwitcher.prototype.removePane = function(ref) {
-        var name;
-        if (typeof ref === 'string') {
-          delete this.panes[ref];
-        } else {
-          name = _.detect(this.panes, function(name, pane) {
-            if (pane === ref) {
-              return name;
-            }
-          });
-          delete this.panes[name];
-        }
-        this.trigger('switcher:remove');
-        this.render();
-        return this;
-      };
-      PaneSwitcher.prototype.getPane = function(name) {
-        var pane;
-        pane = this.panes[name];
-        if (typeof pane === 'undefined') {
-          alert('Pane not found for name ' + name);
-        }
-        return pane;
-      };
-      return PaneSwitcher;
-    })();
     return {
       Model: Model,
-      SubModel: SubModel,
       Collection: Collection,
-      SubCollection: SubCollection,
-      TemplateView: TemplateView
+      ReferenceCache: ReferenceCache
     };
   });
 }).call(this);

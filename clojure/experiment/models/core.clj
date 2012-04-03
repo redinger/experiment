@@ -5,12 +5,12 @@
    [experiment.libs.datetime :as dt]
    [experiment.infra.session :as session]))
 
-;; ===========================================================
+;; -----------------------------------------------------------
 ;; VARIABLE/SYMPTOM [name ref]
 ;;  has name
 ;;  contains Comments
 
-;; ===========================================================
+;; -----------------------------------------------------------
 ;; TREATMENT [name ref]
 ;;  has name
 ;;  has tags[]
@@ -26,62 +26,61 @@
     (and (every? (set (keys treat)) [:name :description])
 	 (every? #(or (nil? %1) (sequential? %1)) [comments warnings tags]))))
   
-;;(defmethod client-keys :treatment [treat]
+;;(defmethod public-keys :treatment [treat]
 ;;  [:_id :type
 ;;   :name :tags :description :dynamics
 ;;   :help :reminder :votes :warnings :comments])
 
-;; ===========================================================
+;; -----------------------------------------------------------
 ;; INSTRUMENT [type ref]
 ;;  has name
 ;;  has type
-;;  refs Variable.name
+;;  has variable
 ;;  has implementedp -- new instrument objects are requests
 ;;  contains Comments
 
 
-;; ===========================================================
+;; -----------------------------------------------------------
 ;; EXPERIMENT
-;;  refs User.username 
+;;  ref Treatment
+;;  ref Instruments[]
 ;;  has title
 ;;  has instructions
-;;  contains Schedule
-;;  contains TreatmentRefs[]
-;;  ref Instrument[]
 ;;  has tags[]
-;;  contains Ratings{}
-;;  contains Comments[]
-;;  - op: tag
-;;  - op: comment
-;;  - op: rate (send to server, update average)
+;;  submodel Schedule
+;;  submodel Ratings{}
+;;  submodels Comments[]
 
 (defmethod db-reference-params :experiment [model]
-  [:instruments :treatment])
+  [:treatment :instruments])
 
-;; ===========================================================
+;; -----------------------------------------------------------
+;; TRACKER
+;; refs User
+;; refs Instrument
+;; has state
+
+(defmethod db-reference-params :tracker [model]
+  [:user :instrument])
+
+
+;; -----------------------------------------------------------
 ;; JOURNAL (embedded)
 ;;  date
 ;;  date-str
 ;;  content
 ;;  sharing
 
-(defmethod make-annotation :journal [{:keys [text]}]
-  (when (> (count text) 5)
-    (let [date (dt/now)]
-      {:content text
-       :date (dt/as-utc date)
-       :date-str (dt/as-short-string date)})))
-
+(defmethod db-reference-params :journal [model]
+  [:user])
 
 ;; ===========================================================
+;; -----------------------------------------------------------
 ;; COMMENT (embedded)
 ;;  has upVotes
 ;;  has downVotes
 ;;  has title
 ;;  has content
-
-(defmethod model-collection :comment [model]
-  :comments)
 
 (defmethod make-annotation :comment [{:keys [text]}]
   (when (> (count text) 5)

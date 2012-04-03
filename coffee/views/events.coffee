@@ -2,11 +2,10 @@
 # Event Views
 ####################################################
 
-define ['models/infra']
+define ['models/infra'],
   (Infra) ->
 
-    ## Events and Calendar
-
+    # ## Events and Calendar
     calendarBehavior = () ->
       distance = 10
       time = 250

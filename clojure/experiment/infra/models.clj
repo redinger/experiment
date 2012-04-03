@@ -26,7 +26,7 @@
 ;; behavior and valid slots in the server or client context.
 
 (defn model?
-  "A predicate to test that we have a valid model:
+  "A predicate to test that we have a valid parent model:
    :_id field ala mongo with valid ObjectID
    :type field indicating type of the model"
   [model]
@@ -34,10 +34,13 @@
        (:_id model)
        (instance? ObjectId (:_id model))))
 
+(declare embedded-objectid?)
+
 (defn submodel? 
   "A predict to test that we have a valid submodel"
   [submodel]
-  (and (:type submodel)))
+  (and (:type submodel)
+       (embedded-objectid? (:id submodel))))
 
 (defmulti valid-model? 
   "Enforces invariant properties of a specific model.  Model
@@ -60,16 +63,6 @@
   (fn [model] (when-let [type (:type model)]
                 (keyword type))))
 
-(defmulti submodel-path
-  "Maps a submodel type to a path in the parent model"
-  (fn [model submodel]
-    (let [ptype (:type model)
-          stype (:type submodel)]
-      (when (and ptype stype)
-        [(keyword ptype)
-         (keyword stype)]))))
-  
-
 (defmulti public-keys 
   "Performs a select-keys on client data so we don't store
    illegal client-side slots on the server or send server-side
@@ -82,13 +75,13 @@
    takes the server model and transforms it to a public/client
    view before serialization"
   (fn [model]
-    (name (:type model))))
+    (keyword (:type model))))
 
 (defmulti client->server-hook
   "The import hook runs on the internal representation of the model
    after import but before the object is saved to the underlying store"
   (fn [model]
-    (name (:type model))))
+    (keyword (:type model))))
 
 (defmulti make-annotation
   "For embedded objects we expose a generic API for creating objects
@@ -140,8 +133,9 @@
   (= (type ref) DBRef))
 
 (defn embedded-objectid? [id]
-  (and (= (count id) 25)
-       (= (first id) \*)))
+  (and (string? id)
+       (= (first id) \S)
+       (= (second id) \M)))
 
 (defn serialize-id
   "Convert a MongoDB ID for client use"
@@ -181,14 +175,17 @@
 (defn serialize-model-id
   "Export a local model-id as a foreign ID"
   [smodel]
-  (dissoc (assoc smodel :id (serialize-id (:_id smodel))) :_id))
+  (if (:_id smodel) ;; primary model
+    (dissoc (assoc smodel :id (serialize-id (:_id smodel))) :_id)
+    smodel ;; submodel is already serialized
+    ))
 
 (defn deserialize-model-id
   "Import a foregin model-id as a local ID"
   [cmodel]
-  (if (:id cmodel)
-    (dissoc (assoc cmodel :_id (deserialize-id (:id cmodel))) :id)
-    cmodel))
+  (if (embedded-objectid? (:id cmodel))
+    cmodel
+    (dissoc (assoc cmodel :_id (deserialize-id (:id cmodel))) :id)))
 
 ;; ### Handle embedded DBRefs
 
@@ -202,9 +199,12 @@
 (defn serialize-model-refs [smodel]
   (walk/postwalk serialize-ref smodel))
 
+
 (defn- deserialize-model-ref [model key]
   (if-let [[ns id] (model key)]
-    (assoc model key (deserialize-dbref ns id))
+    (if (and ns id)
+      (assoc model key (deserialize-dbref [ns id]))
+      model)
     model))
 
 (defn deserialize-model-refs [cmodel]
@@ -253,8 +253,8 @@
     (catch java.lang.Throwable e nil)))
 
 (defn assign-uid [model]
-  (if (not (:_id model))
-    (assoc model :_id (str "SM" (ObjectId/get)))))
+  (if (not (:id model))
+    (assoc model :id (str "SM" (ObjectId/get)))))
 
 (defn embed-dbrefs [model]
   (clojure.walk/prewalk
@@ -350,12 +350,11 @@
   (cond (empty? smodel)
 	nil
 	(map? smodel)
-	(do ;; (log/spy smodel)
-	    (-> smodel
-		server->client-hook
-		filter-public-keys
-		serialize-model-id
-		serialize-model-refs))
+    (-> smodel
+        server->client-hook
+        filter-public-keys
+        serialize-model-id
+        serialize-model-refs)
 	(sequential? smodel)
 	(vec (doall (map server->client smodel)))
 	true
@@ -422,7 +421,7 @@
   (assert (not (model? model)))
   (if (valid-model? model)
     (mongo/insert! (model-collection model) (create-model-hook model))
-    (noir.response/status 500 "Invalid Model")))
+    "Invalid Model"))
 
 (defn update-model!
   "Update model merges the provided key-value pairs with the
@@ -430,12 +429,15 @@
    with embedded objects will overwrite the entire set (i.e.
    no merging or appending of elements in a value"
   [model]
-  (if (valid-model? model)
-    (mongo/update! (model-collection model)
-                   (select-keys model [:_id])
-                   (update-by-modifiers (update-model-hook model))
-                   :upsert false)
-    (noir.response/status 500 "Invalid Model")))
+  (if (and (:_id model) (:type model))
+    (let [result (mongo/update! (model-collection model)
+                                (select-keys model [:_id])
+                                (update-by-modifiers (update-model-hook model))
+                                :upsert false)]
+      (if-let [err (.getError result)]
+        "DB Error"
+        true))
+    "Invalid Model"))
 
 (defn modify-model!
   "A cheap hack to open up the use of raw Mongo APIs for modifying
@@ -465,8 +467,7 @@
   [model]
   (assert (and (:type model) (:_id model)))
   (delete-model-hook model)
-  (mongo/destroy! (model-collection {:type (:type model)})
-		  (select-keys model [:_id]))
+  (mongo/destroy! (model-collection model) (select-keys model [:_id]))
   true)
 
 
@@ -488,54 +489,47 @@
          get-submodel get-submodels
          delete-submodel!)
 
-(defmethod submodel-path :default [model submodel]
-  [(:type submodel) (:_id submodel)])
-
 (defn create-submodel!
-  [model submodel]
-  (assert (and (model? model) (submodel? submodel)))
+  [parent location submodel]
+  (assert (model? parent) (:type submodel))
   (let [new (assign-uid submodel)
-        path (submodel-path model submodel)
-        leaf (:_id new)
-        leafpath (serialize-path path leaf)]
-    ;; Ensure that the leaf entry exists to hold our slots
-    (mongo/update! (model-collection model)
-                   (select-keys model [:_id])
-                   {:$set {(serialize-path path) {leaf {}}}})
+        pcoll (model-collection parent)
+        pref (select-keys parent [:_id :type])
+        path (serialize-path location (:id new))]
+    ;; Ensure we have a fresh target to insert into
+    (mongo/update! pcoll pref {:$set {path {}}})
     ;; Insert all the slots
-    (mongo/update! (model-collection model)
-                   (select-keys model [:_id])
-                   (update-by-modifiers new path))))
-                    
+    (mongo/update! pcoll pref (update-by-modifiers new path))
+    ;; Return the new model
+    new))
 
-(defn get-submodel [model ref]
-  (assert (and (:type ref) (:_id ref)))
-  (let [path (submodel-path model ref)]
-    (lookup-location
-     (mongo/fetch-one (model-collection model)
-                      :where (select-keys model [:_id])
-                      :only [(serialize-path path)])
-     path)))
+(defn get-submodel
+  ([parent location]
+     (assert (and (:type parent) (:_id parent)))
+     (let [parent (mongo/fetch-one (model-collection parent)
+                                :where (select-keys parent [:_id])
+                                :only [(serialize-path location)])]
+       (lookup-location parent location))))
+                        
 
-(defn get-submodels
-  [model type]
-  (mongo/fetch (model-collection model)
-               :where (select-keys model [:_id])
-               :only (serialize-path (submodel-path model {:type type}))))
+;;(defn get-submodels
+;;  [model type]
+;;  (mongo/fetch (model-collection model)
+;;               :where (select-keys model [:_id])
+;;               :only (serialize-path (submodel-path model {:type type}))))
 
 (defn set-submodel!
   [model location submodel]
   (mongo/update! (model-collection model)
                  (select-keys model [:_id])
-                 (update-by-modifiers (client->server submodel)
-                                      location)
+                 (update-by-modifiers submodel location)
                  :upsert false))
 
 (defn delete-submodel!
   [model location]
   (mongo/update! (model-collection model)
                  (select-keys model [:_id])
-                 {:$unset {location 1}}))
+                 {:$unset {(serialize-path location) 1}}))
 
 ;; ## Misc Store Utilities
 

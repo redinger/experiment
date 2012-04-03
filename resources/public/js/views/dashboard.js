@@ -1,7 +1,5 @@
 (function() {
-  define(['models/infra', 'models/core', 'views/journal', 'use!Handlebars', 'use!D3time', 'use!BackboneFormsBS', 'use!BackboneFormsEditors'], function(Infra, Models, JournalView) {
-    return 1;
-  });
+  define(['models/infra', 'models/core', 'views/widgets', 'views/journal', 'use!Handlebars', 'use!D3time', 'use!BackboneFormsBS', 'use!BackboneFormsEditors'], function(Infra, Models, Widgets, JournalView) {});
   /* */
   /*
      class Application extends Backbone.View
@@ -122,7 +120,7 @@
       # +++++++++++++++++++++
   
       class SummaryView extends Backbone.View
-        @implements SwitchPane, TemplateView
+        @implements Widgets.SwitchPane, Widgets.TemplateView
         id: 'dashboard-summary'
         className: 'dashboard-summary'
         initialize: ->
@@ -154,7 +152,7 @@
       #        @discussions = new RecentDiscussionsView
   
       class TrackerView extends Backbone.View
-        @implements SwitchPane, TemplateView
+        @implements Widgets.SwitchPane, Widgets.TemplateView
         className: 'dashboard-tracker'
   
         initialize: ->
@@ -191,7 +189,7 @@
   
   
       class DashboardPane extends Backbone.View
-        @implements TemplateView, SwitchPane
+        @implements Widgets.TemplateView, Widgets.SwitchPane
         id: 'dashboard'
         model: App.User
         initialize: ->

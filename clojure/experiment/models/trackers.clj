@@ -21,9 +21,6 @@
 ;; - :instrument
 ;; - :schedule
 
-(defmethod submodel-path [:user :tracker] [parent child]
-  [:trackers])
-
 (defn tracker-summary [tracker]
   {:name tracker})
 
@@ -94,8 +91,9 @@
 ;; Testing
 ;; -------------------
 
-(defn make-tracker [instrument params]
+(defn make-tracker [user instrument params]
   {:type "tracker"
+   :user (as-dbref user)
    :instrument (as-dbref instrument)
    :schedule {:type "schedule"
               :stype "daily"
@@ -109,7 +107,3 @@
                       :sms-prefix "e"
                       :sms-value-type "int"}}})
 
-(defn add-test-tracker [user tracker]
-  (modify-model! user {:$push {:tracker tracker}}))
-
-;; (add-test-tracker (get-user "eslick") (make-tracker (get-instrument "energy") nil))

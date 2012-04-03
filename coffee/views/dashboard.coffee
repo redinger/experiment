@@ -1,6 +1,5 @@
-define ['models/infra', 'models/core', 'views/journal', 'use!Handlebars', 'use!D3time', 'use!BackboneFormsBS', 'use!BackboneFormsEditors' ], #, 'use!BackboneRelational'],
-  (Infra, Models, JournalView) ->
-     1
+define ['models/infra', 'models/core', 'views/widgets', 'views/journal', 'use!Handlebars', 'use!D3time', 'use!BackboneFormsBS', 'use!BackboneFormsEditors' ], #, 'use!BackboneRelational'],
+  (Infra, Models, Widgets, JournalView) ->
 
 ### ##########
 ###
@@ -122,7 +121,7 @@ define ['models/infra', 'models/core', 'views/journal', 'use!Handlebars', 'use!D
     # +++++++++++++++++++++
 
     class SummaryView extends Backbone.View
-      @implements SwitchPane, TemplateView
+      @implements Widgets.SwitchPane, Widgets.TemplateView
       id: 'dashboard-summary'
       className: 'dashboard-summary'
       initialize: ->
@@ -154,7 +153,7 @@ define ['models/infra', 'models/core', 'views/journal', 'use!Handlebars', 'use!D
     #        @discussions = new RecentDiscussionsView
 
     class TrackerView extends Backbone.View
-      @implements SwitchPane, TemplateView
+      @implements Widgets.SwitchPane, Widgets.TemplateView
       className: 'dashboard-tracker'
 
       initialize: ->
@@ -191,7 +190,7 @@ define ['models/infra', 'models/core', 'views/journal', 'use!Handlebars', 'use!D
 
 
     class DashboardPane extends Backbone.View
-      @implements TemplateView, SwitchPane
+      @implements Widgets.TemplateView, Widgets.SwitchPane
       id: 'dashboard'
       model: App.User
       initialize: ->

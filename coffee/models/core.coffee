@@ -20,18 +20,18 @@ define ['use!Backbone', 'models/infra'],
       model: Treatment
 
 # ## Instruments
-    class Instrument extends Backbone.Model
+    class Instrument extends Common.Model
       serverType: 'instrument'
 
-    class Instruments extends Backbone.Collection
+    class Instruments extends Common.Collection
       model: Instrument
 
 # ## Experiments
     class Experiment extends Common.Model
       serverType: 'experiment'
       embedded:
-        instruments: ['references', Instruments]
-        treatment: ['reference', Treatment]
+        treatment: ['reference', 'treatment']
+        instruments: ['references', 'Instruments']
 
     class Experiments extends Common.Collection
       model: Experiment
@@ -40,7 +40,7 @@ define ['use!Backbone', 'models/infra'],
     class Trial extends Common.Model
       serverType: 'trial'
       embedded:
-        experiment: ['reference', Experiment]
+        experiment: ['reference', 'experiment']
 
     class Trials extends Common.Collection
       model: Trial
@@ -49,12 +49,21 @@ define ['use!Backbone', 'models/infra'],
 
     class Tracker extends Common.Model
       serverType: 'tracker'
-      references:
-        user: ['reference', User]
-        instrument: ['reference', Instrument]
+      embedded:
+        user: ['reference', 'user']
+        instrument: ['reference', 'instrument']
 
     class Trackers extends Common.Collection
       model: Tracker
+
+# ## Journals
+    class Journal extends Common.Model
+      serverType: 'journal'
+      embedded:
+        user: ['reference', 'user']
+
+    class JournalEntries extends Common.Collection
+      model: Journal
 
 # ## User Object
 #
@@ -64,9 +73,9 @@ define ['use!Backbone', 'models/infra'],
     class User extends Common.Model
       serverType: 'user'
       embedded:
-        trials: ['submodel', Common.Trials]
-        trackers: ['submodel', Common.Trackers]
-        journals: ['submodel', Common.JournalEntries]
+        trials: ['submodels', 'Trials']
+        trackers: ['submodels', 'Trackers']
+        journals: ['submodel', 'Journals']
 
       username: -> @get('username')
       adminp: -> 'admin' in @get('permissions')
@@ -84,21 +93,36 @@ define ['use!Backbone', 'models/infra'],
     class Suggestions extends Backbone.Collection
       model: Suggestion
 
+# Register types and return direct references to constructors
 
+    models =
+      Treatment: Treatment
+      Instrument: Instrument
+      Experiment: Experiment
+      Trial: Trial
+      Tracker: Tracker
+      Suggestion: Suggestion
+      User: User
+
+    collections =
+      Treatments: Treatments
+      Instruments: Instruments
+      Experiments: Experiments
+      Trials: Trials
+      Trackers: Trackers
+      Suggestions: Suggestions
+      Users: Users
+
+    cacheTypes = (themap) ->
+       newmap = {}
+       _.each themap, (constructor, type) ->
+             tag = constructor.prototype.serverType
+             newmap[tag] = constructor
+       newmap
+
+    Backbone.ReferenceCache.registerTypes cacheTypes(models)
+    Backbone.ReferenceCache.registerTypes collections
 
     # Return Core Models
-    Treatment: Treatment
-    Treatments: Treatments
-    Instrument: Instrument
-    Instruments: Instruments
-    Experiment: Experiment
-    Experiments: Experiments
-    Trial: Trial
-    Trials: Trials
-    Tracker: Tracker
-    Trackers: Trackers
-    Suggestion: Suggestion
-    Suggestions: Suggestions
-    User: User
-    Users: Users
+    _.extend {},models,collections
 

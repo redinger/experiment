@@ -1,6 +1,5 @@
 define ['jquery', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEditors'],
   () ->
-    console.log 'loaded deps for dialog'
 
     if not Dialogs
       Dialogs = {}

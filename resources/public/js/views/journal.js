@@ -7,7 +7,7 @@
     child.__super__ = parent.prototype;
     return child;
   };
-  define(['models/infra', 'models/core', 'use!Handlebars', 'use!Backbone'], function(Infra, Models) {
+  define(['models/infra', 'models/core', 'views/widgets', 'use!Handlebars', 'use!Backbone'], function(Infra, Core, Widgets) {
     var JournalView;
     JournalView = (function() {
       __extends(JournalView, Backbone.View);
@@ -20,7 +20,7 @@
         this.render = __bind(this.render, this);
         JournalView.__super__.constructor.apply(this, arguments);
       }
-      JournalView.implements(Infra.TemplateView);
+      JournalView.implements(Widgets.TemplateView);
       JournalView.prototype.initialize = function() {
         this.initTemplate('#journal-viewer');
         if (this.model) {

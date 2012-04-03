@@ -13,7 +13,7 @@
     return -1;
   };
   define(['use!Backbone', 'models/infra'], function(Backbone, Common) {
-    var Experiment, Experiments, Instrument, Instruments, Suggestion, Suggestions, Tracker, Trackers, Treatment, Treatments, Trial, Trials, User, Users;
+    var Experiment, Experiments, Instrument, Instruments, Journal, JournalEntries, Suggestion, Suggestions, Tracker, Trackers, Treatment, Treatments, Trial, Trials, User, Users, cacheTypes, collections, models;
     Treatment = (function() {
       __extends(Treatment, Common.Model);
       function Treatment() {
@@ -35,7 +35,7 @@
       return Treatments;
     })();
     Instrument = (function() {
-      __extends(Instrument, Backbone.Model);
+      __extends(Instrument, Common.Model);
       function Instrument() {
         Instrument.__super__.constructor.apply(this, arguments);
       }
@@ -43,7 +43,7 @@
       return Instrument;
     })();
     Instruments = (function() {
-      __extends(Instruments, Backbone.Collection);
+      __extends(Instruments, Common.Collection);
       function Instruments() {
         Instruments.__super__.constructor.apply(this, arguments);
       }
@@ -57,8 +57,8 @@
       }
       Experiment.prototype.serverType = 'experiment';
       Experiment.prototype.embedded = {
-        instruments: ['references', Instruments],
-        treatment: ['reference', Treatment]
+        treatment: ['reference', 'treatment'],
+        instruments: ['references', 'Instruments']
       };
       return Experiment;
     })();
@@ -77,7 +77,7 @@
       }
       Trial.prototype.serverType = 'trial';
       Trial.prototype.embedded = {
-        experiment: ['reference', Experiment]
+        experiment: ['reference', 'experiment']
       };
       return Trial;
     })();
@@ -95,9 +95,9 @@
         Tracker.__super__.constructor.apply(this, arguments);
       }
       Tracker.prototype.serverType = 'tracker';
-      Tracker.prototype.references = {
-        user: ['reference', User],
-        instrument: ['reference', Instrument]
+      Tracker.prototype.embedded = {
+        user: ['reference', 'user'],
+        instrument: ['reference', 'instrument']
       };
       return Tracker;
     })();
@@ -109,6 +109,25 @@
       Trackers.prototype.model = Tracker;
       return Trackers;
     })();
+    Journal = (function() {
+      __extends(Journal, Common.Model);
+      function Journal() {
+        Journal.__super__.constructor.apply(this, arguments);
+      }
+      Journal.prototype.serverType = 'journal';
+      Journal.prototype.embedded = {
+        user: ['reference', 'user']
+      };
+      return Journal;
+    })();
+    JournalEntries = (function() {
+      __extends(JournalEntries, Common.Collection);
+      function JournalEntries() {
+        JournalEntries.__super__.constructor.apply(this, arguments);
+      }
+      JournalEntries.prototype.model = Journal;
+      return JournalEntries;
+    })();
     User = (function() {
       __extends(User, Common.Model);
       function User() {
@@ -116,9 +135,9 @@
       }
       User.prototype.serverType = 'user';
       User.prototype.embedded = {
-        trials: ['submodel', Common.Trials],
-        trackers: ['submodel', Common.Trackers],
-        journals: ['submodel', Common.JournalEntries]
+        trials: ['submodels', 'Trials'],
+        trackers: ['submodels', 'Trackers'],
+        journals: ['submodel', 'Journals']
       };
       User.prototype.username = function() {
         return this.get('username');
@@ -151,21 +170,36 @@
       Suggestions.prototype.model = Suggestion;
       return Suggestions;
     })();
-    return {
+    models = {
       Treatment: Treatment,
-      Treatments: Treatments,
       Instrument: Instrument,
-      Instruments: Instruments,
       Experiment: Experiment,
-      Experiments: Experiments,
       Trial: Trial,
-      Trials: Trials,
       Tracker: Tracker,
-      Trackers: Trackers,
       Suggestion: Suggestion,
+      User: User
+    };
+    collections = {
+      Treatments: Treatments,
+      Instruments: Instruments,
+      Experiments: Experiments,
+      Trials: Trials,
+      Trackers: Trackers,
       Suggestions: Suggestions,
-      User: User,
       Users: Users
     };
+    cacheTypes = function(themap) {
+      var newmap;
+      newmap = {};
+      _.each(themap, function(constructor, type) {
+        var tag;
+        tag = constructor.prototype.serverType;
+        return newmap[tag] = constructor;
+      });
+      return newmap;
+    };
+    Backbone.ReferenceCache.registerTypes(cacheTypes(models));
+    Backbone.ReferenceCache.registerTypes(collections);
+    return _.extend({}, models, collections);
   });
 }).call(this);

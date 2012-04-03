@@ -70,6 +70,12 @@
 (pre-route "/settings*" {}
            (handle-private-route))
 
+(pre-route "/api/root/*" {}
+           (handle-private-route))
+
+(pre-route "/api/embed/*" {}
+           (handle-private-route))
+
 ;; Other protected routes
 ;; - /settings
 

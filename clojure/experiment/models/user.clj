@@ -36,7 +36,9 @@
 ;; ## Convenience methods
 
 (defmethod valid-model? :user [user]
-  (and (:username user) (:password user)))
+  (and (:username user)
+       (:email user)
+       (:type user)))
 
 (defn create-user! [username password email name]
   (create-model!
