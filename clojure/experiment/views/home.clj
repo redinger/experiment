@@ -120,7 +120,8 @@
 (defpage public-home-page "/" {}
   (common/layout
    ["Welcome to Personal Experiments"
-    (common/default-nav "Home")]
+    (common/default-nav "Home")
+    :deps ["views/home"]]
    [:div.container.home-page
     (home-carousel "homeCarousel")
     (home-page-details)

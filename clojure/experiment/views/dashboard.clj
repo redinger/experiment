@@ -56,56 +56,53 @@
      "&nbsp;"]]])
 
 (defpartial bootstrap-data []
-  (let [user (session/current-user)
-	username (:username user)]
-    [:script {:type "text/javascript"}
-     (map #(apply bootstrap-collection-expr %)
-	  [["window.ExApp.Instruments" (models/fetch-models :instrument)]
-	   ["window.ExApp.Experiments" (models/fetch-models :experiment)]
-	   ["window.ExApp.Treatments" (models/fetch-models :treatment)]
-           ["window.ExApp.Users"
-            (models/fetch-models :user :only [:username :type])]])
-     (str "window.ExApp.Suggestions.reset("
-	  (json/generate-string (compute-suggestions))
-	  ");")]))
+  (bootstrap-models-json
+   (concat
+    (models/fetch-models :treatment)
+    (models/fetch-models :instrument)
+    (models/fetch-models :experiment)))
+  (bootstrap-user-json)
+  )
 
 (defn dashboard-subnav [current]
   {:menu
-   [{:tag "overview" :name "Overview" :href "/dashboard/overview"}
+   [{:tag "overview" :name "Overview" :href "overview"}
 ;;    {:name "Trials" :href "#"}
-    {:tag "timeline" :name "Timeline" :href "/dashboard/timeline"}
-    {:tag "events" :name "Events" :href "/dashboard/events"}
+    {:tag "timeline" :name "Timeline" :href "timeline"}
+    {:tag "events" :name "Events" :href "eventlog"}
 ;;    {:name "Activity" :href "#"}
-    {:tag "journal" :name "Journal" :href "/dashboard/journal"}]
+    {:tag "journal" :name "Journal" :href "journal"}]
    :active current})
 
 (defpartial dashboard-layout [options]
   (page-frame
    ["Personal Experiments Dashboard"
     :fixed-size 80
-    :deps ["views/dialog", "views/dashboard"]]
+    :deps ["views/common", "views/dashboard"]]
    (nav-fixed (:nav (default-nav "dashboard")))
    (subnav-fixed (dashboard-subnav (:subnav options)))
-   [:div.container
-    [:br]
-    [:div.row
-     [:div.span12
-      (trials/trial-summary
-       (session/current-user)
-       options)]]
-    [:hr]
-    [:div.row
-     [:div.span4 {:style "height:250px;"}
-      "Calendar"]
-     [:div.span4 {:style "height:250px;"}
-      "Trackers"]
-     [:div.span4 {:style "height:250px;"}
-      "Feed"]]]
-   [:div.hidden
-    (render-all-templates)
-;;    (send-user)
-;;    (bootstrap-data)
-    ]))
+   [:div.container {:style "min-height: 400px"}
+    [:div.tab-content 
+     [:div#overview.tab-pane]
+     [:div#timeline.tab-pane]
+     [:div#eventlog.tab-pane]
+     [:div#journal.tab-pane]]]
+   (bootstrap-data)        ;; models
+   (render-all-templates))) ;; views
+
+    ;; [:div.row
+    ;;  [:div.span12
+    ;;   (trials/trial-summary
+    ;;    (session/current-user)
+    ;;    options)]]
+    ;; [:hr]
+    ;; [:div.row
+    ;;  [:div.span4 {:style "height:250px;"}
+    ;;   "Calendar"]
+    ;;  [:div.span4 {:style "height:250px;"}
+    ;;   "Trackers"]
+    ;;  [:div.span4 {:style "height:250px;"}
+    ;;   "Feed"]]]
 
 (defpage dashboard-dispatch "/dashboard/:subnav" {:as options}
   (dashboard-layout options))

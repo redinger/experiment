@@ -62,13 +62,13 @@ model and some of the supplemental page logic.
   - Instrument[]
   - Schedule (schema)
 
+### Operative Layer
+
 - Trial
   - Treatment
   - Trackers[]
   - Reminder
   - Schedule (realized)
-
-### Operative Layer
 
 
 ## Tracking Workflow
@@ -79,6 +79,7 @@ reminders or serve as the backdrop for user-generated events.
 
 - Generates reminders
    - Reminders can be put on a calendar
+
 - User PROs are stored as time series in 'trackers'
    - Background API dumps generated events (dep on instrument)
    - Tracker objects record a series of data points from an instrument
@@ -91,15 +92,23 @@ reminders or serve as the backdrop for user-generated events.
 
 ## v0.1 - Academy Health Prototype Release (November 15th, 2011)
 
-## Tasks for v0.2 - Beta Release (April 10th, 2012)
+- Basic show and tell: http://youtu.be/_OLqJtqzvK4
+
+## v0.2 - Authoring Study Prototype Release (March 16th, 2012)
+
+- Switched to use Twitter Bootstrap UI
+- Dropped demo Dashboard and navigation features
+- Added Authoring Study under Research Tab
+
+## v0.3 - Beta Release (April 10th, 2012)
 
 Architectural design tasks
 
    - X Model abstraction on server
      - X Backbone-based abstraction layer (base classes, protocols) for the 'model model'
      - X Handle references
-     - - Bootstrapping data into views (transmit entire DB for phase I)
      - X Nested object REST API support for Backbone
+     - - Bootstrapping data into views (transmit entire DB for phase I)
    - X Auto-complete for tags, model names, etc.
    - X Structured treatment descriptions using auto-complete
    - X Site navigation model using dispatch
@@ -107,14 +116,12 @@ Architectural design tasks
    - X Break coffeescript into multiple independent UI modules
    - X Support proper logging through server and client side
    - X Google analytics integration
+
    - Error handling across server & client
+   - Implement server-side filtering of data and actions, how to
+     communicate ACLs to client?
+   - Dump and reload database
    - Database and server backup
-   - Sensible dump and reload database
-   - ? Pallet distribution model
-      - pallet, git, keys
-      ~ Mongo installation, nginx as proxy and static files
-      - TODO: Leinengin
-      - TODO: Site upgrade scripts
    - NO IE popup on login
 
 Feature tasks
@@ -143,18 +150,18 @@ Feature tasks
 
 Architecture design tasks
 
-   - ~ Cache model templates in external files for release
    - ~ Release model for aggregated/versioned javascript files
+   - Dynamic loading, caching, and pre-rendering Templates, etc.
    - Model abstraction on server
       - Handle synchronization conflicts for models
       - Define important properties like type checks, etc
-   - Review / Improve error handling and validation
-   - Dynamic loading, caching, and pre-rendering Templates, etc.
-   - Server-side caching of rendered templates
+   - Site is down page on restarts, etc.
 
 Feature tasks
 
    - Full UX and UI review   
+
+
 
 
 # Open Platform Issues
@@ -171,12 +178,11 @@ Feature tasks
      to handle this.  (For example, we want nice SEO URLs for all
      browseable objects such as treatments, experiments, and public
      discussions.
-     
-## Wishlist / Notes
-
-   - Site introduction similar to Coda's: http://www.panic.com/coda/
-   - I like github's look at feel!  (as you can tell)
-
+   - ? Pallet platform distribution model
+      - pallet, git, keys
+      ~ Mongo installation, nginx as proxy and static files
+      - TODO: Leinengin
+      - TODO: Site upgrade scripts
 
 
 # Design Notes

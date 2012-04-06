@@ -1,16 +1,72 @@
 (ns experiment.views.templates
-  (:use experiment.infra.models
-        noir.core
-        hiccup.core
-        hiccup.page-helpers
-	hiccup.form-helpers
-	handlebars.templates))
+  (:use
+   experiment.infra.models
+   noir.core
+   hiccup.core
+   hiccup.page-helpers
+   hiccup.form-helpers
+   handlebars.templates)
+  (:require
+   [noir.response :as response]
+   [experiment.views.bootstrap :as boot]))
+
+
 
 
 ;;
 ;; Template Views for various System Objects
 ;;
 
+(defpage load-template [:get "/api/templates/:id"]
+  {:keys [id]}
+  (response/content-type
+   "text/html"
+   (html-template
+    (get-template id))))
+
+(deftemplate journal-page
+  [:div.row
+   [:div.span6.jvp]
+   [:div.span6.jvl]])
+
+(deftemplate journal-view
+  [:div
+   [:span
+    [:span.pull-left
+     [:abbr.timeago {:title (% date-str)} (% date-str)]]
+    [:span.pull-right (% sharing)]]
+   [:div {:style "clear: both;"}
+    (boot/input "text" "short" (% short))]
+;;    (boot/dropdown
+;;   [:p (% annotation )]
+   [:div {:style "width: 100%; height: 300px; resize:none;"}
+    (boot/ctrl-group
+     ["Journal Entry" "content"]
+     (boot/textarea "content" (% content)))]])
+
+(deftemplate journal-list
+  [:table.table
+   [:thead
+    [:tr
+     [:td "Date"]
+     [:td "Description"]
+     [:td "Tag"]
+     [:td "Shared?"]]]
+   [:tbody
+   (%each journals
+          [:tr {:data (% id)}
+           [:td
+            [:abbr.timeago {:title (% date-str)}
+             (% date-str)]]
+           [:td
+            (% short)]
+           [:td
+            (% annotation)]
+           [:td
+            (%with sharing
+                   [:span {:class (% class)}
+                    (% label)])]])]])
+            
 
 ;; TRIAL
 
@@ -114,26 +170,26 @@
 ;; JOURNAL
 
 (deftemplate journal-viewer
-  [:div.journal
+  [:content
    [:div.paging
     [:span "Page " (% page) " of " (% total)]
     [:button.prev {:type "button"} "Prev"]
-     "&nbsp; | &nbsp;"
+    "&nbsp; | &nbsp;"
     [:button.next {:type "button"} "Next"]]
    [:h2 "Journal"
     (%if type (%strcat " for " (% type)))]
    [:hr]
    (%each entries
-    [:div.journal-entry
-     [:h3.date-header "Recorded at " (% date-str)]
-     [:span.sharing (% sharing)]
-     [:p (% content)]])
+          [:div.journal-entry
+           [:h3.date-header "Recorded at " (% date-str)]
+           [:span.sharing (% sharing)]
+           [:p (% content)]])
    [:div.create {:style "display:none"}
     [:button.create {:type "button"} "Create new entry"]]
    [:div.edit {:style "display:none"}
-    [:textarea {:rows 10 :cols 80}]
-    [:button.submit {:type "button"} "Submit"]
-    [:button.cancel {:type "button"} "Cancel"]]])
+     [:textarea {:rows 10 :cols 80}]
+     [:button.submit {:type "button"} "Submit"]
+     [:button.cancel {:type "button"} "Cancel"]]])
 
 ;; COMMENT
 

@@ -1,9 +1,90 @@
 define ['models/infra', 'models/core', 'views/widgets', 'views/journal', 'use!Handlebars', 'use!D3time', 'use!BackboneFormsBS', 'use!BackboneFormsEditors' ], #, 'use!BackboneRelational'],
-  (Infra, Models, Widgets, JournalView) ->
+  (Infra, Core, Widgets, Journal) ->
+
+
+# Overview
+# ------------------------------------------
+
+    class Overview extends Backbone.View
+      initialize: ->
+          @
+
+      render: ->
+          @$el.html("<h1>Overview</h1>")
+          @
+
+    class Timeline extends Backbone.View
+
+    class EventLog extends Backbone.View
+
+
+# Dashboard Navigation
+# -------------------------------------------
+    class DashboardRouter extends Backbone.Router
+      initialize: (options = {}) ->
+          @default = options.default
+          @
+
+      routes:
+          ':tab/*path': 'selectTab'
+          ':tab':       'selectTab'
+          '':           'selectDefault'
+
+      selectDefault: (data) =>
+          @navigate @default, {trigger: true, replace: true} if @default?
+
+
+
+
+# Dashboard Application
+# --------------------------------------------
+#
+    class Dashboard extends Backbone.View
+      initialize: (options) ->
+          # Navigation
+          @router = new DashboardRouter
+              default: '/overview'
+
+          @navbar = new Widgets.NavBar
+              el: $('.subnav-fixed-top')
+              router: @router
+
+          # Dashboard Tabs
+          @tabs = {}
+          @tabs.overview = new Overview
+              el: $('#overview')
+              router: @router
+          @tabs.timeline = new Timeline
+              el: $('#timeline')
+              router: @router
+          @tabs.eventlog = new EventLog
+              el: $('#events')
+              router: @router
+          @tabs.journal = new Journal.Page
+              collection: Core.theUser.journals
+              el: $('#journal')
+              router: @router
+
+      render: (options) ->
+          _.map @tabs, (viz, name) ->
+              viz.render()
+
+    $(document).ready ->
+      window.Dashboard = new Dashboard()
+
+      Backbone.history.start
+            root: '/dashboard/'
+            pushState: true
+
+      window.Dashboard.render()
+
+      $('.popover-link').popover
+        placement: 'bottom'
+
 
 ### ##########
 ###
-   class Application extends Backbone.View
+    class Application extends Backbone.View
       el: $('#app-wrap')
       Instruments: new Instruments
       Treatments: new Treatments
@@ -26,16 +107,6 @@ define ['models/infra', 'models/core', 'views/widgets', 'views/journal', 'use!Ha
         @MyTrackers.resolveReferences()
         @Treatments.resolveReferences()
         @makeModelMap()
-
-        # Populate and render main switcher panes
-        @switcher = new PaneSwitcher
-           id: 'app-tabs'
-           panes:
-               dashboard: new DashboardPane
-               search: new SearchPane
-               profile: new ProfilePane
-               admin: new AdminPane
-               trials: new TrialPane
 
         @router = new AppRouter
         @router.on 'route:selectApp', @switchApp
@@ -121,7 +192,7 @@ define ['models/infra', 'models/core', 'views/widgets', 'views/journal', 'use!Ha
     # +++++++++++++++++++++
 
     class SummaryView extends Backbone.View
-      @implements Widgets.SwitchPane, Widgets.TemplateView
+      @implements Widgets.TemplateView
       id: 'dashboard-summary'
       className: 'dashboard-summary'
       initialize: ->
@@ -153,7 +224,7 @@ define ['models/infra', 'models/core', 'views/widgets', 'views/journal', 'use!Ha
     #        @discussions = new RecentDiscussionsView
 
     class TrackerView extends Backbone.View
-      @implements Widgets.SwitchPane, Widgets.TemplateView
+      @implements Widgets.TemplateView
       className: 'dashboard-tracker'
 
       initialize: ->
@@ -190,7 +261,7 @@ define ['models/infra', 'models/core', 'views/widgets', 'views/journal', 'use!Ha
 
 
     class DashboardPane extends Backbone.View
-      @implements Widgets.TemplateView, Widgets.SwitchPane
+      @implements Widgets.TemplateView
       id: 'dashboard'
       model: App.User
       initialize: ->
@@ -213,7 +284,7 @@ define ['models/infra', 'models/core', 'views/widgets', 'views/journal', 'use!Ha
                @$("a[href='dashboard/#{path}']").addClass('active-tab')
                @switcher.switch(ref[0])
             else
-               App.router.navigate "dashboard/#{@switcher.active}", true
+               App.router.navigate "dashboard/#{@switcher.active}", {trigger: true}
 
       render: =>
             @renderTemplate()
@@ -250,7 +321,9 @@ define ['models/infra', 'models/core', 'views/widgets', 'views/journal', 'use!Ha
             @trigger "route:selectApp", pname, path
 
     $(document).ready ->
-       # Instantiate the SocialView
+       # Bootstrap Data
+
+         # Instantiate the SocialView
        # App.socialView = new SocialView {el: $('#share-pane')}
 
        # Create the main app body

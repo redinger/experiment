@@ -2,10 +2,10 @@
 # JOURNAL VIEW
 #
 
-define ['models/infra', 'models/core', 'views/widgets', 'use!Handlebars', 'use!Backbone'],
+define ['models/infra', 'models/core', 'views/widgets', 'use!jqueryTimeAgo', 'use!Handlebars', 'use!Backbone'],
   (Infra, Core, Widgets) ->
 
-    class JournalView extends Backbone.View
+    class OldJournalView extends Backbone.View
       @implements Widgets.TemplateView
       initialize: ->
             @initTemplate '#journal-viewer'
@@ -94,4 +94,69 @@ define ['models/infra', 'models/core', 'views/widgets', 'use!Handlebars', 'use!B
             @journalView()
             @editing = false
 
-    JournalView: JournalView
+    # Journal
+
+    class JournalView extends Backbone.View
+      tagName: 'div'
+      className: 'journal-view'
+      initialize: (options) ->
+          @template = Infra.templateLoader.getTemplate options.tid or 'journal-view'
+
+      setEntry: (model) ->
+          @model = model
+          @render()
+
+      render: ->
+          @$el.html @template @model.toJSON()
+          @
+
+
+    class JournalList extends Backbone.View
+      tagName: 'div'
+      className: 'journal-list'
+      initialize: (options) ->
+          @template = Infra.templateLoader.getTemplate options.tid or 'journal-list'
+
+      render: ->
+          @$el.html @template
+              journals: @collection.map (model) -> model.toJSON()
+          @
+
+      events:
+          'click tr': 'selectEntry'
+
+      selectEntry: (event) =>
+          row = event.currentTarget
+          console.log row
+          id = $(row).attr('data')
+          @trigger 'selectEntry', id
+
+
+    class JournalPage extends Backbone.View
+      initialize: (options) ->
+          # Setup models and subviews
+          if not @collection? then throw new Error("JournalPage requires a valid journal collection")
+          @template = Infra.templateLoader.getTemplate options.tid or 'journal-page'
+          @jview = new JournalView
+            model: @collection.first() or new @collection.model()
+          @jlist = new JournalList
+            collection: @collection
+
+          # Model and Peer View Events
+          @jlist.on 'selectEntry', (id) ->
+             @jview.setEntry @collection.find (model) ->
+                model.id is id
+          , @
+          @
+
+      render: ->
+          @$el.html @template {}
+          @$('.jvp').append @jview.render().el
+          @$('.jvl').append @jlist.render().el
+          @$('abbr.timeago').timeago()
+          @
+
+    # Return journal views
+    View: JournalView
+    List: JournalList
+    Page: JournalPage

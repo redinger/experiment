@@ -45,6 +45,7 @@
    (auth/set-user-password
     {:type :user
      :username username
+     :uname (.toLowerCase username)
      :name name
      :email email}
     password)))
@@ -53,8 +54,8 @@
   "Model for reference"
   [reference]
   (cond (string? reference)
-	(or (fetch-model :user {:username reference})
-            (fetch-model :user {:email reference}))
+	(or (fetch-model :user {:uname (.toLowerCase reference)})
+        (fetch-model :user {:email reference}))
 	true
 	(resolve-dbref reference)))
 
@@ -65,8 +66,10 @@
 	(as-dbref (get-user reference))))
 
 (defmethod public-keys :user [user]
-  (keys (apply dissoc user
-               [:updates :permissions :password :salt :dataid :state])))
+  (if (= (:_id user) (:_id (session/current-user)))
+    (keys (apply dissoc user
+                 [:updates :permissions :password :salt :dataid :state]))
+    [:username :bio :name]))
 
 ;; ## Trials
 

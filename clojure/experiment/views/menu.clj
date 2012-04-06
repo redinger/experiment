@@ -36,7 +36,6 @@
       [:div.container
        (nav-menu {:class "nav nav-pills"} (:menu menu) (:active menu))]]]))
 
-
 (defn- breadcrumb [{:keys [name href props]}]
   [:li props
    [:a {:href href} name]

@@ -5,8 +5,8 @@
 # domain models and appropriate convenience methods.
 # Returns a map of Model constructors
 
-define ['use!Backbone', 'models/infra'],
-  (Backbone, Common) ->
+define ['jquery', 'use!Backbone', 'models/infra'],
+  ($, Backbone, Common) ->
 
 
 # ## Treatments
@@ -75,7 +75,9 @@ define ['use!Backbone', 'models/infra'],
       embedded:
         trials: ['submodels', 'Trials']
         trackers: ['submodels', 'Trackers']
-        journals: ['submodel', 'Journals']
+        preferences: ['submodel', 'UserPrefs']
+        services: ['submodels', 'Services']
+        journals: ['submodels', 'Journals']
 
       username: -> @get('username')
       adminp: -> 'admin' in @get('permissions')
@@ -83,18 +85,16 @@ define ['use!Backbone', 'models/infra'],
     class Users extends Common.Collection
       model: User
 
-# ## Non-Core Models
-# ------------------------------
+# ## Helper objects
 
-# ## Suggestions
-# Used to store data for search suggestions
+    # Used to store data for search suggestions
     class Suggestion extends Backbone.Model
 
     class Suggestions extends Backbone.Collection
       model: Suggestion
 
-# Register types and return direct references to constructors
 
+# ## Register types and return direct references to constructors
     models =
       Treatment: Treatment
       Instrument: Instrument
@@ -103,11 +103,13 @@ define ['use!Backbone', 'models/infra'],
       Tracker: Tracker
       Suggestion: Suggestion
       User: User
+      Journal: Journal
 
     collections =
       Treatments: Treatments
       Instruments: Instruments
       Experiments: Experiments
+      Journals: JournalEntries
       Trials: Trials
       Trackers: Trackers
       Suggestions: Suggestions
@@ -117,12 +119,30 @@ define ['use!Backbone', 'models/infra'],
        newmap = {}
        _.each themap, (constructor, type) ->
              tag = constructor.prototype.serverType
-             newmap[tag] = constructor
+             newmap[tag] = constructor if tag
        newmap
 
+    # Register our core types with the reference cache
     Backbone.ReferenceCache.registerTypes cacheTypes(models)
     Backbone.ReferenceCache.registerTypes collections
 
-    # Return Core Models
-    _.extend {},models,collections
+# ## Bootstrap data
+    # Place an array of model attributes into a non-javascript script tag
+    # with the bootstrap-models ID, and the session user attributes as an
+    # object literal in bootstrap-user
+
+    # A canonical object for the session user
+    theUser = new User()
+
+    # Bootstrap models into the reference cache
+    Backbone.ReferenceCache.lazy = true
+    Backbone.ReferenceCache.importFromID '#bootstrap-user', theUser
+    Backbone.ReferenceCache.importFromID '#bootstrap-models'
+    Backbone.ReferenceCache.lazy = false
+    Backbone.ReferenceCache.loadAll()
+
+    # Return Core Models and canonical instances
+    _.extend {},models,collections,
+        theUser: theUser
+        cacheTypes: cacheTypes
 

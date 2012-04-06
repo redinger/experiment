@@ -1,97 +1,8 @@
-define ['jquery', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEditors'],
-  () ->
-
-    if not Dialogs
-      Dialogs = {}
-
-#
-# Modal Dialog Base
-# ------------------------------
-
-    class ModalView extends Backbone.View
-      initialize: (opts) ->
-        @template = Handlebars.compile $('#modal-dialog-template').html()
-        @
-
-      show: =>
-        @$el.modal('show')
-
-      hide: =>
-        @$el.modal('hide')
-
-      handleKey: (e) =>
-        if e.which == 13
-           e.preventDefault()
-           @enterPressed() if @enterPressed
-
-    class ModalMessage extends ModalView
-      attributes:
-        id: 'modalDialogWrap'
-        class: 'modal hide modalDialogWrap'
-      initialize: ->
-        super()
-        @
-
-      render: =>
-        @$el.html @template
-                id: 'modalDialog'
-                header: '<h2>' + @options.header + '</h2>'
-                body: @options.message
-                footer: "<a class='btn accept'>Ok</a>"
-        @delegateEvents()
-        @$el.css('display', 'none')
-        @
-
-      showMessage: (data) =>
-        if data
-           @options.header = data.header
-           @options.message = data.message
-        @undelegateEvents()
-        $('.modalDialogWrap').remove()
-        $('.templates').append @render().el
-        @show()
-
-      enterPressed: =>
-        @hide()
-
-      events:
-        'keyup': 'handleKey'
-        'click .accept': 'hide'
-
-    Dialogs.modalMessage = new ModalMessage({header: "", message: ""})
+define ['jquery', 'views/common', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEditors'],
+  ($, Common) ->
 
 
-# Abstract out modal dialogs with form-based bodies
-
-    class ModalForm extends ModalView
-      initialize: ->
-        super()
-        if @schema
-           @makeForm @schema
-           $('.templates').append @render().el
-           @$el.css('display', 'none')
-        else
-           alert 'schema not initialized'
-
-      makeForm: (schema, data) ->
-        @form = new Backbone.Form
-                schema: schema
-                data: data || {}
-        @
-
-      clearForm: ->
-        vals = {}
-        _(@schema).map( (k,v) -> vals[k] = "" if k.length > 0)
-        @form.setValue vals
-        @
-
-      cancel: =>
-        @clearForm()
-        @hide()
-
-
-
-# Login Module
+# Login Dialog
 # -----------------------------
 
     loginSchema =
@@ -103,7 +14,7 @@ define ['jquery', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEdi
           title: "Password"
           validators: ['required']
 
-    class LoginModal extends ModalForm
+    class LoginModal extends Common.ModalForm
       attributes:
         id: 'loginModal'
         class: 'modal hide fade'
@@ -146,17 +57,17 @@ define ['jquery', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEdi
         if data.result isnt "success"
             @form.fields["password"].setError(data.message or "Unknown Error")
         else
-            target = Dialogs.queryParams['target'] or "/"
+            target = Common.queryParams['target'] or "/"
             window.location.href = window.location.protocol + "//" + window.location.host + target
 
       forgot: =>
         @$el.toggleClass 'fade'
         @cancel()
         @$el.toggleClass 'fade'
-        Dialogs.forgotModal.show()
+        forgotModal.show()
 
 
-    Dialogs.loginModal = new LoginModal()
+    loginModal = new LoginModal()
 
 
 #
@@ -184,7 +95,7 @@ define ['jquery', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEdi
                      field: 'password'
                      message: 'Passwords must match']
 
-    class RegisterModal extends ModalForm
+    class RegisterModal extends Common.ModalForm
       attributes:
         id: 'regModal'
         class: 'modal hide fade'
@@ -209,31 +120,43 @@ define ['jquery', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEdi
         'click .cancel': 'cancel'
         'click .close' : 'cancel'
 
-#         'keyup #username': 'handleUsername'
-#        'keyup #email': 'handleEmail'
+        'keyup #username': 'checkUsername'
+        'keyup #email': 'checkEmail'
 
-      handleUsername: =>
-        $.ajax
-           url: '/action/check-username'
-           data: { username: @form.getValue().username }
-           success: @usernameValidate
-           timeout: 500
+      checkUsername: =>
+        if not @checkUsernameHandler?
+          @checkUsernameHandler =
+              _.debounce ->
+                $.ajax
+                  url: '/action/check-username'
+                  data: { username: @form.getValue().username }
+                  success: @validateUsername
+                  timeout: 2000
+                  spinner: false
+              , 600
+        @checkUsernameHandler()
 
-      usernameValidate: (data) =>
+      validateUsername: (data) =>
         if data.exists == "true"
             @form.fields['username'].clearError()
             @form.fields['username'].setError("This username is taken")
         else
             @form.fields['username'].clearError()
 
-      handleEmail: =>
-        $.ajax
-           url: '/action/check-email'
-           data: { email: @form.getValue().email }
-           success: @emailValidate
-           timeout: 500
+      checkEmail: =>
+        if not @checkEmailHandler?
+          @checkEmailHandler =
+              _.debounce ->
+                $.ajax
+                  url: '/action/check-email'
+                  data: { email: @form.getValue().email }
+                  success: @emailValidate
+                  timeout: 2000
+                  spinner: false
+              , 600
+        @checkEmailHandler()
 
-      emailValidate: (data) =>
+      validateEmail: (data) =>
         if data.exists == "true"
             @form.fields['email'].clearError()
             @form.fields['email'].setError("This address is already registered")
@@ -252,11 +175,11 @@ define ['jquery', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEdi
            @form.fields['password2'].setError(data.message || "Unknown Error")
         else
            @cancel()
-           Dialogs.modalMessage.showMessage
+           Common.modalMessage.showMessage
                 header: "Thank you"
                 message: "<p>Thank you for registering, you should receive an e-mail confirming your registration shortly.</p>"
 
-    Dialogs.regModal = new RegisterModal()
+    regModal = new RegisterModal()
 
 #
 # Forgot Password Dialog
@@ -267,7 +190,7 @@ define ['jquery', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEdi
         title: "User ID or E-mail"
         validators: ['required']
 
-    class ForgotModal extends ModalForm
+    class ForgotModal extends Common.ModalForm
       attributes:
         id: 'forgotModal'
         class: 'modal hide'
@@ -303,57 +226,29 @@ define ['jquery', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEdi
                 @form.fields['userid'].setError(data.message || "Unknown Error")
         else
                 @cancel()
-                Dialogs.modalMessage.showMessage
+                Common.modalMessage.showMessage
                         header: "Password Reset"
                         message: "<p>Please check your e-mail for your temporary password</p>"
 
-    Dialogs.forgotModal = new ForgotModal()
+    forgotModal = new ForgotModal()
 
 
-# Startup event handlers and actions
-# -----------------------
-
-    extractParams = () ->
-        qs = document.location.search.split("+").join(" ")
-        re = /[?&]?([^=]+)=([^&]*)/g
-        params = {}
-        params[decodeURIComponent tokens[1]] = decodeURIComponent tokens[2] while tokens = re.exec qs
-        params
-
-    Dialogs.queryParams = extractParams()
-
+# ## Home Page Startup Actions
     $(document).ready ->
 
-# Startup Actions
+        # Home page carousel
         $('#homeCarousel').carousel interval: 10000 if $('#homeCarousel').length
-        $('.popover-link').popover
-                placement: 'bottom'
 
-# Modals
+        # Modal Binding
         $('.login-button').bind 'click',
                 (e) ->
                         e.preventDefault()
-                        Dialogs.loginModal.show()
+                        loginModal.show()
 
         $('.register-button').bind 'click',
                 (e) ->
                         e.preventDefault()
-                        Dialogs.regModal.show()
+                        regModal.show()
 
-        $('#spinner').bind('ajaxSend', ->
-                    $(this).show()
-                ).bind("ajaxStop", ->
-                    $(this).hide()
-                ).bind("ajaxError", ->
-                    $(this).hide()
-                )
-
-# Various actions
-        $('.show-dform').bind 'click',
-                (e) ->
-                        e.preventDefault()
-                        targ = $(e.target)
-                        targ.siblings('.comment-form').show()
-                        targ.hide()
-
-    return Dialogs
+# Return the empty set for now
+    {}

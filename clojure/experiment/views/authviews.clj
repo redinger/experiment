@@ -32,10 +32,15 @@
 (defpage login [:get "/action/login"]
   {:keys [target] :as args}
   (layout
-   "Login to Access Protected Area"
-   (default-nav)
+   ["Login to Access Protected Area"
+    (default-nav)
+    :deps ["views/home"]]
    [:div {:style "height:400px"}
-    [:script "$(document).ready(function () { window.PE.loginModal.show(); });"]]))
+    [:script "define(['jquery', 'views/home'], function ($, Home) {
+                $(document).ready(function () {
+                   $('.login-button').click();
+                });
+              });"]]))
   
 (defapi do-login [:post "/action/login"]
   {:as user}
@@ -128,7 +133,7 @@ We will contact you shortly when the site or the site's study is ready to launch
 
 (defapi check-username [:get "/action/check-username"]
   {:keys [username] :as data}
-  {:exists (if (models/fetch-model :user {:username username})
+  {:exists (if (models/fetch-model :user {:uname (.toLowerCase username)})
              "true"
              "false")})
 

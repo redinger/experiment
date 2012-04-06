@@ -8,6 +8,7 @@ require.config(
 		waitSeconds: 15,
 		paths: {use: 'libs/require/use.min',
 				jquery: '//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min',
+				jqueryTimeAgo: 'libs/jquery/jquery.timeago',
 				jQueryUI: 'libs/jquery/jquery-ui-1.8.18.custom.min',
 				jQuerySparkline: 'libs/jquery/jquery.sparkline.min',
 				jQuerySuggest: 'libs/jquery/jquery.autoSuggest.packed',
@@ -22,10 +23,11 @@ require.config(
 				D3: "libs/d3/d3.min",
 				D3time: "libs/d3/d3.time.min",
 				QIchart: 'libs/qi-chart',
-				Dialog: 'views/dialog'
+				Common: 'views/common'
 			   },
 		use: { "Underscore": { attach: "_" },
 			   "Handlebars": { attach: "Handlebars" },
+			   "jqueryTimeAgo": { deps: ["jquery"] },
 			   "jQueryUI": { deps: ["jquery"] },
 			   "jQuerySuggest": { deps: ["use!jQueryUI"] },
 			   "jQuerySparkline": { deps: ["use!jQueryUI"] },
@@ -41,9 +43,9 @@ require.config(
 					 },
 			   "D3time": { deps: ["use!D3"] }
 			 },
-		deps: ['views/dialog'],
+		deps: ['views/common'],
 		callback: function () {
-			console.log('loaded libs + view/dialog');
+			console.log('loaded common libs');
 		}
 	})
 

@@ -49,6 +49,7 @@
      (.appendClockhourOfHalfday 1)
      (.appendLiteral ":")
      (.appendMinuteOfHour 2)
+     (.appendLiteral " ")
      (.appendHalfdayOfDayText)
      (.appendLiteral " ")
      (.appendMonthOfYearShortText)
@@ -91,6 +92,7 @@
      (.appendHourOfDay 2)
      (.appendLiteral ":")
      (.appendMinuteOfHour 2)
+     (.appendLiteral ":")
      (.appendSecondOfMinute 2))))
 
 (def ^:private time-fmt (fmt/formatter "h:mma" (time/default-time-zone)))
@@ -165,6 +167,10 @@
 (defn as-iso-8601-date [dt]
   (when dt
     (.print iso-8601-date dt)))
+
+(defn as-iso-8601 [dt]
+  (when dt
+    (.print iso-8601 dt)))
 
 (defn to-default-tz [dt]
   (time/to-time-zone dt (time/default-time-zone)))

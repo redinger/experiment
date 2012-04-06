@@ -9,10 +9,12 @@
 
 ;; User:
 ;; -------------------
+;;
 ;; - ID
 
 ;; Instrument:
 ;; -------------------
+;;
 ;; - ID
 ;; - sampling
 ;;   - interval (chunk interval)
@@ -62,6 +64,7 @@
 
 ;; Chunk:
 ;; -------------------
+;;
 ;; - ID
 ;; - user
 ;; - inst

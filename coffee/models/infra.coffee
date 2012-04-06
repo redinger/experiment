@@ -53,40 +53,78 @@ define ['jquery', 'use!Backbone'],
     # Singleton reference store
     class ReferenceCache
       constructor: ->
+           @lazy = false
            @types = {} # assoc: types[name] => constructors
            @instances = {} # assoc: instances[id] => model
            @
 
-    _.extend ReferenceCache.prototype,
       registerTypes: (map) ->
           _.extend(@types, map)
 
       lookupConstructor: (type) ->
           if _.isString(type) then @types[type] else type
 
-      resolve: (type, id, options = {lazy: false}) ->
+      loadAll: () ->
+          _.each @instances, (instance, id) ->
+            if instance._loaded is false
+               instance.fetch()
+
+      importFromID: (id, target) ->
+          string = $(id).html()
+          attrs = $.parseJSON(string)
+          @import attrs, target if attrs?
+
+      import: (data, target) ->
+          if _.isArray(data)
+             if target? then throw new Error('cannot import array to target')
+             _.map data, (attrs) ->
+                @import.call(@,attrs,target)
+             , @
+          else if _.isObject(data)
+             if target?
+                target.set 'id', data.id
+                target.set 'type', data.type
+                @register target
+                target.set data
+                target
+             else
+                object = @resolve data.type, data.id, {lazy: @lazy, attrs: data}
+                object.set data
+                object
+
+      resolve: (type, id, options = {lazy: @lazy}) ->
           if not (id? or type?)
             throw new Error('ReferenceCache.resolve requires valid type and id')
           instance = @instances[id]
-          if not instance
-            instance = new(@lookupConstructor(type))({id: id})
-            instance._refType = type
-            instance._embedLocation = () -> null
-            instance._embedParent = null
-            if not options.lazy and not instance._loaded
-              instance._loaded = instance.fetch().complete( ->
-                  instance._loaded = true
-              ).fail( ->
-                  console.log 'failed to load:'
-                  console.log instance
-              )
-            else if options.lazy
-              instance._loaded = false
-              throw new Error('Lazy loading not implemented')
-            @register instance
-          return instance
+          if not instance?
+            attrs = options.attrs or {type: type, id: id}
+            instance = new(@lookupConstructor(type))(attrs)
+            @register instance, options
+          instance
 
-      register: (instance) ->
+      register: (instance, options = {lazy: @lazy}) ->
+          if @instances[instance.id]
+             throw new Error('Cannot register over an existing object')
+
+          # Reference state
+          instance._refType = instance.get('type')
+          instance._embedLocation = () -> null
+          instance._embedParent = null
+
+          # Configure lazy status
+          if not options.lazy and not instance._loaded
+            instance._loaded = instance.fetch().complete( ->
+                instance._loaded = true
+            ).fail( ->
+                console.log 'failed to load:'
+                console.log instance
+            )
+          else if options.lazy
+            instance._loaded = false
+            if @lazy is not true
+              throw new Error('Lazy loading not implemented')
+
+          # Remove when destroyed
           instance.on 'destroy', @unregister
           @instances[instance.id] = instance
           instance
@@ -123,8 +161,8 @@ define ['jquery', 'use!Backbone'],
                    Backbone.ReferenceCache.resolve servType, id, {lazy: false}
                 else
                    ref
-              coll._embedParent = this
-              coll._embedLocation = attr
+              coll._embedParent = @
+              coll._embedLocation = () -> attr
               coll._referenceCollection = true
               coll
 
@@ -191,6 +229,7 @@ define ['jquery', 'use!Backbone'],
           @
 
       set: (attr, value, options) ->
+          @_loaded = true
           if not @embedded?
              return _set.apply(@,arguments)
           if _.isObject attr
@@ -249,6 +288,42 @@ define ['jquery', 'use!Backbone'],
                 if @id then @id else null
           model
 
+# Template Loader
+# -----------------------------------------
+#
+# Support lazy loading of templates if they aren't all pre-rendered
+# into the DOM.
+    class TemplateLoader
+      constructor: (options) ->
+          @templateUrl = '/api/templates/'
+          @templateCache = {}
+          @
+
+      fetchUrl: (id) ->
+          if _.isFunction @templateUrl
+            @templateUrl {id: id}
+          else
+            @templateUrl + id
+
+
+      getTemplate: (id, options = {lazy: false}) ->
+          if @templateCache[id]?
+            @templateCache[id]
+          else if not $('#' + id).length
+            @templateCache[id] = Handlebars.compile $('#' + id).html()
+          else
+            deferred = $.ajax
+                          url: @fetchUrl(id)
+                          async: options.lazy
+                          context: @
+                          success: (data) ->
+                            @templateCache[id] = Handlebars.compile data
+            if options.lazy
+               deferred
+            else
+               @templateCache[id]
+
+
 # Specific Implementation of Submodel API
 # -----------------------------------------
 
@@ -303,10 +378,16 @@ define ['jquery', 'use!Backbone'],
           else
             "/api/root/#{ @model.getServerType() }"
 
-    # Return the map of useful classes
+    # ## Setup Underscore templates for trivial templating
+    #    Use Handlebars.clj for more complex variants
+    _.templateSettings =
+        interpolate: /\{\{(.+?)\}\}/g
+
+    # ## Return the map of useful classes
     Model: Model
     Collection: Collection
     ReferenceCache: ReferenceCache
+    templateLoader: new TemplateLoader('/api/templates/{{ id }}')
 
 
 

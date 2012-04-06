@@ -57,7 +57,7 @@
    {:type "text/javascript"
     :src "/js/libs/require/require.js"
     :data-main "/js/load"}]
-  (when-let [depstring (map #(format "'%s'" %) deps)]
+  (when-let [depstring (and deps (map #(format "'%s'" %) deps))]
     [:script
      {:type "text/javascript"}
      "require(["
@@ -194,22 +194,16 @@
 ;; -----------------------------------------------
 
 ;; ## Serialize Models
-(defn bootstrap-collection-expr [name coll]
-  (str name ".reset("
-       (json/generate-string
-        (models/server->client coll))
-       ");"))
+(defn bootstrap-user-json []
+  [:script {:type "text/json" :id "bootstrap-user"}
+   (json/generate-string
+    (models/server->client
+     (session/current-user)))])
 
-(defn bootstrap-instance-expr [name coll]
-  (str name ".set("
-       (json/generate-string
-        (models/server->client coll))
-       ");"))
-
-(defpartial send-user []
-  [:script {:type "text/javascript"}
-   (bootstrap-instance-expr "window.PE.App.User" (session/current-user))])
-
+(defn bootstrap-models-json [models]
+  [:script {:type "text/json" :id "bootstrap-models"}
+   (json/generate-string
+    (models/server->client models))])
 
 ;; ## Send client-side templates
 (defn render-template [id template]

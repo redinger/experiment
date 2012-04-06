@@ -5,10 +5,12 @@
 define ['models/infra', 'use!Backbone'],
   (Infra) ->
 
-    #
-    # TemplateView - default template support for Backbone.View apps
-    #
+# ## TemplateView - default template support for Backbone.View apps
+#
+# Mixin to support template compilation and rendering in views
+#
     class TemplateView
+
       getTemplate: (name) ->
             try
               html = $(name).html()
@@ -42,92 +44,58 @@ define ['models/infra', 'use!Backbone'],
             @$el.append template model.toJSON()
 
 
-    #
-    # SwitchPane - A view that can be managed by a container, such as the switcher
-    #
-    class SwitchPane
-      visiblep: =>
-            if @$el.is(':visible')
-               true
-            else
-               false
+# ## NavBar
+#
+# Logic that attaches to the secondary nav bar and provides support for
+# one or more of the following actions in response to clicks:
+#
+# - Select direction (no navigation)
+# - Use a router, rooted in the tab namespace, to navigate to the tab
+# - Call a callback
+#
+    class NavBar extends Backbone.View
+      initialize: (options) ->
+        @select = options.select
+        @callback = options.callback
+        @router = options.router
+        if @router
+           @router.on 'route:selectTab', (tabname) ->
+              @switchTo tabname
+           , @
+        throw new Error('NavTab has no element to attach to') if not options.el
 
-      hidePane: =>
-            if @visiblep()
-    #           @$el.fadeOut('fast')
-               @$el.hide()
-    #        promise = $.Deferred (dfd) => @el.fadeOut('fast', dfd.resolve)
-    #        promise.promise()
+      currentTabName: () ->
+        @$('.active').children('a').attr('href')
 
-      showPane: =>
-            if not @visiblep()
-    #           @$el.fadeIn('fast')
-               @$el.show()
-    #        promise = $.Deferred (dfd) => @el.fadeIn('fast', dfd.resolve)
-    #        promise.promise()
+      # Respond to navigation
+      switchTo: (name) ->
+        @selectTab @$("a[href='#{ name }']").parent('li')
 
-      dispatch: (path) =>
-            @
+      selectTab: (tab) ->
+        # Select tab
+        tab.addClass('active')
+        tab.siblings().removeClass('active')
+        # Hide/show targets
+        name = tab.children('a').attr('href')
+        target = $('#' + name)
+        target.show()
+        target.siblings().hide()
+        tab
+
+      # Respond to Events
+      events:
+        'click li': 'clickTab'
+
+      clickTab: (event) =>
+        event.preventDefault()
+        tab = $(event.currentTarget)
+        name = tab.children('a').attr('href')
+        @callback name, tab if @callback? and name?
+        @router.navigate name, {trigger: true} if @router? and name?
+        @selectTab tab if @select?
 
 
-    #
-    # PaneSwitcher - Manages a set of AppView objects, only one of which
-    #    should be displayed at a time
-    #
-    class PaneSwitcher extends Backbone.View
-      # List of panes
-      panes: {}
-      initialize: ->
-            @panes = @options.panes
-            @
 
-      render: =>
-            @$el.empty()
-            @$el.append pane.render().el for name,pane of @panes
-            @
-
-      # Switch panes
-      hideOtherPanes: (target) ->
-            if not target
-               (pane.hidePane() if pane) for name, pane of @panes
-            else if typeof target == 'string'
-               (pane.hidePane() if pane and name != target) for own name, pane of @panes
-            else
-               (pane.hidePane() if pane and pane != target) for own name, pane of @panes
-
-      switch: (name) =>
-            @active = name
-            pane = @getPane name
-            if pane == null
-              alert 'no pane for name ' + name
-            @hideOtherPanes name
-            pane.showPane()
-
-      # Modify list
-      addPane: (name, pane) ->
-            @panes[name] = pane
-            @trigger('switcher:add')
-            @render()
-            @
-
-      removePane: (ref) ->
-            if typeof ref == 'string'
-               delete @panes[ref]
-            else
-               name = _.detect @panes, (name, pane) ->
-                    if (pane == ref)
-                            name
-               delete @panes[name]
-            @trigger('switcher:remove')
-            @render()
-            @
-
-      getPane: (name) ->
-            pane = @panes[name]
-            if typeof pane == 'undefined'
-               alert 'Pane not found for name ' + name
-            pane
-
+# ## Return the widget library
+    NavBar: NavBar
     TemplateView: TemplateView
-    SwitchPane: SwitchPane
-    PaneSwitcher: PaneSwitcher

@@ -64,6 +64,10 @@
 (defelem input [type id value]
   [:input {:type type :id id :value value}])
 
+(defelem textarea [id value]
+  [:textarea {:id id :name id}
+   value])
+
 (defelem help-text [text]
   [:p.help-block text])
 
