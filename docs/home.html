@@ -1,0 +1,223 @@
+<!DOCTYPE html>  <html> <head>   <title>home.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="core.html">                 core.coffee               </a>                                           <a class="source" href="infra.html">                 infra.coffee               </a>                                           <a class="source" href="user.html">                 user.coffee               </a>                                           <a class="source" href="common.html">                 common.coffee               </a>                                           <a class="source" href="dashboard.html">                 dashboard.coffee               </a>                                           <a class="source" href="events.html">                 events.coffee               </a>                                           <a class="source" href="explore.html">                 explore.coffee               </a>                                           <a class="source" href="home.html">                 home.coffee               </a>                                           <a class="source" href="journal.html">                 journal.coffee               </a>                                           <a class="source" href="settings.html">                 settings.coffee               </a>                                           <a class="source" href="social.html">                 social.coffee               </a>                                           <a class="source" href="trial.html">                 trial.coffee               </a>                                           <a class="source" href="widgets.html">                 widgets.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               home.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>                            </td>             <td class="code">               <div class="highlight"><pre><span class="nx">define</span> <span class="p">[</span><span class="s1">&#39;jquery&#39;</span><span class="p">,</span> <span class="s1">&#39;views/common&#39;</span><span class="p">,</span> <span class="s1">&#39;use!Handlebars&#39;</span><span class="p">,</span> <span class="s1">&#39;use!BackboneFormsBS&#39;</span><span class="p">,</span> <span class="s1">&#39;use!BackboneFormsEditors&#39;</span><span class="p">],</span>
+  <span class="nf">($, Common) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <h2>Login Dialog</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">loginSchema =</span>
+       <span class="nv">username:</span>
+          <span class="nv">title: </span><span class="s2">&quot;Username or E-mail&quot;</span>
+          <span class="nv">validators: </span><span class="p">[</span><span class="s1">&#39;required&#39;</span><span class="p">]</span>
+       <span class="nv">password:</span>
+          <span class="nv">type: </span><span class="s2">&quot;Password&quot;</span>
+          <span class="nv">title: </span><span class="s2">&quot;Password&quot;</span>
+          <span class="nv">validators: </span><span class="p">[</span><span class="s1">&#39;required&#39;</span><span class="p">]</span>
+
+    <span class="k">class</span> <span class="nx">LoginModal</span> <span class="k">extends</span> <span class="nx">Common</span><span class="p">.</span><span class="nx">ModalForm</span>
+      <span class="nv">attributes:</span>
+        <span class="nv">id: </span><span class="s1">&#39;loginModal&#39;</span>
+        <span class="k">class</span><span class="o">:</span> <span class="s1">&#39;modal hide fade&#39;</span>
+      <span class="nv">initialize: </span><span class="o">-&gt;</span>
+        <span class="vi">@schema = </span><span class="nx">loginSchema</span>
+        <span class="k">super</span><span class="p">()</span>
+        <span class="err">@</span>
+
+      <span class="nv">render: </span><span class="o">=&gt;</span>
+        <span class="nx">@$el</span><span class="p">.</span><span class="nx">html</span> <span class="nx">@template</span>
+                <span class="nv">id: </span><span class="s1">&#39;loginModal&#39;</span>
+                <span class="nv">header: </span><span class="s1">&#39;&lt;h1&gt;Login&lt;/h1&gt;&#39;</span>
+                <span class="nv">footer: </span><span class="s2">&quot;&lt;a class=&#39;btn btn-primary login&#39;&gt;Login&lt;/a&gt;</span>
+<span class="s2">                         &lt;a class=&#39;btn cancel&#39;&gt;Cancel&lt;/a&gt;&quot;</span>
+        <span class="nx">@$</span><span class="p">(</span><span class="s1">&#39;.modal-body&#39;</span><span class="p">).</span><span class="nx">append</span> <span class="nx">@form</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span>
+        <span class="nx">@$</span><span class="p">(</span><span class="s1">&#39;.modal-body&#39;</span><span class="p">).</span><span class="nx">append</span> <span class="s2">&quot;&lt;p class=&#39;forgot-line&#39;&gt; &lt;a class=&#39;forgot-pw&#39; href=&#39;#forgot&#39;&gt;Forgot your username or password?&lt;/a&gt;&lt;/p&gt;&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <pre><code>   @$('.modal-body').append "&lt;div class='fb-login-button' data-scope='email'&gt;Connect&lt;/div&gt;"
+</code></pre>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nx">@delegateEvents</span><span class="p">()</span>
+        <span class="err">@</span>
+
+      <span class="nv">events:</span>
+        <span class="s1">&#39;keyup&#39;</span><span class="o">:</span> <span class="s1">&#39;handleKey&#39;</span>
+        <span class="s1">&#39;click .cancel&#39;</span><span class="o">:</span> <span class="s1">&#39;loginCancel&#39;</span>
+        <span class="s1">&#39;click .close&#39;</span><span class="o">:</span> <span class="s1">&#39;loginCancel&#39;</span>
+        <span class="s1">&#39;click .login&#39;</span><span class="o">:</span> <span class="s1">&#39;login&#39;</span>
+        <span class="s1">&#39;click .forgot-pw&#39;</span><span class="o">:</span> <span class="s1">&#39;forgot&#39;</span>
+
+      <span class="nv">enterPressed: </span><span class="o">=&gt;</span> <span class="nx">@login</span><span class="p">()</span>
+      <span class="nv">login: </span><span class="o">=&gt;</span>
+        <span class="k">if</span> <span class="o">not</span> <span class="nx">@form</span><span class="p">.</span><span class="nx">validate</span><span class="p">()</span>
+           <span class="nx">$</span><span class="p">.</span><span class="nx">post</span> <span class="s1">&#39;/action/login&#39;</span><span class="p">,</span> <span class="nx">@form</span><span class="p">.</span><span class="nx">getValue</span><span class="p">(),</span> <span class="nx">@serverValidate</span>
+
+      <span class="nv">loginCancel: </span><span class="p">()</span> <span class="o">=&gt;</span>
+        <span class="k">if</span> <span class="nb">window</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">search</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span>
+           <span class="nb">window</span><span class="p">.</span><span class="nv">location.href = </span><span class="nb">window</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">protocol</span> <span class="o">+</span> <span class="s2">&quot;//&quot;</span> <span class="o">+</span> <span class="nb">window</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">host</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span>
+        <span class="k">else</span>
+           <span class="nx">@cancel</span><span class="p">()</span>
+
+      <span class="nv">serverValidate: </span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="k">if</span> <span class="nx">data</span><span class="p">.</span><span class="nx">result</span> <span class="o">isnt</span> <span class="s2">&quot;success&quot;</span>
+            <span class="nx">@form</span><span class="p">.</span><span class="nx">fields</span><span class="p">[</span><span class="s2">&quot;password&quot;</span><span class="p">].</span><span class="nx">setError</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">message</span> <span class="o">or</span> <span class="s2">&quot;Unknown Error&quot;</span><span class="p">)</span>
+        <span class="k">else</span>
+            <span class="nv">target = </span><span class="nx">Common</span><span class="p">.</span><span class="nx">queryParams</span><span class="p">[</span><span class="s1">&#39;target&#39;</span><span class="p">]</span> <span class="o">or</span> <span class="s2">&quot;/&quot;</span>
+            <span class="nb">window</span><span class="p">.</span><span class="nv">location.href = </span><span class="nb">window</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">protocol</span> <span class="o">+</span> <span class="s2">&quot;//&quot;</span> <span class="o">+</span> <span class="nb">window</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">host</span> <span class="o">+</span> <span class="nx">target</span>
+
+      <span class="nv">forgot: </span><span class="o">=&gt;</span>
+        <span class="nx">@$el</span><span class="p">.</span><span class="nx">toggleClass</span> <span class="s1">&#39;fade&#39;</span>
+        <span class="nx">@cancel</span><span class="p">()</span>
+        <span class="nx">@$el</span><span class="p">.</span><span class="nx">toggleClass</span> <span class="s1">&#39;fade&#39;</span>
+        <span class="nx">forgotModal</span><span class="p">.</span><span class="nx">show</span><span class="p">()</span>
+
+
+    <span class="nv">loginModal = </span><span class="k">new</span> <span class="nx">LoginModal</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <h2>Registration Dialog</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">regSchema =</span>
+      <span class="nv">email:</span>
+         <span class="nv">title: </span><span class="s2">&quot;E-mail Address&quot;</span>
+         <span class="nv">validators: </span><span class="p">[</span><span class="s1">&#39;email&#39;</span><span class="p">,</span> <span class="s1">&#39;required&#39;</span><span class="p">]</span>
+      <span class="nv">username:</span>
+         <span class="nv">title: </span><span class="s2">&quot;Choose a username&quot;</span>
+         <span class="nv">validators: </span><span class="p">[</span><span class="s1">&#39;required&#39;</span><span class="p">]</span>
+      <span class="nv">name:</span>
+         <span class="nv">title: </span><span class="s2">&quot;Your full name&quot;</span>
+      <span class="nv">password:</span>
+         <span class="nv">title: </span><span class="s2">&quot;Choose a password&quot;</span>
+         <span class="nv">type: </span><span class="s2">&quot;Password&quot;</span>
+         <span class="nv">validators: </span><span class="p">[</span><span class="s1">&#39;required&#39;</span><span class="p">]</span>
+      <span class="nv">password2:</span>
+         <span class="nv">title: </span><span class="s2">&quot;Re-enter password&quot;</span>
+         <span class="nv">type: </span><span class="s2">&quot;Password&quot;</span>
+         <span class="nv">validators: </span><span class="p">[</span><span class="s1">&#39;required&#39;</span><span class="p">,</span>
+                     <span class="nv">type: </span><span class="s1">&#39;match&#39;</span>
+                     <span class="nv">field: </span><span class="s1">&#39;password&#39;</span>
+                     <span class="nv">message: </span><span class="s1">&#39;Passwords must match&#39;</span><span class="p">]</span>
+
+    <span class="k">class</span> <span class="nx">RegisterModal</span> <span class="k">extends</span> <span class="nx">Common</span><span class="p">.</span><span class="nx">ModalForm</span>
+      <span class="nv">attributes:</span>
+        <span class="nv">id: </span><span class="s1">&#39;regModal&#39;</span>
+        <span class="k">class</span><span class="o">:</span> <span class="s1">&#39;modal hide fade&#39;</span>
+      <span class="nv">initialize: </span><span class="o">-&gt;</span>
+        <span class="vi">@schema = </span><span class="nx">regSchema</span>
+        <span class="k">super</span><span class="p">()</span>
+        <span class="err">@</span>
+
+      <span class="nv">render: </span><span class="o">=&gt;</span>
+        <span class="nx">@$el</span><span class="p">.</span><span class="nx">html</span> <span class="nx">@template</span>
+                <span class="nv">id: </span><span class="s1">&#39;regModal&#39;</span>
+                <span class="nv">header: </span><span class="s1">&#39;&lt;h1&gt;Register your Account&lt;/h1&gt;&#39;</span>
+                <span class="nv">footer: </span><span class="s2">&quot;&lt;a class=&#39;btn btn-primary register&#39;&gt;Register&lt;/a&gt;</span>
+<span class="s2">                        &lt;a class=&#39;btn cancel&#39;&gt;Cancel&lt;/a&gt;&quot;</span>
+        <span class="nx">@$</span><span class="p">(</span><span class="s1">&#39;.modal-body&#39;</span><span class="p">).</span><span class="nx">append</span> <span class="nx">@form</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span>
+        <span class="nx">@delegateEvents</span><span class="p">()</span>
+        <span class="err">@</span>
+
+      <span class="nv">events:</span>
+        <span class="s1">&#39;keyup&#39;</span><span class="o">:</span> <span class="s1">&#39;handleKey&#39;</span>
+        <span class="s1">&#39;click .register&#39;</span><span class="o">:</span> <span class="s1">&#39;register&#39;</span>
+        <span class="s1">&#39;click .cancel&#39;</span><span class="o">:</span> <span class="s1">&#39;cancel&#39;</span>
+        <span class="s1">&#39;click .close&#39;</span> <span class="o">:</span> <span class="s1">&#39;cancel&#39;</span>
+
+        <span class="s1">&#39;keyup #username&#39;</span><span class="o">:</span> <span class="s1">&#39;checkUsername&#39;</span>
+        <span class="s1">&#39;keyup #email&#39;</span><span class="o">:</span> <span class="s1">&#39;checkEmail&#39;</span>
+
+      <span class="nv">checkUsername: </span><span class="o">=&gt;</span>
+        <span class="k">if</span> <span class="o">not</span> <span class="nx">@checkUsernameHandler</span><span class="o">?</span>
+          <span class="vi">@checkUsernameHandler =</span>
+              <span class="nx">_</span><span class="p">.</span><span class="nx">throttle</span> <span class="o">-&gt;</span>
+                <span class="nx">$</span><span class="p">.</span><span class="nx">ajax</span>
+                  <span class="nv">url: </span><span class="s1">&#39;/action/check-username&#39;</span>
+                  <span class="nv">data: </span><span class="p">{</span> <span class="nv">username: </span><span class="nx">@form</span><span class="p">.</span><span class="nx">getValue</span><span class="p">().</span><span class="nx">username</span> <span class="p">}</span>
+                  <span class="nv">success: </span><span class="nx">@validateUsername</span>
+                  <span class="nv">timeout: </span><span class="mi">2000</span>
+                  <span class="nv">spinner: </span><span class="kc">false</span>
+              <span class="p">,</span> <span class="mi">1000</span>
+        <span class="nx">@checkUsernameHandler</span><span class="p">()</span>
+
+      <span class="nv">validateUsername: </span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="k">if</span> <span class="nx">data</span><span class="p">.</span><span class="nx">exists</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span>
+            <span class="nx">@form</span><span class="p">.</span><span class="nx">fields</span><span class="p">[</span><span class="s1">&#39;username&#39;</span><span class="p">].</span><span class="nx">clearError</span><span class="p">()</span>
+            <span class="nx">@form</span><span class="p">.</span><span class="nx">fields</span><span class="p">[</span><span class="s1">&#39;username&#39;</span><span class="p">].</span><span class="nx">setError</span><span class="p">(</span><span class="s2">&quot;This username is taken&quot;</span><span class="p">)</span>
+        <span class="k">else</span>
+            <span class="nx">@form</span><span class="p">.</span><span class="nx">fields</span><span class="p">[</span><span class="s1">&#39;username&#39;</span><span class="p">].</span><span class="nx">clearError</span><span class="p">()</span>
+
+      <span class="nv">checkEmail: </span><span class="o">=&gt;</span>
+        <span class="k">if</span> <span class="o">not</span> <span class="nx">@checkEmailHandler</span><span class="o">?</span>
+          <span class="vi">@checkEmailHandler =</span>
+              <span class="nx">_</span><span class="p">.</span><span class="nx">debounce</span> <span class="o">-&gt;</span>
+                <span class="nx">$</span><span class="p">.</span><span class="nx">ajax</span>
+                  <span class="nv">url: </span><span class="s1">&#39;/action/check-email&#39;</span>
+                  <span class="nv">data: </span><span class="p">{</span> <span class="nv">email: </span><span class="nx">@form</span><span class="p">.</span><span class="nx">getValue</span><span class="p">().</span><span class="nx">email</span> <span class="p">}</span>
+                  <span class="nv">success: </span><span class="nx">@emailValidate</span>
+                  <span class="nv">timeout: </span><span class="mi">2000</span>
+                  <span class="nv">spinner: </span><span class="kc">false</span>
+              <span class="p">,</span> <span class="mi">600</span>
+        <span class="nx">@checkEmailHandler</span><span class="p">()</span>
+
+      <span class="nv">validateEmail: </span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="k">if</span> <span class="nx">data</span><span class="p">.</span><span class="nx">exists</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span>
+            <span class="nx">@form</span><span class="p">.</span><span class="nx">fields</span><span class="p">[</span><span class="s1">&#39;email&#39;</span><span class="p">].</span><span class="nx">clearError</span><span class="p">()</span>
+            <span class="nx">@form</span><span class="p">.</span><span class="nx">fields</span><span class="p">[</span><span class="s1">&#39;email&#39;</span><span class="p">].</span><span class="nx">setError</span><span class="p">(</span><span class="s2">&quot;This address is already registered&quot;</span><span class="p">)</span>
+        <span class="k">else</span>
+            <span class="nx">@form</span><span class="p">.</span><span class="nx">fields</span><span class="p">[</span><span class="s1">&#39;email&#39;</span><span class="p">].</span><span class="nx">clearError</span><span class="p">()</span>
+
+      <span class="nv">enterPressed: </span><span class="o">=&gt;</span> <span class="nx">@register</span><span class="p">()</span>
+      <span class="nv">register: </span><span class="o">=&gt;</span>
+        <span class="nx">@handleUsername</span><span class="p">()</span>
+        <span class="nx">@handleEmail</span><span class="p">()</span>
+        <span class="k">if</span> <span class="o">not</span> <span class="nx">@form</span><span class="p">.</span><span class="nx">validate</span><span class="p">()</span>
+           <span class="nx">$</span><span class="p">.</span><span class="nx">post</span> <span class="s1">&#39;/action/register&#39;</span><span class="p">,</span> <span class="nx">@form</span><span class="p">.</span><span class="nx">getValue</span><span class="p">(),</span> <span class="nx">@serverValidate</span>
+
+      <span class="nv">serverValidate: </span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="k">if</span> <span class="nx">data</span><span class="p">.</span><span class="nx">result</span> <span class="o">isnt</span> <span class="s2">&quot;success&quot;</span>
+           <span class="nx">@form</span><span class="p">.</span><span class="nx">fields</span><span class="p">[</span><span class="s1">&#39;password2&#39;</span><span class="p">].</span><span class="nx">setError</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">message</span> <span class="o">||</span> <span class="s2">&quot;Unknown Error&quot;</span><span class="p">)</span>
+        <span class="k">else</span>
+           <span class="nx">@cancel</span><span class="p">()</span>
+           <span class="nx">Common</span><span class="p">.</span><span class="nx">modalMessage</span><span class="p">.</span><span class="nx">showMessage</span>
+                <span class="nv">header: </span><span class="s2">&quot;Thank you&quot;</span>
+                <span class="nv">message: </span><span class="s2">&quot;&lt;p&gt;Thank you for registering, you should receive an e-mail confirming your registration shortly.&lt;/p&gt;&quot;</span>
+
+    <span class="nv">regModal = </span><span class="k">new</span> <span class="nx">RegisterModal</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <h2>Forgot Password Dialog</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">forgotSchema =</span>
+      <span class="nv">userid:</span>
+        <span class="nv">title: </span><span class="s2">&quot;User ID or E-mail&quot;</span>
+        <span class="nv">validators: </span><span class="p">[</span><span class="s1">&#39;required&#39;</span><span class="p">]</span>
+
+    <span class="k">class</span> <span class="nx">ForgotModal</span> <span class="k">extends</span> <span class="nx">Common</span><span class="p">.</span><span class="nx">ModalForm</span>
+      <span class="nv">attributes:</span>
+        <span class="nv">id: </span><span class="s1">&#39;forgotModal&#39;</span>
+        <span class="k">class</span><span class="o">:</span> <span class="s1">&#39;modal hide&#39;</span>
+      <span class="nv">initialize: </span><span class="o">-&gt;</span>
+        <span class="vi">@schema = </span><span class="nx">forgotSchema</span>
+        <span class="k">super</span><span class="p">()</span>
+        <span class="err">@</span>
+
+      <span class="nv">render: </span><span class="o">=&gt;</span>
+        <span class="nx">@$el</span><span class="p">.</span><span class="nx">html</span> <span class="nx">@template</span>
+                <span class="nv">id: </span><span class="s1">&#39;forgotModal&#39;</span>
+                <span class="nv">header: </span><span class="s1">&#39;&lt;h1&gt;Forgot your Password?&lt;/h1&gt;&#39;</span>
+                <span class="nv">footer: </span><span class="s1">&#39;&lt;a class=&quot;btn btn-primary reset-pw&quot;&gt;Reset Password&lt;/a&gt;</span>
+<span class="s1">                         &lt;a class=&quot;btn cancel&quot;&gt;Cancel&lt;/a&gt;&#39;</span>
+        <span class="nx">@$</span><span class="p">(</span><span class="s1">&#39;.modal-body&#39;</span><span class="p">).</span><span class="nx">append</span> <span class="nx">@form</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span>
+        <span class="nx">@delegateEvents</span><span class="p">()</span>
+        <span class="err">@</span>
+
+      <span class="nv">enterPressed: </span><span class="o">=&gt;</span> <span class="nx">@resetPassword</span><span class="p">()</span>
+
+      <span class="nv">events:</span>
+        <span class="s1">&#39;keyup&#39;</span><span class="o">:</span> <span class="s1">&#39;handleKey&#39;</span>
+        <span class="s1">&#39;click .reset-pw&#39;</span><span class="o">:</span> <span class="s1">&#39;resetPassword&#39;</span>
+        <span class="s1">&#39;click .cancel&#39;</span><span class="o">:</span> <span class="s1">&#39;cancel&#39;</span>
+        <span class="s1">&#39;click .close&#39;</span><span class="o">:</span> <span class="s1">&#39;cancel&#39;</span>
+
+      <span class="nv">resetPassword: </span><span class="o">=&gt;</span>
+        <span class="k">if</span> <span class="o">not</span> <span class="nx">@form</span><span class="p">.</span><span class="nx">validate</span><span class="p">()</span>
+                <span class="nx">$</span><span class="p">.</span><span class="nx">post</span> <span class="s1">&#39;/action/forgotpw&#39;</span><span class="p">,</span> <span class="nx">@form</span><span class="p">.</span><span class="nx">getValue</span><span class="p">(),</span> <span class="nx">@checkAccount</span>
+
+      <span class="nv">checkAccount: </span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="k">if</span> <span class="nx">data</span><span class="p">.</span><span class="nx">result</span> <span class="o">isnt</span> <span class="s2">&quot;success&quot;</span>
+                <span class="nx">@form</span><span class="p">.</span><span class="nx">fields</span><span class="p">[</span><span class="s1">&#39;userid&#39;</span><span class="p">].</span><span class="nx">setError</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">message</span> <span class="o">||</span> <span class="s2">&quot;Unknown Error&quot;</span><span class="p">)</span>
+        <span class="k">else</span>
+                <span class="nx">@cancel</span><span class="p">()</span>
+                <span class="nx">Common</span><span class="p">.</span><span class="nx">modalMessage</span><span class="p">.</span><span class="nx">showMessage</span>
+                        <span class="nv">header: </span><span class="s2">&quot;Password Reset&quot;</span>
+                        <span class="nv">message: </span><span class="s2">&quot;&lt;p&gt;Please check your e-mail for your temporary password&lt;/p&gt;&quot;</span>
+
+    <span class="nv">forgotModal = </span><span class="k">new</span> <span class="nx">ForgotModal</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <h2>Home Page Startup Actions</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">$</span><span class="p">(</span><span class="nb">document</span><span class="p">).</span><span class="nx">ready</span> <span class="o">-&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>Home page carousel</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#homeCarousel&#39;</span><span class="p">).</span><span class="nx">carousel</span> <span class="nv">interval: </span><span class="mi">10000</span> <span class="k">if</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#homeCarousel&#39;</span><span class="p">).</span><span class="nx">length</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>Modal Binding</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.login-button&#39;</span><span class="p">).</span><span class="nx">bind</span> <span class="s1">&#39;click&#39;</span><span class="p">,</span>
+                <span class="nf">(e) -&gt;</span>
+                        <span class="nx">e</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">()</span>
+                        <span class="nx">loginModal</span><span class="p">.</span><span class="nx">show</span><span class="p">()</span>
+
+        <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.register-button&#39;</span><span class="p">).</span><span class="nx">bind</span> <span class="s1">&#39;click&#39;</span><span class="p">,</span>
+                <span class="nf">(e) -&gt;</span>
+                        <span class="nx">e</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">()</span>
+                        <span class="nx">regModal</span><span class="p">.</span><span class="nx">show</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <p>Return the empty set for now</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="p">{}</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 

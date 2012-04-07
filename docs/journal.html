@@ -1,7 +1,7 @@
-<!DOCTYPE html>  <html> <head>   <title>journal.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="core.html">                 core.coffee               </a>                                           <a class="source" href="infra.html">                 infra.coffee               </a>                                           <a class="source" href="dashboard.html">                 dashboard.coffee               </a>                                           <a class="source" href="dialog.html">                 dialog.coffee               </a>                                           <a class="source" href="events.html">                 events.coffee               </a>                                           <a class="source" href="explore.html">                 explore.coffee               </a>                                           <a class="source" href="journal.html">                 journal.coffee               </a>                                           <a class="source" href="settings.html">                 settings.coffee               </a>                                           <a class="source" href="social.html">                 social.coffee               </a>                                           <a class="source" href="trial.html">                 trial.coffee               </a>                                           <a class="source" href="widgets.html">                 widgets.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               journal.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p>JOURNAL VIEW</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">define</span> <span class="p">[</span><span class="s1">&#39;models/infra&#39;</span><span class="p">,</span> <span class="s1">&#39;models/core&#39;</span><span class="p">,</span> <span class="s1">&#39;views/widgets&#39;</span><span class="p">,</span> <span class="s1">&#39;use!Handlebars&#39;</span><span class="p">,</span> <span class="s1">&#39;use!Backbone&#39;</span><span class="p">],</span>
-  <span class="nf">(Infra, Core, Widgets) -&gt;</span>
+<!DOCTYPE html>  <html> <head>   <title>journal.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="core.html">                 core.coffee               </a>                                           <a class="source" href="infra.html">                 infra.coffee               </a>                                           <a class="source" href="user.html">                 user.coffee               </a>                                           <a class="source" href="common.html">                 common.coffee               </a>                                           <a class="source" href="dashboard.html">                 dashboard.coffee               </a>                                           <a class="source" href="events.html">                 events.coffee               </a>                                           <a class="source" href="explore.html">                 explore.coffee               </a>                                           <a class="source" href="home.html">                 home.coffee               </a>                                           <a class="source" href="journal.html">                 journal.coffee               </a>                                           <a class="source" href="settings.html">                 settings.coffee               </a>                                           <a class="source" href="social.html">                 social.coffee               </a>                                           <a class="source" href="trial.html">                 trial.coffee               </a>                                           <a class="source" href="widgets.html">                 widgets.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               journal.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p>JOURNAL VIEW</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">define</span> <span class="p">[</span><span class="s1">&#39;models/infra&#39;</span><span class="p">,</span> <span class="s1">&#39;models/core&#39;</span><span class="p">,</span> <span class="s1">&#39;views/common&#39;</span><span class="p">,</span> <span class="s1">&#39;views/widgets&#39;</span><span class="p">,</span> <span class="s1">&#39;use!jqueryTimeAgo&#39;</span><span class="p">,</span> <span class="s1">&#39;use!Handlebars&#39;</span><span class="p">,</span> <span class="s1">&#39;use!Backbone&#39;</span><span class="p">],</span>
+  <span class="nf">(Infra, Core, Common, Widgets) -&gt;</span>
 
-    <span class="k">class</span> <span class="nx">JournalView</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
+    <span class="k">class</span> <span class="nx">OldJournalView</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
       <span class="nx">@implements</span> <span class="nx">Widgets</span><span class="p">.</span><span class="nx">TemplateView</span>
       <span class="nv">initialize: </span><span class="o">-&gt;</span>
             <span class="nx">@initTemplate</span> <span class="s1">&#39;#journal-viewer&#39;</span>
@@ -88,8 +88,151 @@
 
       <span class="nv">cancel: </span><span class="o">=&gt;</span>
             <span class="nx">@journalView</span><span class="p">()</span>
-            <span class="vi">@editing = </span><span class="kc">false</span>
+            <span class="vi">@editing = </span><span class="kc">false</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <h2>Journal Entry View</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">JournalView</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
+      <span class="nv">tagName: </span><span class="s1">&#39;div&#39;</span>
+      <span class="nv">className: </span><span class="s1">&#39;journal-view&#39;</span>
+      <span class="nv">initialize: </span><span class="nf">(options = {}) -&gt;</span>
+          <span class="nx">options</span><span class="p">.</span><span class="nx">tid</span> <span class="o">?=</span> <span class="s1">&#39;journal-view&#39;</span>
+          <span class="nx">@setEntry</span> <span class="nx">@model</span> <span class="o">or</span> <span class="kc">null</span>
+          <span class="vi">@template = </span><span class="nx">Infra</span><span class="p">.</span><span class="nx">templateLoader</span><span class="p">.</span><span class="nx">getTemplate</span> <span class="nx">options</span><span class="p">.</span><span class="nx">tid</span>
 
-    <span class="nv">JournalView: </span><span class="nx">JournalView</span>
+      <span class="nv">setEntry: </span><span class="nf">(model) -&gt;</span>
+          <span class="k">if</span> <span class="o">not</span> <span class="p">(</span><span class="nx">@model</span> <span class="o">is</span> <span class="nx">model</span><span class="p">)</span>
+             <span class="nx">@$el</span><span class="p">.</span><span class="nx">fadeOut</span><span class="p">(</span><span class="s1">&#39;fast&#39;</span><span class="p">,</span> <span class="o">=&gt;</span>
+                <span class="vi">@model = </span><span class="nx">model</span>
+                <span class="nx">@undelegateEvents</span><span class="p">()</span>
+                <span class="nx">@render</span><span class="p">()</span>
+                <span class="nx">@delegateEvents</span><span class="p">()</span>
+                <span class="nx">@$el</span><span class="p">.</span><span class="nx">fadeIn</span><span class="p">(</span><span class="s1">&#39;fast&#39;</span><span class="p">))</span>
+
+      <span class="nv">render: </span><span class="o">=&gt;</span>
+          <span class="k">if</span> <span class="nx">_</span><span class="p">.</span><span class="nx">isObject</span> <span class="nx">@model</span>
+             <span class="err">@</span>
+             <span class="nx">@$el</span><span class="p">.</span><span class="nx">html</span> <span class="nx">@template</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">toJSON</span><span class="p">()</span>
+          <span class="k">else</span>
+             <span class="nx">@$el</span><span class="p">.</span><span class="nx">html</span> <span class="s2">&quot;&lt;div&gt;&lt;/div&gt;&quot;</span>
+          <span class="err">@</span>
+
+      <span class="nv">events:</span>
+          <span class="s1">&#39;keyup&#39;</span><span class="o">:</span> <span class="s1">&#39;handleKey&#39;</span>
+          <span class="s1">&#39;click #sharing .option&#39;</span><span class="o">:</span> <span class="s1">&#39;changeSharing&#39;</span>
+          <span class="s1">&#39;click #purpose .option&#39;</span><span class="o">:</span> <span class="s1">&#39;changePurpose&#39;</span>
+
+      <span class="nv">handleKey: </span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="k">if</span> <span class="o">not</span> <span class="nx">@keyChangeHandler</span>
+           <span class="vi">@keyChangeHandler =</span>
+             <span class="nx">_</span><span class="p">.</span><span class="nx">debounce</span> <span class="o">=&gt;</span>
+               <span class="nx">@updateContent</span><span class="p">()</span>
+             <span class="p">,</span> <span class="mi">1000</span>
+        <span class="nx">@keyChangeHandler</span><span class="p">()</span>
+
+      <span class="nv">updateContent: </span><span class="p">()</span> <span class="o">=&gt;</span>
+        <span class="nx">@model</span><span class="p">.</span><span class="nx">save</span>
+          <span class="nv">short: </span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#journal-short&#39;</span><span class="p">).</span><span class="nx">val</span><span class="p">()</span>
+          <span class="nv">content: </span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#journal-content&#39;</span><span class="p">).</span><span class="nx">val</span><span class="p">()</span>
+        <span class="p">,</span>
+          <span class="nv">spinner: </span><span class="kc">false</span>
+
+      <span class="nv">changeButton: </span><span class="nf">(target, attribute) -&gt;</span>
+        <span class="nv">label = </span><span class="nx">$</span><span class="p">(</span><span class="nx">target</span><span class="p">).</span><span class="nx">html</span><span class="p">()</span>
+        <span class="nx">@model</span><span class="p">.</span><span class="nx">save</span> <span class="nx">attribute</span><span class="p">,</span> <span class="nx">label</span>
+        <span class="nx">$</span><span class="p">(</span><span class="nx">target</span><span class="p">).</span><span class="nx">parents</span><span class="p">(</span><span class="s1">&#39;.btn-group&#39;</span><span class="p">).</span>
+            <span class="nx">children</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">).</span>
+            <span class="nx">contents</span><span class="p">().</span>
+            <span class="nx">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">).</span>
+            <span class="nx">replaceWith</span> <span class="nx">label</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span>
+
+      <span class="nv">changePurpose: </span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">@changeButton</span> <span class="nx">e</span><span class="p">.</span><span class="nx">target</span><span class="p">,</span> <span class="s1">&#39;annotation&#39;</span>
+
+      <span class="nv">changeSharing: </span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">@changeButton</span> <span class="nx">e</span><span class="p">.</span><span class="nx">target</span><span class="p">,</span> <span class="s1">&#39;sharing&#39;</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <h2>Journal List View</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">JournalList</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
+      <span class="nv">tagName: </span><span class="s1">&#39;div&#39;</span>
+      <span class="nv">className: </span><span class="s1">&#39;journal-list&#39;</span>
+      <span class="nv">initialize: </span><span class="nf">(options = {}) -&gt;</span>
+          <span class="nx">options</span><span class="p">.</span><span class="nx">tid</span> <span class="o">?=</span> <span class="s1">&#39;journal-list&#39;</span>
+          <span class="vi">@template = </span><span class="nx">Infra</span><span class="p">.</span><span class="nx">templateLoader</span><span class="p">.</span><span class="nx">getTemplate</span> <span class="nx">options</span><span class="p">.</span><span class="nx">tid</span>
+          <span class="nx">@collection</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;add remove&#39;</span><span class="p">,</span> <span class="nx">@render</span>
+          <span class="nx">@collection</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;change&#39;</span><span class="p">,</span> <span class="nx">@maybeRender</span>
+
+      <span class="nv">maybeRender: </span><span class="p">(</span><span class="nx">model</span><span class="p">)</span> <span class="o">=&gt;</span>
+          <span class="k">if</span> <span class="o">not</span> <span class="nx">model</span><span class="p">.</span><span class="nx">hasChanged</span><span class="p">(</span><span class="s1">&#39;content&#39;</span><span class="p">)</span>
+             <span class="nx">@render</span><span class="p">()</span>
+
+      <span class="nv">render: </span><span class="o">=&gt;</span>
+          <span class="nx">@$el</span><span class="p">.</span><span class="nx">html</span> <span class="nx">@template</span>
+              <span class="nv">journals: </span><span class="nx">@collection</span><span class="p">.</span><span class="nx">map</span> <span class="nf">(model) -&gt;</span>
+                  <span class="nx">model</span><span class="p">.</span><span class="nx">toJSON</span><span class="p">()</span>
+          <span class="err">@</span>
+
+      <span class="nv">events:</span>
+          <span class="s1">&#39;click .new&#39;</span><span class="o">:</span> <span class="s1">&#39;newEntry&#39;</span>
+          <span class="s1">&#39;click button.del&#39;</span><span class="o">:</span> <span class="s1">&#39;delEntry&#39;</span>
+          <span class="s1">&#39;click tr&#39;</span><span class="o">:</span> <span class="s1">&#39;selectEntry&#39;</span>
+
+      <span class="nv">modelFromRow: </span><span class="nf">(row) -&gt;</span>
+          <span class="nv">id = </span><span class="nx">$</span><span class="p">(</span><span class="nx">row</span><span class="p">).</span><span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">)</span>
+          <span class="nx">@collection</span><span class="p">.</span><span class="nx">find</span> <span class="nf">(model) -&gt;</span>
+              <span class="nx">model</span><span class="p">.</span><span class="nx">id</span> <span class="o">is</span> <span class="nx">id</span>
+
+      <span class="nv">newEntry: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
+          <span class="nv">now = </span><span class="k">new</span> <span class="nb">Date</span><span class="p">()</span>
+          <span class="nx">@collection</span><span class="p">.</span><span class="nx">create</span>
+              <span class="nv">date: </span><span class="nx">now</span><span class="p">.</span><span class="nx">getTime</span><span class="p">()</span>
+              <span class="nv">sharing: </span><span class="s2">&quot;Private&quot;</span>
+              <span class="nv">annotation: </span><span class="s2">&quot;Note&quot;</span>
+              <span class="nv">content: </span><span class="s2">&quot;&quot;</span>
+              <span class="nv">short: </span><span class="s2">&quot;&quot;</span>
+              <span class="nv">type: </span><span class="s2">&quot;journal&quot;</span>
+
+      <span class="nv">delEntry: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
+          <span class="nv">model = </span><span class="nx">@modelFromRow</span> <span class="nx">$</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">target</span><span class="p">).</span><span class="nx">parents</span><span class="p">(</span><span class="s1">&#39;tr&#39;</span><span class="p">)</span>
+          <span class="k">if</span> <span class="o">not</span> <span class="nx">model</span><span class="o">?</span> <span class="k">then</span> <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s1">&#39;Invalid model in delete&#39;</span><span class="p">)</span>
+          <span class="nx">Common</span><span class="p">.</span><span class="nx">modalMessage</span><span class="p">.</span><span class="nx">showMessage</span>
+            <span class="nv">header: </span><span class="s2">&quot;Confirm Deletion&quot;</span>
+            <span class="nv">message: </span><span class="s2">&quot;Are you certain you want to delete your journal entry &#39;#{ model.get(&#39;short&#39;) }&#39; dated #{ model.get(&#39;date-str&#39;) }?&quot;</span>
+            <span class="nv">accept: </span><span class="s2">&quot;Delete&quot;</span>
+            <span class="nv">reject: </span><span class="s2">&quot;Cancel&quot;</span>
+            <span class="nv">callback: </span><span class="p">(</span><span class="nx">result</span><span class="p">)</span> <span class="o">=&gt;</span>
+              <span class="k">if</span> <span class="nx">result</span> <span class="o">is</span> <span class="s1">&#39;accept&#39;</span>
+                  <span class="nx">@collection</span><span class="p">.</span><span class="nx">remove</span><span class="p">(</span><span class="nx">model</span><span class="p">)</span>
+                  <span class="nx">model</span><span class="p">.</span><span class="nx">destroy</span><span class="p">()</span>
+
+      <span class="nv">selectEntry: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
+          <span class="nv">model = </span><span class="nx">@modelFromRow</span> <span class="nx">event</span><span class="p">.</span><span class="nx">currentTarget</span>
+          <span class="nx">@trigger</span> <span class="s1">&#39;selectEntry&#39;</span><span class="p">,</span> <span class="nx">model</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <h2>Journal Page View</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">JournalPage</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
+      <span class="nv">initialize: </span><span class="nf">(options) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>Setup models and subviews</p>             </td>             <td class="code">               <div class="highlight"><pre>          <span class="k">if</span> <span class="o">not</span> <span class="nx">@collection</span><span class="o">?</span> <span class="k">then</span> <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;JournalPage requires a valid journal collection&quot;</span><span class="p">)</span>
+          <span class="vi">@collection.comparator = </span><span class="nf">(date1, date2) -&gt;</span>
+              <span class="k">if</span> <span class="nx">date1</span> <span class="o">&gt;</span> <span class="nx">date2</span>
+                 <span class="mi">1</span>
+              <span class="k">else</span> <span class="k">if</span> <span class="nx">date1</span> <span class="o">is</span> <span class="nx">date2</span>
+                 <span class="mi">0</span>
+              <span class="k">else</span>
+                 <span class="o">-</span><span class="mi">1</span>
+          <span class="nx">@collection</span><span class="p">.</span><span class="nx">sort</span><span class="p">()</span>
+
+          <span class="vi">@template = </span><span class="nx">Infra</span><span class="p">.</span><span class="nx">templateLoader</span><span class="p">.</span><span class="nx">getTemplate</span> <span class="nx">options</span><span class="p">.</span><span class="nx">tid</span> <span class="o">or</span> <span class="s1">&#39;journal-page&#39;</span>
+          <span class="vi">@jview = </span><span class="k">new</span> <span class="nx">JournalView</span>
+            <span class="nv">model: </span><span class="kc">null</span>
+          <span class="vi">@jlist = </span><span class="k">new</span> <span class="nx">JournalList</span>
+            <span class="nv">collection: </span><span class="nx">@collection</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Bridge events between entry and list view</p>             </td>             <td class="code">               <div class="highlight"><pre>          <span class="nx">@jlist</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;selectEntry&#39;</span><span class="p">,</span> <span class="nx">@setview</span><span class="p">,</span> <span class="err">@</span>
+          <span class="nx">@collection</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;add&#39;</span><span class="p">,</span> <span class="nx">@setview</span><span class="p">,</span> <span class="err">@</span>
+          <span class="nx">@collection</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;remove&#39;</span><span class="p">,</span> <span class="nx">@resetview</span><span class="p">,</span> <span class="err">@</span>
+          <span class="nx">@collection</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;reset&#39;</span><span class="p">,</span> <span class="nx">@render</span><span class="p">,</span> <span class="err">@</span>
+          <span class="err">@</span>
+
+      <span class="nv">render: </span><span class="o">-&gt;</span>
+          <span class="nx">@$el</span><span class="p">.</span><span class="nx">html</span> <span class="nx">@template</span> <span class="p">{}</span>
+          <span class="nx">@$</span><span class="p">(</span><span class="s1">&#39;.jvp&#39;</span><span class="p">).</span><span class="nx">append</span> <span class="nx">@jview</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span>
+          <span class="nx">@$</span><span class="p">(</span><span class="s1">&#39;.jvl&#39;</span><span class="p">).</span><span class="nx">append</span> <span class="nx">@jlist</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span>
+          <span class="err">@</span>
+
+      <span class="nv">setview: </span><span class="nf">(model) -&gt;</span>
+          <span class="nx">@jview</span><span class="p">.</span><span class="nx">setEntry</span> <span class="nx">model</span>
+
+      <span class="nv">resetview: </span><span class="nf">(model) -&gt;</span>
+          <span class="nx">@jview</span><span class="p">.</span><span class="nx">setEntry</span> <span class="kc">null</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>Return view classes</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">View: </span><span class="nx">JournalView</span>
+    <span class="nv">List: </span><span class="nx">JournalList</span>
+    <span class="nv">Page: </span><span class="nx">JournalPage</span>
 
 </pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 

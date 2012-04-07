@@ -1,0 +1,121 @@
+<!DOCTYPE html>  <html> <head>   <title>common.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="core.html">                 core.coffee               </a>                                           <a class="source" href="infra.html">                 infra.coffee               </a>                                           <a class="source" href="user.html">                 user.coffee               </a>                                           <a class="source" href="common.html">                 common.coffee               </a>                                           <a class="source" href="dashboard.html">                 dashboard.coffee               </a>                                           <a class="source" href="events.html">                 events.coffee               </a>                                           <a class="source" href="explore.html">                 explore.coffee               </a>                                           <a class="source" href="home.html">                 home.coffee               </a>                                           <a class="source" href="journal.html">                 journal.coffee               </a>                                           <a class="source" href="settings.html">                 settings.coffee               </a>                                           <a class="source" href="social.html">                 social.coffee               </a>                                           <a class="source" href="trial.html">                 trial.coffee               </a>                                           <a class="source" href="widgets.html">                 widgets.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               common.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>                            </td>             <td class="code">               <div class="highlight"><pre><span class="nx">define</span> <span class="p">[</span><span class="s1">&#39;jquery&#39;</span><span class="p">,</span> <span class="s1">&#39;models/infra&#39;</span><span class="p">,</span> <span class="s1">&#39;use!Handlebars&#39;</span><span class="p">,</span> <span class="s1">&#39;use!BackboneFormsBS&#39;</span><span class="p">,</span> <span class="s1">&#39;use!BackboneFormsEditors&#39;</span><span class="p">],</span>
+  <span class="nf">($, Infra) -&gt;</span>
+
+    <span class="k">if</span> <span class="o">not</span> <span class="nx">Common</span>
+      <span class="nv">Common = </span><span class="p">{}</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <h2>Modal Dialog Base</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">Common</span><span class="p">.</span><span class="nx">ModalView</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
+      <span class="nv">initialize: </span><span class="nf">(opts) -&gt;</span>
+        <span class="vi">@template = </span><span class="nx">Infra</span><span class="p">.</span><span class="nx">templateLoader</span><span class="p">.</span><span class="nx">getTemplate</span> <span class="s1">&#39;modal-dialog-template&#39;</span>
+        <span class="err">@</span>
+
+      <span class="nv">show: </span><span class="o">=&gt;</span>
+        <span class="nx">@$el</span><span class="p">.</span><span class="nx">modal</span><span class="p">(</span><span class="s1">&#39;show&#39;</span><span class="p">)</span>
+
+      <span class="nv">hide: </span><span class="o">=&gt;</span>
+        <span class="nx">@$el</span><span class="p">.</span><span class="nx">modal</span><span class="p">(</span><span class="s1">&#39;hide&#39;</span><span class="p">)</span>
+
+      <span class="nv">handleKey: </span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="k">if</span> <span class="nx">e</span><span class="p">.</span><span class="nx">which</span> <span class="o">==</span> <span class="mi">13</span>
+           <span class="nx">e</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">()</span>
+           <span class="nx">@enterPressed</span><span class="p">()</span> <span class="k">if</span> <span class="nx">@enterPressed</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>ModalMessage is a singleton class for programmatically calling
+a simple modal dialog</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">ModalMessage</span> <span class="k">extends</span> <span class="nx">Common</span><span class="p">.</span><span class="nx">ModalView</span>
+      <span class="nv">attributes:</span>
+        <span class="nv">id: </span><span class="s1">&#39;modalDialogWrap&#39;</span>
+        <span class="k">class</span><span class="o">:</span> <span class="s1">&#39;modal hide modalDialogWrap&#39;</span>
+
+      <span class="nv">footerTemplate: </span><span class="nx">Handlebars</span><span class="p">.</span><span class="nx">compile</span><span class="p">(</span>
+        <span class="s2">&quot;&lt;div class=&#39;btn-toolbar&#39;&gt;</span>
+<span class="s2">           &lt;a class=&#39;btn btn-primary accept&#39;&gt;{{ accept }}&lt;/a&gt;</span>
+<span class="s2">           {{#if reject}}</span>
+<span class="s2">              &lt;a class=&#39;btn reject&#39;&gt;{{ reject }}&lt;/a&gt;</span>
+<span class="s2">           {{/if}}&lt;/div&gt;&quot;</span><span class="p">)</span>
+
+      <span class="nv">initialize: </span><span class="o">-&gt;</span>
+        <span class="k">super</span><span class="p">()</span>
+        <span class="err">@</span>
+
+      <span class="nv">render: </span><span class="o">=&gt;</span>
+        <span class="nx">@$el</span><span class="p">.</span><span class="nx">html</span> <span class="nx">@template</span>
+                <span class="nv">id: </span><span class="s1">&#39;modalDialog&#39;</span>
+                <span class="nv">header: </span><span class="s1">&#39;&lt;h2&gt;&#39;</span> <span class="o">+</span> <span class="nx">@options</span><span class="p">.</span><span class="nx">header</span> <span class="o">+</span> <span class="s1">&#39;&lt;/h2&gt;&#39;</span>
+                <span class="nv">body: </span><span class="nx">@options</span><span class="p">.</span><span class="nx">message</span>
+                <span class="nv">footer: </span><span class="nx">@footerTemplate</span> <span class="nx">@options</span>
+
+        <span class="nx">@delegateEvents</span><span class="p">()</span>
+        <span class="nx">@$el</span><span class="p">.</span><span class="nx">css</span><span class="p">(</span><span class="s1">&#39;display&#39;</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">)</span>
+        <span class="err">@</span>
+
+      <span class="nv">showMessage: </span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="k">if</span> <span class="nx">data</span>
+           <span class="vi">@options.header = </span><span class="nx">data</span><span class="p">.</span><span class="nx">header</span>
+           <span class="vi">@options.message = </span><span class="nx">data</span><span class="p">.</span><span class="nx">message</span>
+           <span class="vi">@options.accept = </span><span class="nx">data</span><span class="p">.</span><span class="nx">accept</span> <span class="o">or</span> <span class="s2">&quot;Ok&quot;</span>
+           <span class="vi">@options.reject = </span><span class="nx">data</span><span class="p">.</span><span class="nx">reject</span> <span class="o">or</span> <span class="kc">null</span>
+           <span class="vi">@options.callback = </span><span class="nx">data</span><span class="p">.</span><span class="nx">callback</span> <span class="o">or</span> <span class="kc">null</span>
+        <span class="nx">@undelegateEvents</span><span class="p">()</span>
+        <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#modalDialogWrap&#39;</span><span class="p">).</span><span class="nx">remove</span><span class="p">()</span>
+        <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;body&#39;</span><span class="p">).</span><span class="nx">append</span> <span class="nx">@render</span><span class="p">().</span><span class="nx">el</span>
+        <span class="nx">@show</span><span class="p">()</span>
+
+      <span class="nv">events:</span>
+        <span class="s1">&#39;keyup&#39;</span><span class="o">:</span> <span class="s1">&#39;handleKey&#39;</span>
+        <span class="s1">&#39;click .accept&#39;</span><span class="o">:</span> <span class="s1">&#39;accept&#39;</span>
+        <span class="s1">&#39;click .reject&#39;</span><span class="o">:</span> <span class="s1">&#39;reject&#39;</span>
+
+      <span class="nv">enterPressed: </span><span class="o">=&gt;</span>
+        <span class="nx">@accept</span><span class="p">()</span>
+
+      <span class="nv">accept: </span><span class="o">=&gt;</span>
+        <span class="nx">@hide</span><span class="p">()</span>
+        <span class="nx">@options</span><span class="p">.</span><span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;accept&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="nx">@options</span><span class="p">.</span><span class="nx">callback</span>
+
+      <span class="nv">reject: </span><span class="o">=&gt;</span>
+        <span class="nx">@hide</span><span class="p">()</span>
+        <span class="nx">@options</span><span class="p">.</span><span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;reject&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="nx">@options</span><span class="p">.</span><span class="nx">callback</span>
+
+    <span class="nv">Common.modalMessage = </span><span class="k">new</span> <span class="nx">ModalMessage</span><span class="p">({</span><span class="nv">header: </span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="nv">message: </span><span class="s2">&quot;&quot;</span><span class="p">})</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>Provide extra support for modal dialogs with form bodies</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">Common</span><span class="p">.</span><span class="nx">ModalForm</span> <span class="k">extends</span> <span class="nx">Common</span><span class="p">.</span><span class="nx">ModalView</span>
+      <span class="nv">initialize: </span><span class="o">-&gt;</span>
+        <span class="k">super</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nx">@schema</span>
+           <span class="nx">@makeForm</span> <span class="nx">@schema</span>
+           <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.templates&#39;</span><span class="p">).</span><span class="nx">append</span> <span class="nx">@render</span><span class="p">().</span><span class="nx">el</span>
+           <span class="nx">@$el</span><span class="p">.</span><span class="nx">css</span><span class="p">(</span><span class="s1">&#39;display&#39;</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">)</span>
+        <span class="k">else</span>
+           <span class="nx">alert</span> <span class="s1">&#39;schema not initialized&#39;</span>
+
+      <span class="nv">makeForm: </span><span class="nf">(schema, data) -&gt;</span>
+        <span class="vi">@form = </span><span class="k">new</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Form</span>
+                <span class="nv">schema: </span><span class="nx">schema</span>
+                <span class="nv">data: </span><span class="nx">data</span> <span class="o">||</span> <span class="p">{}</span>
+        <span class="err">@</span>
+
+      <span class="nv">clearForm: </span><span class="o">-&gt;</span>
+        <span class="nv">vals = </span><span class="p">{}</span>
+        <span class="nx">_</span><span class="p">(</span><span class="nx">@schema</span><span class="p">).</span><span class="nx">map</span><span class="p">(</span> <span class="nf">(k,v) -&gt;</span> <span class="nx">vals</span><span class="p">[</span><span class="nx">k</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="nx">k</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="nx">@form</span><span class="p">.</span><span class="nx">setValue</span> <span class="nx">vals</span>
+        <span class="err">@</span>
+
+      <span class="nv">cancel: </span><span class="o">=&gt;</span>
+        <span class="nx">@clearForm</span><span class="p">()</span>
+        <span class="nx">@hide</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>Query parsing for internal javascript functions</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">extractParams = </span><span class="nf">() -&gt;</span>
+        <span class="nv">qs = </span><span class="nb">document</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">search</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s2">&quot;+&quot;</span><span class="p">).</span><span class="nx">join</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+        <span class="nv">re = </span><span class="sr">/[?&amp;]?([^=]+)=([^&amp;]*)/g</span>
+        <span class="nv">params = </span><span class="p">{}</span>
+        <span class="nx">params</span><span class="p">[</span><span class="nb">decodeURIComponent</span> <span class="nx">tokens</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">decodeURIComponent</span> <span class="nx">tokens</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">while</span> <span class="nv">tokens = </span><span class="nx">re</span><span class="p">.</span><span class="nx">exec</span> <span class="nx">qs</span>
+        <span class="nx">params</span>
+
+    <span class="nv">Common.queryParams = </span><span class="nx">extractParams</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <h2>Startup event handlers and actions</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">$</span><span class="p">(</span><span class="nb">document</span><span class="p">).</span><span class="nx">ready</span> <span class="o">-&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>Spinner on ajax</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#spinner&#39;</span><span class="p">).</span><span class="nx">bind</span><span class="p">(</span><span class="s1">&#39;ajaxSend&#39;</span><span class="p">,</span> <span class="nf">(event, jqxhr, settings) -&gt;</span>
+                    <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">).</span><span class="nx">show</span><span class="p">()</span> <span class="k">if</span> <span class="o">not</span> <span class="nx">settings</span><span class="p">.</span><span class="nx">spinner</span><span class="o">?</span> <span class="o">or</span> <span class="nx">settings</span><span class="p">.</span><span class="nx">spinner</span> <span class="o">is</span> <span class="kc">true</span>
+                <span class="p">).</span><span class="nx">bind</span><span class="p">(</span><span class="s2">&quot;ajaxStop&quot;</span><span class="p">,</span> <span class="o">-&gt;</span>
+                    <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">).</span><span class="nx">hide</span><span class="p">()</span>
+                <span class="p">).</span><span class="nx">bind</span><span class="p">(</span><span class="s2">&quot;ajaxError&quot;</span><span class="p">,</span> <span class="o">-&gt;</span>
+                    <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">).</span><span class="nx">hide</span><span class="p">()</span>
+                <span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>Various actions</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.show-dform&#39;</span><span class="p">).</span><span class="nx">bind</span> <span class="s1">&#39;click&#39;</span><span class="p">,</span>
+                <span class="nf">(e) -&gt;</span>
+                        <span class="nx">e</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">()</span>
+                        <span class="nv">targ = </span><span class="nx">$</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">target</span><span class="p">)</span>
+                        <span class="nx">targ</span><span class="p">.</span><span class="nx">siblings</span><span class="p">(</span><span class="s1">&#39;.comment-form&#39;</span><span class="p">).</span><span class="nx">show</span><span class="p">()</span>
+                        <span class="nx">targ</span><span class="p">.</span><span class="nx">hide</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="nx">Common</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 
