@@ -457,3 +457,31 @@ div.discussion-1 p {
   stroke: #808080;
   fill: #808080;
 }
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003291}}
+/********************************/
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003292}}
+/* Journal Widgets              */
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003293}}
+/********************************/
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003295}}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003296}}
+.journal-page .journal-view .journal-header {
+  margin-bottom: 20px;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003298}}
+.journal-page .journal-view textarea,
+.journal-page .journal-view input,
+.journal-page .journal-view .journal-header {
+  width: 95%;
+}
+
+@media -stylus-debug-info{filename{font-family:file\:\/\/\/Users\/eslick\/Work\/newmed\/experiment\/stylus\/override\.styl}line{font-family:\00003300}}
+.journal-page .journal-view a.btn-mini {
+  width: 55px;
+}

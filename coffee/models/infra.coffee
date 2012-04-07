@@ -236,11 +236,16 @@ define ['jquery', 'use!Backbone'],
              _.each attr, (val,key) ->
                 if @embedded[key]
                    @_setEmbedded key, val
-                else
-                   _set.call(this, key, val, options)
+                   @trigger 'change:' + key, @
+                   delete attr[key]
              , @
+             _set.call(this, attr, options)
           else if @embedded[attr]
              @_setEmbedded attr, value
+             if not options.silent is true
+                @trigger 'change:', @
+                @trigger 'change' + attr, @
+             @
           else
              _set.apply(@,arguments)
 

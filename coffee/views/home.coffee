@@ -126,14 +126,14 @@ define ['jquery', 'views/common', 'use!Handlebars', 'use!BackboneFormsBS', 'use!
       checkUsername: =>
         if not @checkUsernameHandler?
           @checkUsernameHandler =
-              _.debounce ->
+              _.throttle ->
                 $.ajax
                   url: '/action/check-username'
                   data: { username: @form.getValue().username }
                   success: @validateUsername
                   timeout: 2000
                   spinner: false
-              , 600
+              , 1000
         @checkUsernameHandler()
 
       validateUsername: (data) =>

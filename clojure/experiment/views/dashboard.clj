@@ -77,7 +77,7 @@
 (defpartial dashboard-layout [options]
   (page-frame
    ["Personal Experiments Dashboard"
-    :fixed-size 80
+    :fixed-size 100
     :deps ["views/common", "views/dashboard"]]
    (nav-fixed (:nav (default-nav "dashboard")))
    (subnav-fixed (dashboard-subnav (:subnav options)))

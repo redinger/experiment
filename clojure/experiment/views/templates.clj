@@ -25,47 +25,79 @@
     (get-template id))))
 
 (deftemplate journal-page
-  [:div.row
-   [:div.span6.jvp]
-   [:div.span6.jvl]])
+  [:div.row.journal-page
+   [:div.span7.jvl]
+   [:div.span5.jvp]])
 
 (deftemplate journal-view
-  [:div
-   [:span
+  [:div.well
+   [:div.journal-header
     [:span.pull-left
-     [:abbr.timeago {:title (% date-str)} (% date-str)]]
-    [:span.pull-right (% sharing)]]
-   [:div {:style "clear: both;"}
-    (boot/input "text" "short" (% short))]
-;;    (boot/dropdown
-;;   [:p (% annotation )]
-   [:div {:style "width: 100%; height: 300px; resize:none;"}
+     [:p {:style "text-align: center;"} (% date-str)]]
+    [:span.pull-right
+     [:span#purpose.btn-group
+      [:a.btn.btn-mini.dropdown-toggle
+       {:data-toggle "dropdown"
+        :href "#" 
+        :style "margin-right: 10px;"}
+       (% annotation) " " [:span.caret]]
+      [:ul.dropdown-menu
+       [:li [:a.option {:href "#"} "Note"]]
+       [:li [:a.option {:href "#"} "Change"]]
+       [:li [:a.option {:href "#"} "Adverse"]]]]
+     "&nbsp;"
+     [:span#sharing.btn-group
+      [:a.btn.btn-mini.dropdown-toggle
+       {:data-toggle "dropdown"
+        :href "#" 
+        :style "margin-right: 10px;"}
+       (% sharing) " " [:span.caret]]
+      [:ul.dropdown-menu
+       [:li [:a.option {:href "#"} "Private"]]
+       [:li [:a.option {:href "#"} "Friends"]]
+       [:li [:a.option {:href "#"} "Public"]]]]]
+    [:div.clear]]
+   [:form {:style "clear: both;"}
+    [:hr]
     (boot/ctrl-group
-     ["Journal Entry" "content"]
-     (boot/textarea "content" (% content)))]])
+     ["Tagline" "short"]
+     (boot/input {:id "journal-short"} "text" "short" (% short)))
+    (boot/ctrl-group
+     ["Long Entry" "content"]
+     (boot/textarea {:rows "20"
+                     :cols "80"
+                     :class "input-xlarge"
+                     :id "journal-content"
+                     :style "resize: none;"}
+                    "content"
+                    (% content)))]])
 
 (deftemplate journal-list
-  [:table.table
-   [:thead
-    [:tr
-     [:td "Date"]
-     [:td "Description"]
-     [:td "Tag"]
-     [:td "Shared?"]]]
-   [:tbody
-   (%each journals
-          [:tr {:data (% id)}
-           [:td
-            [:abbr.timeago {:title (% date-str)}
-             (% date-str)]]
-           [:td
-            (% short)]
-           [:td
-            (% annotation)]
-           [:td
-            (%with sharing
-                   [:span {:class (% class)}
-                    (% label)])]])]])
+  [:div
+   [:span [:h2.pull-left "Journal Entries"]
+    [:span.pull-right [:button.btn.btn-primary.new "New Entry"]]]
+   [:table.table
+    [:thead
+     [:tr
+      [:td "Date"]
+      [:td "Description"]
+      [:td "Type"]
+      [:td "Sharing"]]]
+    [:tbody
+     (%each journals
+            [:tr {:data (% id)}
+             [:td.time
+              (% date-str)]
+             [:td.short
+              (% short)]
+             [:td.anno
+              (% annotation)]
+             [:td.sharing
+              (% sharing)]
+             [:td.del
+              [:button.btn.btn-mini.btn-danger.del
+               [:i.icon-remove.icon-white]]]
+             ])]]])
             
 
 ;; TRIAL

@@ -216,7 +216,7 @@
 (defn filter-public-keys
   "Must define public-keys for safety purposes"
   [cmodel]
-  (if-let [keys (public-keys (conj cmodel [:id :type]))]
+  (if-let [keys (conj (public-keys cmodel) :_id :id :type)]
     (select-keys cmodel keys)
     cmodel))
 	
@@ -343,6 +343,13 @@
 
 ;; ### Main internal API for Client-Server transforms
 
+(defn server->client* [node]
+  (if (:type node)
+    (-> node
+        server->client-hook
+        filter-public-keys)
+    node))
+
 (defn server->client
   "Convert a server-side object into a map that is ready
    for JSON encoding and use by a client of the system"
@@ -350,9 +357,7 @@
   (cond (empty? smodel)
 	nil
 	(map? smodel)
-    (-> smodel
-        server->client-hook
-        filter-public-keys
+    (-> (walk/postwalk server->client* smodel)
         serialize-model-id
         serialize-model-refs)
 	(sequential? smodel)

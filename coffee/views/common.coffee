@@ -1,5 +1,5 @@
-define ['jquery', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEditors'],
-  () ->
+define ['jquery', 'models/infra', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEditors'],
+  ($, Infra) ->
 
     if not Common
       Common = {}
@@ -10,7 +10,7 @@ define ['jquery', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEdi
 
     class Common.ModalView extends Backbone.View
       initialize: (opts) ->
-        @template = Handlebars.compile $('#modal-dialog-template').html()
+        @template = Infra.templateLoader.getTemplate 'modal-dialog-template'
         @
 
       show: =>
@@ -31,6 +31,14 @@ define ['jquery', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEdi
       attributes:
         id: 'modalDialogWrap'
         class: 'modal hide modalDialogWrap'
+
+      footerTemplate: Handlebars.compile(
+        "<div class='btn-toolbar'>
+           <a class='btn btn-primary accept'>{{ accept }}</a>
+           {{#if reject}}
+              <a class='btn reject'>{{ reject }}</a>
+           {{/if}}</div>")
+
       initialize: ->
         super()
         @
@@ -40,7 +48,8 @@ define ['jquery', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEdi
                 id: 'modalDialog'
                 header: '<h2>' + @options.header + '</h2>'
                 body: @options.message
-                footer: "<a class='btn accept'>Ok</a>"
+                footer: @footerTemplate @options
+
         @delegateEvents()
         @$el.css('display', 'none')
         @
@@ -49,17 +58,29 @@ define ['jquery', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEdi
         if data
            @options.header = data.header
            @options.message = data.message
+           @options.accept = data.accept or "Ok"
+           @options.reject = data.reject or null
+           @options.callback = data.callback or null
         @undelegateEvents()
-        $('.modalDialogWrap').remove()
-        $('.templates').append @render().el
+        $('#modalDialogWrap').remove()
+        $('body').append @render().el
         @show()
-
-      enterPressed: =>
-        @hide()
 
       events:
         'keyup': 'handleKey'
-        'click .accept': 'hide'
+        'click .accept': 'accept'
+        'click .reject': 'reject'
+
+      enterPressed: =>
+        @accept()
+
+      accept: =>
+        @hide()
+        @options.callback('accept') if @options.callback
+
+      reject: =>
+        @hide()
+        @options.callback('reject') if @options.callback
 
     Common.modalMessage = new ModalMessage({header: "", message: ""})
 

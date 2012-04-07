@@ -58,8 +58,8 @@
 (defelem ctrl-group [[name id] & controls]
   [:div.control-group
    [:label.control-label {:for id} name]
-   [:div.controls
-    controls]])
+   `[:div.controls
+     ~@controls]])
 
 (defelem input [type id value]
   [:input {:type type :id id :value value}])

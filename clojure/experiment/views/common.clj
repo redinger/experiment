@@ -157,7 +157,7 @@
     
 (defpartial layout [[title nav & rest] & content]
   (page-frame (vec
-               (concat (list title :fixed-size (if (:subnav nav) 80 40))
+               (concat (list title :fixed-size (if (:subnav nav) 90 50))
                        rest))
     (nav-fixed (:nav nav))
     (subnav-fixed (:subnav nav))
@@ -220,14 +220,6 @@
 	    (render-template name template))
 	  (select-keys (all-templates) list))))
 
-;; ## Common dialogs
-      
-(defn render-dialogs []
-  [:div.templates
-   (render-template "modal-dialog-template"
-                    (get-template "modal-dialog-template"))
-   (render-template "modal-form-dialog-template"
-                    (get-template "modal-form-dialog-template"))])
                 
 
   

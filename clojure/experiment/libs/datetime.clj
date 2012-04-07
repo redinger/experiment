@@ -43,6 +43,21 @@
      (.appendLiteral " ")
      (.appendTimeZoneShortName))))
 
+(def ^:private blog-fmt
+  (.toFormatter
+   (doto (DateTimeFormatterBuilder.)
+     (.appendMonthOfYearShortText)
+     (.appendLiteral " ")
+     (.appendDayOfMonth 1)
+     (.appendLiteral ", ")
+     (.appendYear 4 4)
+     (.appendLiteral " at ")
+     (.appendClockhourOfHalfday 1)
+     (.appendLiteral ":")
+     (.appendMinuteOfHour 2)
+     (.appendLiteral " ")
+     (.appendHalfdayOfDayText))))
+
 (def ^:private short-fmt
   (.toFormatter
    (doto (DateTimeFormatterBuilder.)
@@ -171,6 +186,10 @@
 (defn as-iso-8601 [dt]
   (when dt
     (.print iso-8601 dt)))
+
+(defn as-blog-date [dt]
+  (when dt
+    (.print blog-fmt dt)))
 
 (defn to-default-tz [dt]
   (time/to-time-zone dt (time/default-time-zone)))
