@@ -239,7 +239,7 @@ into the DOM.</p>             </td>             <td class="code">               
       <span class="nv">getTemplate: </span><span class="nf">(id, options = {lazy: false}) -&gt;</span>
           <span class="k">if</span> <span class="nx">@templateCache</span><span class="p">[</span><span class="nx">id</span><span class="p">]</span><span class="o">?</span>
             <span class="nx">@templateCache</span><span class="p">[</span><span class="nx">id</span><span class="p">]</span>
-          <span class="k">else</span> <span class="k">if</span> <span class="o">not</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#&#39;</span> <span class="o">+</span> <span class="nx">id</span><span class="p">).</span><span class="nx">length</span>
+          <span class="k">else</span> <span class="k">if</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#&#39;</span> <span class="o">+</span> <span class="nx">id</span><span class="p">).</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span>
             <span class="nx">@templateCache</span><span class="p">[</span><span class="nx">id</span><span class="p">]</span> <span class="o">=</span> <span class="nx">Handlebars</span><span class="p">.</span><span class="nx">compile</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#&#39;</span> <span class="o">+</span> <span class="nx">id</span><span class="p">).</span><span class="nx">html</span><span class="p">()</span>
           <span class="k">else</span>
             <span class="nv">deferred = </span><span class="nx">$</span><span class="p">.</span><span class="nx">ajax</span>
