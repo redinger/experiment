@@ -70,18 +70,27 @@
 
 (defn nav-user-name [& [user]]
   (let [user (or user (session/current-user))]
-    (or (:name user) (:username user))))
+    (or (:name user)
+        (and (:preferences.firstname user)
+             (str (get-in user [:preferences :firstname])
+                  " "
+                  (get-in user [:preferences :lastname])))
+        (:username user))))
 
 (defn- research-submenu []
-  [{:name "Authoring Study" :href "/study1"}
+  [{:name "Authoring Study" :href "/study1"}])
 ;;   {:name "Site Analysis" :href "/article/analysis"}
+
+(defn- about-submenu []
+  [{:name "About this site" :href "/article/about"}
    {:lprops {:class "divider"}}
+   {:name [:b "Our Sponsors"]}
    {:name "MIT's New Media Medicine" :href "http://newmed.media.mit.edu/"}
    {:name "Lybba.org" :href "http://lybba.org"} 
    {:name "C3N Project At CCHMC" :href "Http://c3nproject.org"}])
 
 (defn- user-submenu []
-  [{:name '([:i.icon-cog] "Account")
+  [{:name '([:i.icon-cog] " Account")
     :href "/account"}
    {:name '([:i.icon-question-sign] " Help")
     :href "/help"}
@@ -96,9 +105,10 @@
       :main [{:tag "dashboard" :name "Dashboard" :href "/"}
              {:tag "explore" :name "Explore"   :href "/explore"
               :aprops {:class "explore-link"}}
-             {:name "Research" :href "#"
+             {:name "Research " :href "#"
               :submenu (research-submenu)}
-             {:tag "about" :name "About" :href "/article/about"}]
+             {:tag "about" :name "About " :href "#"
+              :submenu (about-submenu)}]
       :ctrl [{:name (nav-user-name user)
               :submenu (user-submenu)}]}}
 ;;     :crumbs [{:name "Home" :href "/"}
@@ -108,7 +118,8 @@
       :main [{:tag "home" :name "Home" :href "/"}
              {:tag "research" :name "Research" :href "#"
               :submenu (research-submenu)}
-             {:tag "about" :name "About" :href "/article/about"}]
+             {:tag "about" :name "About " :href "#"
+              :submenu (about-submenu)}]
       :ctrl [{:tag "register" :name "Register" :href "#registerModal"
               :aprops {:class "register-button"}}
              {:tag "login" :name "Login" :href "#loginModal"
@@ -124,7 +135,7 @@
      [:a {:class "footer-link" :href "/article/terms"} "Terms of Use"] "|"
      [:a {:class "footer-link" :href "/article/privacy"} "Privacy"]"|"
      [:a {:class "footer-link" :href "/article/about"} "About"]]
-    [:p [:small "[This site is best viewed on <a href='http://firefox.com'>Firefox 8+</a>, <a href='http://apple.com/safari/'>Safari 5+</a> or <a href='http://www.google.com/chrome'>Chrome 14+</a>]"]]]])
+    [:p [:small "[Best viewed on modern browsers: <a href='http://firefox.com'>Firefox 8+</a>, <a href='http://apple.com/safari/'>Safari 5+</a>, <a href='http://www.google.com/chrome'>Chrome 14+</a> or <a href='http://windows.microsoft.com/en-us/internet-explorer/products/ie/home'>Internet Explorer 9</a>]"]]]])
 
   
 
@@ -149,7 +160,6 @@
    [:body {:style (str "padding-top:" (or fixed-size 40) "px; padding-bottom:40px;")}
     body-content
     (render-footer)
-    (render-dialogs)
     (render-spinner)]))
 
 ;;    (facebook/include-jsapi)

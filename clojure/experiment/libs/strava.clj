@@ -1,23 +1,48 @@
 (ns experiment.libs.strava
   (:use experiment.infra.models)
-  (:require [clj-http.client :as http]
-	    [clj-time.core :as time]
-	    clj-time.format
-	    [cheshire.core :as json]
-	    [somnium.congomongo :as mongo]))
+  (:require
+   [experiment.infra.services :as services]
+   [clj-http.client :as http]
+   [clj-time.core :as time]
+   [clojure.string :as str]
+   clj-time.format
+   [cheshire.core :as json]
+   [somnium.congomongo :as mongo]))
 
+(services/register
+ :strava
+ ["Strava"
+  :description "Strava users have the ability to create an instrument to track their performance on a specific segment over time.  Just enter the segment name here and we'll pull the segment data from all the rides you do."]
+ :email {:title "Account Email"}
+ :password {:title "Password" :type "Password"}
+ :segment1 {:title "Segment Name (1)"}
+ :segment2 {:title "Segment Name (2)"})
 
 (def ^:dynamic *strava-base* "http://www.strava.com/api/v1/%s")
+(def strava-base "https://www.strava.com/api/v2/%s")
 
 (defn strava-url [command]
-  (format *strava-base* command))
+  (format strava-base command))
 
-(defn strava-request [command & args]
-  (let [argmap (apply hash-map args)]
+(defn strava-request [command params]
+  (let [cmd (if (vector? command)
+              (str/join "/" (map name command))
+              command)]
     (json/parse-string
-     (:body (http/get (strava-url command)
-		      {:query-params argmap}))
+     (:body ((if (= (:method params) :post) http/post http/get)
+             (strava-url command)
+             {:query-params params}))
      true)))
+
+;;
+;; Authenticate
+;;
+
+(defn authenticate-strava [params]
+  (let [result (strava-request [:authentication :login] params)]
+    (if (= (:success result) "success")
+      (select-keys result [:token :athelete_id])
+      nil)))
 
 ;; Segments
 

@@ -86,7 +86,8 @@
 (defpartial render-study-page []
   (common/layout
    ["Authoring Research Study"
-    (study1-nav "Overview")]
+    (study1-nav "Overview")
+    :deps ["views/home"]]
    [:div.container
     [:div.span8
      [:div.page-header

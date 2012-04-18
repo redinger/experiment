@@ -5,10 +5,17 @@
   (:require [oauth.client :as oauth]
             [noir.response :as resp]
             [experiment.infra.session :as session]
-            [experiment.infra.properties :as props]
+            [experiment.infra.services :as services]
+            [experiment.libs.properties :as props]
             [oauth.signature :as sig]
             [clj-http.client :as http]))
             
+(services/register-oauth
+ :tw
+ ["Twitter"
+  :description "Twitter connections will allow you to power instruments from your twitter stream by using microformats.  You will also be able to engage in social sharing of your experimental activities via Twitter (all this TBD)"]
+ :title "Twitter"
+ :url "http://personalexperiments.org/api/svc/twitter/authorize")
 
 ;;
 ;; Configuration
@@ -85,10 +92,10 @@
        :href (build-authorize-uri target)}
    name])
 
-(defpage [:get "/api/twitter/oauth"] {:as request}
+(defpage [:get "/api/svc/twitter/oauth"] {:as request}
   (html
    (oauth-link "Oauth Twitter"
-               "http://personalexperiments.org/api/twitter/authorize")))
+               "http://personalexperiments.org/api/svc/twitter/authorize")))
 
 ;;
 ;; AFTER AUTHORIZATION, USE REQUEST TOKENS TO GET ACCESS TOKENS
@@ -114,8 +121,8 @@
                  {:query-params params
                   :headers {"Authorization" (oauth/authorization-header (sort params))}})))))
 
-(defpage [:get "/api/twitter/authorize"] {:keys [oauth_token oauth_verifier] :as request}
+(defpage [:get "/api/svc/twitter/authorize"] {:keys [oauth_token oauth_verifier] :as request}
   (clojure.tools.logging/spy ["OAUTH approval uri" request])
   (assert (= (get-req-token) oauth_token))
   (save-access-tokens (fetch-access-token oauth_verifier))
-  (resp/redirect "/app/profile"))
+  (resp/redirect "/account/services"))

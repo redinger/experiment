@@ -8,6 +8,7 @@
    hiccup.page-helpers
    noir.core)
   (:require
+   [clojure.tools.logging :as log]
    [experiment.views.common :as common]
    [experiment.libs.datetime :as dt]
    [clj-time.core :as time]
@@ -16,46 +17,16 @@
    [somnium.congomongo :as mongo]))
 
 
-(deftemplate highchart-div
-  [:div
-   [:div {:class "highchart"}
-   (%strcat "<div id='" (% cssid) "' style='height:" (% height) ";width:" (% width) ";'/>")]
-   [:div {:class "d3chart"}]])
-
-(defn- compute-limits [numbers]
-  (let [min (apply min numbers)
-        max (apply max numbers)
-        fudge (* (- max min) 0.02)]
-    [(- min fudge)
-     (+ max fudge)]))
-    
-(defn- timeseries-config [title type series]
-  (let [numbers (map second (:data (first series)))
-        [min max] (if (empty? numbers)
-                    [1 10]
-                    (compute-limits numbers))]
-    {:chart {:type type}
-     :legend {:enabled false}
-     :plotOptions {:series {:animation false
-                            :marker {:enabled false}}}
-     :xAxis {:type "datetime"
-             :dateTimeLabelFormats {:month "%e. %b" :year "%b"}}
-     :yAxis {:type "linear" :title {:text title} :min min :max max}
-     :title {:text ""}
-     :credits {:enabled false}
-     ;;   :labels {:items [{:html "<div><p><b>Start</b></p></div>" :style {:left "100px" :top "100px"}}]}
-     :series series}))
-
 (defn as-utc-series [series]
-  (map (fn [[date value]] [(dt/as-utc date) value]) series))
+  (vec
+   (map (fn [point]
+          (assoc point :ts (dt/as-utc (:ts point))))
+        series)))
 
 (defn tracker-chart
   ([inst start end user]
-     (let [series (as-utc-series
-                   (time-series inst user start end false))]
-       (timeseries-config (:variable inst) "spline"
-                          [{:name (:variable inst)
-                            :data (vec series)}])))
+     {:series (as-utc-series
+               (time-series inst user start end false))})
   ([inst start end]
      (tracker-chart inst start end (session/current-user))))
 
@@ -69,8 +40,11 @@
   (let [instrument (get-instrument (deserialize-id inst))]
     (response/json
      (tracker-chart instrument
-                    (or (dt/from-utc (as-int start)) (dt/a-month-ago))
-                    (or (dt/from-utc (as-int end)) (dt/now))))))
+                    (or (dt/from-iso-8601 start)
+                        (time/minus (dt/now) (time/months 2)))
+                    (or (dt/from-iso-8601 end)
+                        (time/minus (dt/now) (time/months 1)))))))
+
 
 ;; =========================
 ;; Control chart

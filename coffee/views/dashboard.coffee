@@ -1,5 +1,5 @@
-define ['models/infra', 'models/core', 'views/widgets', 'views/journal', 'use!Handlebars', 'use!D3time', 'use!BackboneFormsBS', 'use!BackboneFormsEditors' ], #, 'use!BackboneRelational'],
-  (Infra, Core, Widgets, Journal) ->
+define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/journal', 'views/timeline', 'use!Handlebars', 'use!D3time', 'use!BackboneFormsBS', 'use!BackboneFormsEditors' ], #, 'use!BackboneRelational'],
+  (Infra, Core, User, Widgets, Journal, Timeline) ->
 
 
 # Overview
@@ -12,8 +12,6 @@ define ['models/infra', 'models/core', 'views/widgets', 'views/journal', 'use!Ha
       render: ->
           @$el.html("<h1>Overview</h1>")
           @
-
-    class Timeline extends Backbone.View
 
     class EventLog extends Backbone.View
 

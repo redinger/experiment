@@ -40,7 +40,7 @@
   "A predict to test that we have a valid submodel"
   [submodel]
   (and (:type submodel)
-       (embedded-objectid? (:id submodel))))
+       (:submodel submodel)))
 
 (defmulti valid-model? 
   "Enforces invariant properties of a specific model.  Model
@@ -183,7 +183,7 @@
 (defn deserialize-model-id
   "Import a foregin model-id as a local ID"
   [cmodel]
-  (if (embedded-objectid? (:id cmodel))
+  (if (:submodel cmodel)
     cmodel
     (dissoc (assoc cmodel :_id (deserialize-id (:id cmodel))) :id)))
 
@@ -497,7 +497,8 @@
 (defn create-submodel!
   [parent location submodel]
   (assert (model? parent) (:type submodel))
-  (let [new (assign-uid submodel)
+  (swank.core/break)
+  (let [new (or (:id submodel) (assign-uid submodel))
         pcoll (model-collection parent)
         pref (select-keys parent [:_id :type])
         path (serialize-path location (:id new))]

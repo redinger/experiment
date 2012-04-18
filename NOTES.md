@@ -188,6 +188,30 @@ Feature tasks
 # Design Notes
 # --------------------------------------------------------------
 
+## Subsystems
+
+### Implicit Infrastructure
+
+ -  Site-Properties - Configuration file for sensitive configuration data
+ -  Middleware 
+    -  Session user - Establishes (session/current-user) from DB for each request
+ -  Models - Generic way of dealing with client/server models
+ -  Data API - Support Backbone + Backbone.Embedded
+ -  Services - Generic way to define, configure and support connecting to 3rd party services
+ -  Dynamic Handlebar Templates - Generate server-side templates using Hiccup, dynamic loader
+ -  Scheduler Controller - Schedule and manage events
+
+### Application Infrastructure
+
+ -  QI Charts - Library for charting
+ -  Schedule and Events - Data model for defining and managing events
+ -  SMS Subsystem - Support SMS gateway connectivity and result sorting/parsing
+ -  E-mail Subsystem (Partial) - Support user communications
+    - as instrument?
+ -  Social Integration - Integrate with social networks (TBD) 
+ -  Twitter - TW connect, Post updates, parse health updates?, as instrument?
+ -  Facebook - FB connect, Post updates, as instrument?
+
 ## Schedules and events
 
 ### Schedule

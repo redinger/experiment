@@ -25,17 +25,19 @@
    ;; Java libs
    [log4j "1.2.16"]
    [org.slf4j/slf4j-log4j12 "1.6.1"]]
-	    :main experiment.server
-	    :daemon {:server {:ns experiment.server
-			      :pidfile "./server.pid"}}
-            ;; Development Libs
-	    :dev-dependencies [[clojure-source "1.3.0"]
-                           [swank-clojure "1.4.0"]
-                           [lein-daemon "0.4.0"]
-                           [lein-multi "1.1.0-SNAPSHOT"]
-                           [lein-marginalia "0.7.0"]]
-            ;; For CDT
-            :jvm-opts ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
-            :extra-classpath-dirs ["/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Classes/classes.jar"]
+  :main experiment.server
+  :daemon {:server {:ns experiment.server
+                    :pidfile "./server.pid"}}
+  ;; Development Libs
+  :dev-dependencies [[clojure-source "1.3.0"]
+                     [swank-clojure "1.4.0"]
+                     [lein-daemon "0.4.0"]
+                     [lein-multi "1.1.0-SNAPSHOT"]
+                     [lein-marginalia "0.7.0"]]
+  ;; Documentation
+  :marginalia {}
+  ;; For CDT
+  :jvm-opts ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
+  :extra-classpath-dirs ["/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Classes/classes.jar"]
             )
 

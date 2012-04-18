@@ -90,24 +90,8 @@
    (bootstrap-data)        ;; models
    (render-all-templates))) ;; views
 
-    ;; [:div.row
-    ;;  [:div.span12
-    ;;   (trials/trial-summary
-    ;;    (session/current-user)
-    ;;    options)]]
-    ;; [:hr]
-    ;; [:div.row
-    ;;  [:div.span4 {:style "height:250px;"}
-    ;;   "Calendar"]
-    ;;  [:div.span4 {:style "height:250px;"}
-    ;;   "Trackers"]
-    ;;  [:div.span4 {:style "height:250px;"}
-    ;;   "Feed"]]]
-
 (defpage dashboard-dispatch "/dashboard/:subnav" {:as options}
   (dashboard-layout options))
 
 (defpage dashboard-redir "/dashboard" {:as options}
   (resp/redirect "/dashboard/overview"))
-
-  

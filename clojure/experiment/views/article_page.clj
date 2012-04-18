@@ -40,8 +40,9 @@
 (defpage "/article/edit/:name" {:keys [name] :as options}
   (let [article (or (get-article name) {:name "" :title "" :body ""})]
     (common/layout
-     (str "Editing: " (:title article))
-     (common/default-nav (if (= name "about") "About" ""))
+     [(str "Editing: " (:title article))
+      (common/default-nav (if (= name "about") "About" ""))
+      :deps ["views/home"]]
      [:div.container
       (form-to [:post "/article/edit"]
                [:fieldset

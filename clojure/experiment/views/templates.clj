@@ -11,11 +11,7 @@
    [experiment.views.bootstrap :as boot]))
 
 
-
-
-;;
-;; Template Views for various System Objects
-;;
+;; # Dynamic Template Loader API endpoint
 
 (defpage load-template [:get "/api/templates/:id"]
   {:keys [id]}
@@ -23,6 +19,13 @@
    "text/html"
    (html-template
     (get-template id))))
+
+
+;;
+;; Template Views for System Objects
+;;
+
+;; # Instrument Templates
 
 (deftemplate journal-page
   [:div.row.journal-page
@@ -61,10 +64,10 @@
     [:hr]
     (boot/ctrl-group
      ["Tagline" "short"]
-     (boot/input {:id "journal-short"} "text" "short" (% short)))
+     (boot/input {:id "journal-short" :maxlength "40"} "text" "short" (% short)))
     (boot/ctrl-group
      ["Long Entry" "content"]
-     (boot/textarea {:rows "20"
+     (boot/textarea {:rows "15"
                      :cols "80"
                      :class "input-xlarge"
                      :id "journal-content"
@@ -79,10 +82,10 @@
    [:table.table
     [:thead
      [:tr
-      [:td "Date"]
-      [:td "Description"]
-      [:td "Type"]
-      [:td "Sharing"]]]
+      [:th "Date"]
+      [:th "Description"]
+      [:th "Type"]
+      [:th "Sharing"]]]
     [:tbody
      (%each journals
             [:tr {:data (% id)}
@@ -99,6 +102,20 @@
                [:i.icon-remove.icon-white]]]
              ])]]])
             
+
+;; TIMELINE
+
+(deftemplate timeline-header
+  [:div#timeline-header {:style "height: 60px;"}
+   [:div.daterange.pull-left
+    [:input {:type "text" :name "rangepicker" :value (% range) :id "rangepicker"}]]
+   [:div.pull-right
+    [:div.btn-group
+     [:a.btn.dropdown-toggle {:data-toggle "dropdown" :href "#"}
+      "Visibility "
+      [:span.caret]]
+     [:ul.dropdown-menu]]]])
+    
 
 ;; TRIAL
 
@@ -198,30 +215,6 @@
    [:h2 "Schedule"]
    [:div.schedule "Schedule view TBD"]])
 
-
-;; JOURNAL
-
-(deftemplate journal-viewer
-  [:content
-   [:div.paging
-    [:span "Page " (% page) " of " (% total)]
-    [:button.prev {:type "button"} "Prev"]
-    "&nbsp; | &nbsp;"
-    [:button.next {:type "button"} "Next"]]
-   [:h2 "Journal"
-    (%if type (%strcat " for " (% type)))]
-   [:hr]
-   (%each entries
-          [:div.journal-entry
-           [:h3.date-header "Recorded at " (% date-str)]
-           [:span.sharing (% sharing)]
-           [:p (% content)]])
-   [:div.create {:style "display:none"}
-    [:button.create {:type "button"} "Create new entry"]]
-   [:div.edit {:style "display:none"}
-     [:textarea {:rows 10 :cols 80}]
-     [:button.submit {:type "button"} "Submit"]
-     [:button.cancel {:type "button"} "Cancel"]]])
 
 ;; COMMENT
 

@@ -43,8 +43,8 @@
               });"]]))
   
 (defapi do-login [:post "/action/login"]
-  {:as user}
-  (if-let [user (auth/login user)]
+  {:as auth}
+  (if-let [user (auth/login auth)]
     {:result "success"}
     {:result "fail"
      :message "Username/E-mail not found or password was incorrect"}))
@@ -72,7 +72,10 @@
 (pre-route "/dashboard*" {}
            (handle-private-route))
 
-(pre-route "/settings*" {}
+(pre-route "/explore*" {}
+           (handle-private-route))
+
+(pre-route "/account*" {}
            (handle-private-route))
 
 (pre-route "/api/root/*" {}
@@ -185,13 +188,12 @@ We will contact you shortly when the site or the site's study is ready to launch
   (clojure.tools.logging/spy options)
   (if-let [user (session/current-user)]
     (if (auth/valid-password? user oldPass)
-      (do (models/update-model! (auth/set-user-password user newPass1))
-          (clojure.tools.logging/spy (str "Set password to: " newPass1))
-          {:result "success"})
+      (let [newuser (auth/set-user-password user newPass1)]
+        (do (models/modify-model! newuser
+                                  {:$set {:password (:password newuser)}})
+            {:result "success"}))
       {:result "fail"
        :message "Old password is not valid"})
     {:result "fail"
      :message "You must be logged into to change your password"}))
       
-          
-

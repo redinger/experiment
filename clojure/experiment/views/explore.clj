@@ -21,8 +21,20 @@
 
 (defpage "/explore*" {:as options}
   (page-frame
-   ["Explore Experiments"]
+   ["Explore Experiments"
+    :fixed-size 100
+    :deps ["views/common", "views/explore"]]
    (nav-fixed (:nav (default-nav "explore")))
-   [:div.container
-    [:div.page-header
-     [:h1 "Browse and Search Experiments (COMING SOON)"]]]))
+   [:div.container {:style "min-height: 400px"}
+    [:div#main]]))
+
+(deftemplate explore-home
+  [:form {:class "well form-search"}
+   (text-field {:class "search-query input-xlarge"}
+               "q" (% query))
+   [:button {:type "submit" :class "btn"} "Search"]])
+               
+   
+;;    [:form {:class "well form-search"}
+;;     [:input {:type "text"  :class "input-xlarge search-query"}]
+;;     [:button {:type "submit" :class "btn"} "Search"]]]))

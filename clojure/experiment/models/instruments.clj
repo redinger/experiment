@@ -3,7 +3,9 @@
         experiment.models.samples
         clojure.math.numeric-tower)
   (:require [clj-time.core :as time]
+            [clojure.tools.logging :as log]
             [experiment.models.user :as user]
+            [experiment.infra.services :as services]
             [experiment.libs.datetime :as dt]
             [experiment.libs.zeo :as zeo]
             [experiment.libs.withings :as wi]
@@ -17,6 +19,13 @@
 ;; Connect 3rd party libraries to a mongo log and sql-based sample
 ;; set and provide an api to query instruments
 ;;
+
+(defmacro safe-body [& body]
+  `(try
+     (do ~@body)
+     (catch java.lang.Throwable error#
+      (log/spy error#)
+      nil)))
 
 (defn get-instruments []
   (fetch-models :instrument))
@@ -70,11 +79,11 @@
   (last-updated-time user instrument))
 
 (defmethod time-series :default [inst user & [start end convert?]]
-  (refresh inst user)
-  (map sample->pair
-       (get-samples user inst
-                    :start (or start (dt/a-month-ago))
-                    :end (or end (dt/now)))))
+  (safe-body
+   (refresh inst user))
+  (get-samples user inst
+               :start (or start (dt/a-month-ago))
+               :end (or end (dt/now))))
 
 (defmethod refresh :default [inst user & [force?]]
   nil)
@@ -94,7 +103,8 @@
 ;; ------------------------------------
 
 (defmethod configured? :rt [inst user]
-  (and (:rt-key user) (:rt-user user)))
+  (and (services/get user :rt :apikey)
+       (services/get user :rt :user)))
 
 ;; Social Media Usage on Rescuetime (value in seconds)
 
@@ -102,7 +112,7 @@
   `(let [i# ~inst
          u# ~user]
      (when (or ~force? (stale? i# u#))
-       (rt/with-key (:rt-api u#)
+       (rt/with-key (services/get u# :rt :apikey)
          (let [~var (or (last-update i# u#) ~force? (dt/a-month-ago))]
            ~@body))
        true)))
@@ -280,7 +290,7 @@
     (doall
      (map (partial add-fit-sample user)
           (map days-ago-to-date (range (dec days)))))))
-      
+
 
 (alter-var-root #'ih derive :fit-steps :fit)
 (defmethod refresh :fit [inst user & [force?]]
@@ -291,11 +301,9 @@
   (rem-samples user fitbit-fake-inst))
 
 (defmethod time-series :fit-steps [inst user & [start end convert?]]
-  (map (fn [sample]
-         [(:ts sample) (:steps sample)])
-       (get-samples user fitbit-fake-inst
-                    :start (or start (dt/a-month-ago))
-                    :end (or end (dt/now)))))
+  (get-samples user fitbit-fake-inst
+               :start (or start (dt/a-month-ago))
+               :end (or end (dt/now))))
     
 (defn ensure-fit-instruments []
   (ensure-instrument [:fitbit :fit-steps]

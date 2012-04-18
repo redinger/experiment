@@ -122,7 +122,11 @@
   {:keys [mtype mid * json-payload] :as args}
   (let [parent (resolve-dbref mtype mid)
         location (submodel-location *)]
-    (when-let [submodel (and parent (new-client->server json-payload))]
+    (when-let [submodel
+               (and parent
+                    (new-client->server
+                     (assoc json-payload
+                       :submodel true)))]
       (server->client
        (create-submodel! parent location submodel)))))
 
@@ -144,17 +148,16 @@
   {:keys [mtype mid * id json-payload] :as args}
   (let [location (submodel-location *)]
     (set-submodel! (root-signature mtype mid) location
-                   (client->server json-payload))
-    (get-submodel (root-signature mtype mid) location)))
+                   (client->server (assoc json-payload :submodel true)))
+    (server->client
+     (get-submodel (root-signature mtype mid) location))))
 
 ;; ### DELETE Submodel
 (defapi backbone-sub-api-delete-id [:delete "/api/embed/:mtype/:mid/*"]
   {:keys [mtype mid *]}
   (let [location (submodel-location *)]
-    (if (embedded-objectid? (name (last location)))
-      (do (delete-submodel! (root-signature mtype mid) location)
-          true)
-      false)))
+    (do (delete-submodel! (root-signature mtype mid) location)
+        true)))
 
 
 

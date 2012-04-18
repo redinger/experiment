@@ -169,7 +169,7 @@ define ['jquery', 'use!Backbone'],
           # Parse into existing or new model if data is provided
           submodel: (attr, model, type, attrs) ->
               model ?= new(Backbone.ReferenceCache.lookupConstructor(type))
-              if attrs and attrs.length > 0
+              if attrs and not _.isEmpty(attrs)
                 model.set attrs
               else
                 model.clear
@@ -314,7 +314,7 @@ define ['jquery', 'use!Backbone'],
       getTemplate: (id, options = {lazy: false}) ->
           if @templateCache[id]?
             @templateCache[id]
-          else if not $('#' + id).length
+          else if $('#' + id).length > 0
             @templateCache[id] = Handlebars.compile $('#' + id).html()
           else
             deferred = $.ajax

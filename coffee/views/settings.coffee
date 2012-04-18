@@ -1,105 +1,85 @@
 # Account Page and Tabs
 
-define ['models/core', 'use!BackboneFormsBS', 'use!BackboneFormsEditors'],
-  (Models) ->
+define ['models/infra', 'models/core', 'views/widgets', 'use!Bootstrap', 'use!BackboneFormsBS', 'use!BackboneFormsEditors'],
+  (Infra, Core, Widgets) ->
 
-    ## Account Settings Definitions
-    accountSchemas =
-     'personal':
-           firstname:
-                title: "First Name"
-           lastname:
-                title: "Last Name"
-           bio:
-                title: "Bio"
-                type: "TextArea"
-                editorAttrs:
-                        maxlength: 256
-                        rows: 4
-                        style: "resize: none;"
-           gender:
-                type: 'Select'
-                options: [
-                        {
-                         val: 'female'
-                         label: 'Female'
-                        }, {
-                         val: 'male'
-                         label: 'Male'
-                        } ]
-           dob:
-                title: "Date of Birth"
-                type: "Date"
-           email:
-                title: "Email"
-                validators: ["required", "email"]
-                dataType: 'email'
-           cell:
-                title: "Cell Phone"
-                help: "Used to send SMS messages when requested"
-                dataType: 'phn'
-     'password':
-           oldPass:
-                title: "Old Password"
-                type: 'Password'
-                validators: ['required']
-           newPass1:
-                title: "New Password"
-                type: 'Password'
-                validators: ['required']
-           newPass2:
-                title: "Confirm Password"
-                type: 'Password'
-                validators: ['required',
-                     type: 'match'
-                     field: 'newPass1'
-                     message: 'Passwords must match'
-                ]
+    # ## View for updating User Preferences Submodel
 
-    accountFieldsets =
-      'personal':
-        [{
-              legend: 'Personal'
-              fields: ['firstname', 'lastname', 'bio', 'gender', 'dob', 'email']
-        }, {
-              legend: 'Services'
-              fields: ['cell']
-        }]
-
-    accountTitles =
-      'personal': "Personal Preferences"
-      'password': "Change Password"
-
-    ## Generic Settings View
-    class AccountView extends Backbone.View
+    class PreferencesView extends Backbone.View
+      id: "preferences"
+      class: "tab-pane"
       initialize: () ->
-        @pane = @options.pane
+        @model = Core.theUser.preferences
         @form = new Backbone.Form
-                schema: accountSchemas[@pane]
-                fieldsets: accountFieldsets[@pane]
-                data: @options.data or {}
+                model: @model
 
       render: () =>
-        heading = '<h1>' + accountTitles[@pane] + '</h1>'
+        heading = "<div class='page-header'><h1>Preferences</h1></div>"
         @$el.append heading
         @$el.append @form.render().el
-        if @pane is 'password'
-           @$el.append "<button class='btn pwcommit'>Update</button>"
-        @delegateEvents()
         @
 
+      updateModel: () =>
+        errors = @form.commit()
+        if errors
+          console.log errors
+        else
+          @model.save()
+
       events:
+        'keyup': 'handleKeyUp'
         'change [type=checkbox]': 'handleCheckBox'
-        'keyup input': 'handleKeyup'
-        'focus input': 'handleFocus'
-        'click .pwcommit': 'handlePasswordUpdate'
+        'change [type!=checkbox]': 'updateModel'
+
+      handleKeyUp: (event) =>
+        if not @handleKeyUpAux
+          @handleKeyUpAux = _.debounce () =>
+            @updateModel()
+          , 1000
+        @handleKeyUpAux()
 
       handleCheckBox: (event) =>
         alert 'checkbox'
 
-      handleChange: (event) =>
-        if not @form.validate()
-           @updateUser @form.getValue()
+
+    # # Change Password --
+
+    schemaPassword =
+      oldPass:
+        title: "Old Password"
+        type: 'Password'
+        validators: ['required']
+      newPass1:
+        title: "New Password"
+        type: 'Password'
+        validators: ['required']
+      newPass2:
+        title: "Confirm Password"
+        type: 'Password'
+        validators: ['required',
+                     type: 'match'
+                     field: 'newPass1'
+                     message: 'Passwords must match'
+                    ]
+
+    class ChangePasswordView extends Backbone.View
+      id: "password"
+      className: "tab-pane"
+      initialize: ->
+        @form = new Backbone.Form
+                  schema: schemaPassword
+                  data: {}
+        @
+
+      render: ->
+        @$el.append "<div class='page-header'><h1>Change Password</h1></div>"
+        @$el.append @form.render().el
+        @$el.append "<button class='btn pwcommit'>Update</button>"
+        @
+
+      events:
+        'click .pwcommit': 'handlePasswordUpdate'
+        'keyup input': 'handleKeyup'
 
       handleKeyup: (event) =>
         if event.which == 13
@@ -137,28 +117,194 @@ define ['models/core', 'use!BackboneFormsBS', 'use!BackboneFormsEditors'],
         console.log status
         console.log error
 
-      handleFocus: (event) =>
-
-      updateUser: (values) ->
 
 
-    ## Account Page Setup
-    renderSettings = (pane) ->
-      view = new AccountView
-                el: $('.accountSettings')
-                pane: pane
-                data: {}
-      view.render()
+    # # Services View
+    # ---------------------------------------------------------
+    # Provide a view for adding/removing service configurations,
+    # sort of like Mint.com's accounts page
 
-    renderServices = () ->
-      view = new ServicesView
-                el: $('#services')
-                data: {}
-      view.render()
 
+    # ## Service Sub-view
+    #
+    # Takes a configuration option (from the registry)
+    # Generates a form from it
+    #
+    class ServiceView extends Backbone.View
+      className: "service-view"
+      initialize: (options) ->
+        @config = options.config
+        if @config.oauth?
+           @template = Infra.templateLoader.getTemplate "service-oauth-template"
+        else
+           @template = Infra.templateLoader.getTemplate "service-template"
+           @form = new Backbone.Form
+             model: @model
+             schema: @config.schema
+             fields: @config.fields
+        @
+
+      # Rendering the View
+      render: ->
+        if @config.oauth?
+           @renderOauth()
+        else
+           @renderForm()
+
+      renderOauth: ->
+        data = @model.toJSON()
+        data.config = @config
+        @$el.html @template data
+        @
+
+      renderForm: ->
+        data = @model.toJSON()
+        data.config = @config
+        @$el.html @template data
+        @$('.svcform').append @form.render().el
+
+        @
+
+      # Handling UI Events
+      events:
+        'keyup': 'handleKey'
+
+      handleKey: =>
+        if not @handleKeyAux
+           @handleKeyAux = _.debounce @update, 1000
+        @handleKeyAux()
+
+      update: =>
+        error = @form.commit()
+        if not error
+           @model.save()
+
+
+    # ## Service submodel containers
+    class ServicesView extends Backbone.View
+      id: "services"
+      className: "tab-pane"
+      initialize: (options) ->
+        # Registry is 'tag: {schema:, fields:, ...}' (move to model?)
+        @registry = $.parseJSON $('#services-registry').html()
+        if _.keys(@registry) < 1
+          alert 'Registry was not rendered for ServicesView'
+        else
+          console.log @registry
+
+        # Manage our subviews
+        @views = []
+        @collection.each @addSubView, @
+
+        # Template for header dropdown and body entries
+        @template = Infra.templateLoader.getTemplate "services-header-template"
+
+        # Compute the list of possible new services
+        @computeServiceList()
+
+        # In case services change in the background
+        @collection.on 'change add remove', ->
+           @computeServiceList()
+           @render()
+        , @
+        @
+
+      addSubView: (model) ->
+        view = new ServiceView
+          model: model
+          config: @registry[model.id]
+        @views.push view
+
+      # NOTE: Move to services model
+      computeServiceList: () ->
+        records = _.clone @registry
+        # Make the tag available to config consumers
+        _.each records, (record, tag) ->
+          record.tag = tag
+        # Remove those configs already registered
+        @collection.each (model) ->
+          delete records[model.id]
+        # Records not configured
+        options = _.values(records)
+        @serviceList = options
+
+      events:
+        'click .new': 'newService'
+        'click .del': 'delService'
+
+      newService: (event) =>
+        # What view?
+        event.preventDefault()
+        tag = $(event.currentTarget).attr('href')
+        # Create and add the view
+        model = @collection.create
+          id: tag
+          type: "service"
+        @collection.add model if model
+        # Update page
+        @computeServiceList()
+        @render()
+
+      delService: (event) =>
+        # Get the view/model
+        event.preventDefault()
+        tag = $(event.currentTarget).attr('data-tag')
+        view = _.find @views, (view) ->
+           view.config.tag is tag
+        # Remove view
+        @views = _.without @views, view
+        view.model.destroy()
+        # Update page
+        @computeServiceList()
+        @render()
+
+      render: ->
+        @$el.html @template
+          services: @serviceList
+        _.each @views, (view) =>
+          @$el.append view.render().el
+        , @
+        @
+
+
+    # Page Application Harness
+    # -----------------------------------------------------
+    class SettingsRouter extends Backbone.Router
+      initialize: (options = {}) ->
+          @default = options.default
+          @
+
+      routes:
+          ':tab/*path': 'selectTab'
+          ':tab': 'selectTab'
+
+    class Settings extends Backbone.View
+      className: "tab-content"
+      initialize: ->
+        @router = new SettingsRouter()
+        @navbar = new Widgets.NavBar
+          el: $('.subnav-fixed-top')
+          router: @router
+
+        @views = {}
+        @views.preferences = new PreferencesView()
+        @views.password = new ChangePasswordView()
+        @views.services = new ServicesView
+          collection: Core.theUser.services
+        @
+
+      render: ->
+        _.each @views, (view) ->
+          @$el.append view.render().el
+        , @
+        @
+
+
+    # # Start Settings Page App
     $(document).ready ->
-        if $('.accountSettings')
-           renderSettings $('.accountSettings').attr('id')
-        if $('.serviceSettings')
-           renderServices
+      settings = new Settings()
+      $('div#main').append settings.render().el
 
+      Backbone.history.start
+        root: '/account/'
+        pushState: true

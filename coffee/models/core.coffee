@@ -5,84 +5,91 @@
 # domain models and appropriate convenience methods.
 # Returns a map of Model constructors
 
-define ['jquery', 'use!Backbone', 'models/infra'],
-  ($, Backbone, Common) ->
+define ['jquery', 'use!Backbone', 'models/infra', 'models/user'],
+  ($, Backbone, Infra, UserSub) ->
 
 
 # ## Treatments
-    class Treatment extends Common.Model
+    class Treatment extends Infra.Model
       serverType: 'treatment'
       defaults:
         'tags': []
         'comments': []
 
-    class Treatments extends Common.Collection
+    class Treatments extends Infra.Collection
       model: Treatment
 
 # ## Instruments
-    class Instrument extends Common.Model
+    class Instrument extends Infra.Model
       serverType: 'instrument'
 
-    class Instruments extends Common.Collection
+    class Instruments extends Infra.Collection
       model: Instrument
 
 # ## Experiments
-    class Experiment extends Common.Model
+    class Experiment extends Infra.Model
       serverType: 'experiment'
       embedded:
         treatment: ['reference', 'treatment']
         instruments: ['references', 'Instruments']
 
-    class Experiments extends Common.Collection
+    class Experiments extends Infra.Collection
       model: Experiment
 
 # ## My Trials
-    class Trial extends Common.Model
+    class Trial extends Infra.Model
       serverType: 'trial'
       embedded:
         experiment: ['reference', 'experiment']
 
-    class Trials extends Common.Collection
+    class Trials extends Infra.Collection
       model: Trial
 
 # ## Trackers
 
-    class Tracker extends Common.Model
+    class Tracker extends Infra.Model
       serverType: 'tracker'
       embedded:
         user: ['reference', 'user']
         instrument: ['reference', 'instrument']
 
-    class Trackers extends Common.Collection
+    class Trackers extends Infra.Collection
       model: Tracker
 
 # ## Journals
-    class Journal extends Common.Model
+    class Journal extends Infra.Model
       serverType: 'journal'
       embedded:
         user: ['reference', 'user']
 
-    class JournalEntries extends Common.Collection
+    class JournalEntries extends Infra.Collection
       model: Journal
+
+# ## Service submodel containers
+    class Service extends Infra.Model
+      serverType: 'service'
+
+    class Services extends Infra.Collection
+      model: Service
 
 # ## User Object
 #
 # - Always initialized by the server
 # - Singleton model, so use uppercase instance convention
 
-    class User extends Common.Model
+    class User extends Infra.Model
       serverType: 'user'
       embedded:
         trials: ['submodels', 'Trials']
         trackers: ['submodels', 'Trackers']
-        preferences: ['submodel', 'UserPrefs']
+        preferences: ['submodel', 'userprefs']
         services: ['submodels', 'Services']
         journals: ['submodels', 'Journals']
 
       username: -> @get('username')
       adminp: -> 'admin' in @get('permissions')
 
-    class Users extends Common.Collection
+    class Users extends Infra.Collection
       model: User
 
 # ## Helper objects
@@ -102,8 +109,10 @@ define ['jquery', 'use!Backbone', 'models/infra'],
       Trial: Trial
       Tracker: Tracker
       Suggestion: Suggestion
+      UserPrefs: UserSub.UserPrefs
       User: User
       Journal: Journal
+      Service: Service
 
     collections =
       Treatments: Treatments
@@ -113,13 +122,17 @@ define ['jquery', 'use!Backbone', 'models/infra'],
       Trials: Trials
       Trackers: Trackers
       Suggestions: Suggestions
+      Services: Services
       Users: Users
 
     cacheTypes = (themap) ->
        newmap = {}
        _.each themap, (constructor, type) ->
              tag = constructor.prototype.serverType
-             newmap[tag] = constructor if tag
+             if tag
+               newmap[tag] = constructor
+             else
+               newmap[type] = constructor
        newmap
 
     # Register our core types with the reference cache

@@ -1,6 +1,26 @@
-    # ++++++++++++++++++++++++++++++
-    # Search App
-    # ++++++++++++++++++++++++++++++
+define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEditors'],
+  (Infra, Core, User, Widgets) ->
+
+    class SearchResults extends Backbone.Collection
+      initialize: ->
+        @results = []
+        @
+
+      updateResults: (references) ->
+        @results = _.map references, (reference) ->
+          Backbone.ReferenceCache.resolve reference.type, reference.id
+
+    class ExploreHome extends Backbone.View
+      initialize: ->
+        @template = Infra.templateLoader.getTemplate 'explore-home'
+        @
+
+      render: ->
+
+
+    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    # OLD MODELS AND VIEWS!!!
+    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     # -----------------------------
     #   NLP Filter Box
@@ -24,7 +44,7 @@
 
     # The UI View for the filter state, handles autocomplete for phrases
     class SearchFilterView extends Backbone.View
-      @implements TemplateView
+#      @implements TemplateView
       initialize: ->
             @model = App.searchFilter or= new SearchFilterModel
             @initTemplate '#search-filter'
@@ -171,7 +191,7 @@
             view.delegateEvents() for view in @views
 
     class SearchView extends Backbone.View
-      @implements TemplateView
+#      @implements TemplateView
       className: "search-view"
       initialize: ->
             @filterView = new SearchFilterView
@@ -198,7 +218,7 @@
     # SINGLE OBJECT VIEW
     #
     class ObjectView extends Backbone.View
-      @implements TemplateView
+#      @implements TemplateView
       className: "object-view"
       viewMap:
             experiment: '#experiment-view'
@@ -249,7 +269,7 @@
     #  Main browser window - rarely refreshed
     # ----------------------------------------
     class SearchPane extends Backbone.View
-      @implements TemplateView, SwitchPane
+#      @implements TemplateView, SwitchPane
       id: 'search'
       initialize: ->
             @search = new SearchView
@@ -292,3 +312,4 @@
             @view.finalize()
             @
 
+    {}
