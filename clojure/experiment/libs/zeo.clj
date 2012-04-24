@@ -7,14 +7,14 @@
 ;; "ACE41D854610E84DAF16419E087C2ADF" ;; mit.edu
 ;; "6B58F54966A8A9632A68EBBFF0192D4C" ;; media.mit.edu
 
-(def ^:dynamic *std-key* "ACE41D854610E84DAF16419E087C2ADF")
-(def ^:dynamic *std-base* "https://api.myzeo.com:8443/zeows/api/v1/json/sleeperService/%s")
+(def ^{:dynamic true} *std-key* "ACE41D854610E84DAF16419E087C2ADF")
+(def ^{:dynamic true} *std-base* "https://api.myzeo.com:8443/zeows/api/v1/json/sleeperService/%s")
 
-(def ^:dynamic *staging-key* "6B58F54966A8A9632A68EBBFF0192D4C")
-(def ^:dynamic *staging-base* "https://staging.myzeo.com:8443/zeows/api/v1/json/sleeperService/%s")
+(def ^{:dynamic true} *staging-key* "6B58F54966A8A9632A68EBBFF0192D4C")
+(def ^{:dynamic true} *staging-base* "https://staging.myzeo.com:8443/zeows/api/v1/json/sleeperService/%s")
   
 (def zeo-mode :standard)
-(defonce ^:dynamic *auth* nil)
+(defonce ^{:dynamic true} *auth* nil)
 
 (defn- zeo-key []
   (if (= zeo-mode :staging)

@@ -23,12 +23,25 @@
           (assoc point :ts (dt/as-utc (:ts point))))
         series)))
 
+(defn test-regions [start end]
+  (let [start (dt/as-utc start)
+        end (dt/as-utc end)]
+    [{:start (+ start (/ (- end start)  4))
+      :end (+ start (* 2 (/ (- end start)  4)))
+      :label "On antibiotics"}]))
+
 (defn tracker-chart
   ([inst start end user]
      {:series (as-utc-series
-               (time-series inst user start end false))})
+               (time-series inst user start end false))
+      :start (dt/as-utc start)
+      :end (dt/as-utc end)
+      :dataMin (min-plot inst)
+      :dataMax (max-plot inst)})
+;;      :regions (test-regions start end)})
   ([inst start end]
      (tracker-chart inst start end (session/current-user))))
+
 
 (defn as-int [value]
   (try
@@ -41,9 +54,9 @@
     (response/json
      (tracker-chart instrument
                     (or (dt/from-iso-8601 start)
-                        (time/minus (dt/now) (time/months 2)))
+                        (time/minus (dt/now) (time/months 1)))
                     (or (dt/from-iso-8601 end)
-                        (time/minus (dt/now) (time/months 1)))))))
+                        (dt/now))))))
 
 
 ;; =========================

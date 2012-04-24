@@ -2,10 +2,12 @@
   (:require [somnium.congomongo :as mongo]
 	    [noir.response :as response]
 	    [noir.request :as request]
-	    [clojure.string :as str])
+	    [clojure.string :as str]
+        [cheshire.core :as json])
   (:import [org.bson.types ObjectId])
   (:use noir.core
 	experiment.infra.models 
+	experiment.infra.api
 	[experiment.models.core]
 	[experiment.models.user]))
 
@@ -155,8 +157,8 @@
 
 (defn filter-models [filters]
   (let [treatments (filter-treatments filters)
-	instruments (filter-instruments filters)
-	experiments (filter-experiments treatments filters)]
+        instruments (filter-instruments filters)
+        experiments (filter-experiments treatments filters)]
     (concat (when (show? "experiment" filters) experiments)
 	    (when (show? "treatment" filters) treatments)
 	    (when (show? "instrument" filters) instruments))))
@@ -169,3 +171,47 @@
      (vec
       (map model->client-ref
 	   (filter-models filters))))))
+
+(defn term-search-clauses [key terms]
+  (map (fn [term]
+         {key (re-pattern term)})
+       terms))
+
+(defn phrase-search-cluases [key terms]
+  [{:$in (re-pattern term)}
+
+(defpage search "/api/search/:q/:n/:skip" {:keys [q n skip]}
+  (let [terms (vec (str/split q #" "))
+        n (Integer/parseInt (or n "10"))
+        skip (Integer/parseInt (or skip "0"))]
+    (if (> (count terms) 0)
+      (let [es (mongo/fetch :experiment
+                      :only [:_id :type]
+                      :limit (or n 10) :skip (or skip 0)
+                      :where {:$or
+                              (vec
+                               (concat [{:tags {:$in terms}}]
+                                       (term-search-clauses :title terms)))})
+            is (mongo/fetch :instrument
+                        :only [:_id :type]
+                        :limit (or n 10) :skip (or skip 0)
+                        :where {:$or
+                                (vec
+                                 (concat [{:tags {:$in terms}}
+                                          {:nicknames {:$in (map re-pattern terms)}}]
+                                         (term-search-clauses :description terms)))})
+            ts (mongo/fetch :treatment
+                        :only [:_id :type]
+                        :limit (or n 10) :skip (or skip 0)
+                        :where {:$or
+                                (vec
+                                 (concat [{:tags {:$in terms}}]
+                                         (term-search-clauses :description terms)))})
+            results (map serialize-model-id (concat es is ts))]
+        (response/json results))
+      (response/json
+       (map serialize-model-id
+            (mongo/fetch :experiment
+                         :only [:_id :type]
+                         :limit (or n 10)
+                         :skip (or skip 0)))))))

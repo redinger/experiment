@@ -19,20 +19,23 @@
    [experiment.views.trials :as trials]))
 
 
-(defpage "/explore*" {:as options}
+(defpage "/explore/*" {:as options}
   (page-frame
    ["Explore Experiments"
-    :fixed-size 100
+    :fixed-size 50
     :deps ["views/common", "views/explore"]]
    (nav-fixed (:nav (default-nav "explore")))
    [:div.container {:style "min-height: 400px"}
-    [:div#main]]))
+    [:div#explore]]
+   (render-all-templates)))
+   
+(defpage "/explore" {:as options}
+  (resp/redirect "/explore/search"))
 
-(deftemplate explore-home
-  [:form {:class "well form-search"}
-   (text-field {:class "search-query input-xlarge"}
-               "q" (% query))
-   [:button {:type "submit" :class "btn"} "Search"]])
+(deftemplate search-header
+  [:div {:class "well search-box"}
+   (text-field {:class "search-query input-xlarge"} "q" (% this))
+   [:button {:type "button" :class "btn search-btn"} "Search"]])
                
    
 ;;    [:form {:class "well form-search"}

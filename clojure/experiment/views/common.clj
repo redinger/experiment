@@ -49,6 +49,7 @@
   (include-css "/css/override.css")
   (include-css "/css/autoSuggest.css")
   (include-css "/css/calendar.css")
+  (include-css "/css/ui.daterangepicker.css")
   (include-css "/css/smoothness/jquery-ui-1.8.18.custom.css"))
 
 ;; ## Javascript Libraries

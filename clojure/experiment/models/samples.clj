@@ -148,10 +148,49 @@
   ([options]
      (let [{:keys [start end]} options]
        (fn [sample]
-         (and (or (not start)
+         (and sample
+              (or (not start)
                   (time/after? (:ts sample) start))
               (or (not end)
                   (time/before? (:ts sample) end)))))))
+
+(defn- batch-remove-overlapping-samples
+  "If more than one point exists for decimation level, remove the
+   earlier one."
+  [instrument samples]
+  (let [dfn (date-decimator-fn (keyword (or (:pointscale instrument) "day")) :ts)]
+    (map (fn [samples]
+           (if (> (count samples) 1)
+             (first (reverse (sort-by :ts samples)))
+             (first samples)))
+         (map second
+              (group-by (fn [sample]
+                          (dfn sample))
+                        samples)))))
+
+(defn- remove-overlapping-samples
+  "If more than one point exists for decimation level, remove the
+   earlier one.  Input must be sorted."
+  [instrument samples]
+  (let [dfn (date-decimator-fn (keyword (or (:pointscale instrument) "day")) :ts)]
+    (loop [last nil
+           results '()
+           samples samples]
+      (if (empty? samples)
+        (reverse (cons last results))
+        (if (and last (= (compare (dfn last) (dfn (first samples))) 0))
+          (recur (first samples) results (next samples))
+          (recur (first samples) (if last (cons last results) results) (next samples)))))))
+
+(defn- update-all-samples [fn & [inhibit]]
+  (doseq [chunk (doall (mongo/fetch :chunks))]
+    (let [samples (doall (map fn (:samples chunk)))]
+      (when (and (not inhibit)
+                 (= (count samples) (count (:samples chunk)))
+                 (not (= samples (:samples chunk))))
+        (update-model!
+         (assoc chunk :samples samples))))))
+      
 
 ;; API
 
@@ -168,6 +207,8 @@
   (mongo/destroy! :chunks
                   :where (chunk-select u i options)))
 
+(def mytest (atom nil))
+
 (defn get-samples
   "Get a sequence of samples {:ts <date> :v <any> ...}"
   [u i & {:keys [start end] :as options}]
@@ -175,8 +216,9 @@
                     :where (chunk-select u i options)
                     :only [:samples])
        (mapcat :samples)
-       (sort-by :ts)
        (map as-native-sample)
+       (sort-by :ts)
+       (remove-overlapping-samples i)
        (filter (sample-filter-fn options))))
 
 (defn last-sample [u i]

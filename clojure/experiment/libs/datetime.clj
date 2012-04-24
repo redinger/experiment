@@ -7,7 +7,7 @@
 
 ;; I Hate Dates and Times in ALL LANGUAGES
 
-(def ^:private short-today-fmt
+(def ^{:private true} short-today-fmt
   (.toFormatter
    (doto (DateTimeFormatterBuilder.)
      (.appendClockhourOfHalfday 1)
@@ -17,7 +17,7 @@
      (.appendLiteral " Today ")
      (.appendTimeZoneShortName))))
 
-(def ^:private short-week-fmt
+(def ^{:private true} short-week-fmt
   (.toFormatter
    (doto (DateTimeFormatterBuilder.)
      (.appendClockhourOfHalfday 1)
@@ -29,7 +29,7 @@
      (.appendLiteral " ")
      (.appendTimeZoneShortName))))
 
-(def ^:private short-year-fmt
+(def ^{:private true} short-year-fmt
   (.toFormatter
    (doto (DateTimeFormatterBuilder.)
      (.appendClockhourOfHalfday 1)
@@ -43,7 +43,7 @@
      (.appendLiteral " ")
      (.appendTimeZoneShortName))))
 
-(def ^:private blog-fmt
+(def ^{:private true} blog-fmt
   (.toFormatter
    (doto (DateTimeFormatterBuilder.)
      (.appendMonthOfYearShortText)
@@ -58,7 +58,7 @@
      (.appendLiteral " ")
      (.appendHalfdayOfDayText))))
 
-(def ^:private short-fmt
+(def ^{:private true} short-fmt
   (.toFormatter
    (doto (DateTimeFormatterBuilder.)
      (.appendClockhourOfHalfday 1)
@@ -75,7 +75,7 @@
      (.appendLiteral " ")
      (.appendTimeZoneShortName))))
 
-(def ^:private short-date
+(def ^{:private true} short-date
   (.toFormatter
    (doto (DateTimeFormatterBuilder.)
      (.appendMonthOfYearShortText)
@@ -86,7 +86,7 @@
      (.appendLiteral " ")
      (.appendTimeZoneShortName))))
 
-(def ^:private iso-8601-date
+(def ^{:private true} iso-8601-date
   (.toFormatter
    (doto (DateTimeFormatterBuilder.)
      (.appendYear 4 4)
@@ -95,7 +95,7 @@
      (.appendLiteral "-")
      (.appendDayOfMonth 2))))
 
-(def ^:private iso-8601
+(def ^{:private true} iso-8601
   (.toFormatter
    (doto (DateTimeFormatterBuilder.)
      (.appendYear 4 4)
@@ -110,15 +110,15 @@
      (.appendLiteral ":")
      (.appendSecondOfMinute 2))))
 
-(def ^:private time-fmt (fmt/formatter "h:mma" (time/default-time-zone)))
-(def ^:private date-fmt (fmt/formatter "MM/dd/yy" (time/default-time-zone)))
+(def ^{:private true} time-fmt (fmt/formatter "h:mma" (time/default-time-zone)))
+(def ^{:private true} date-fmt (fmt/formatter "MM/dd/yy" (time/default-time-zone)))
 
 (defn now
   "Returns a date-time"
   []
   (time/to-time-zone (time/now) (org.joda.time.DateTimeZone/getDefault)))
 
-(def ^:private short-fmt-intervals
+(def ^{:private true} short-fmt-intervals
   [[(time/days 1) short-today-fmt]
    [(time/weeks 1) short-week-fmt]
    [(time/years 1) short-year-fmt]
@@ -144,7 +144,10 @@
   ([utc] (when utc (coerce/from-long utc)))
   ([utc tz] (when utc (time/to-time-zone (from-utc utc) tz))))
   
-(defn from-iso-8601 [string] (fmt/parse string))
+(defn from-iso-8601 [string]
+  (time/from-time-zone 
+   (fmt/parse string)
+   (time/time-zone-for-offset -8)))
 
 (defn from-epoch
   ([epoch] (when (number? epoch) (time/plus (time/epoch) (time/secs epoch))))

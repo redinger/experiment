@@ -18,7 +18,7 @@
  :segment1 {:title "Segment Name (1)"}
  :segment2 {:title "Segment Name (2)"})
 
-(def ^:dynamic *strava-base* "http://www.strava.com/api/v1/%s")
+(def ^{:dynamic true} *strava-base* "http://www.strava.com/api/v1/%s")
 (def strava-base "https://www.strava.com/api/v2/%s")
 
 (defn strava-url [command]

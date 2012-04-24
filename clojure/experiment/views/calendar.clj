@@ -17,8 +17,8 @@
 ;; Calendar View
 ;; ==================================
 
-(def ^:dynamic *events* {})
-(def ^:dynamic *today* nil)
+(def ^{:dynamic true} *events* {})
+(def ^{:dynamic true} *today* nil)
 
 (defn today? [day]
   (= day *today*))

@@ -11,7 +11,7 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
 
         # Default configuration
         width = options.width or 900
-        height = options.height or 120
+        height = options.height or 100
         @cfg =
           w: width
           h: height
@@ -19,14 +19,17 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
             xaxis: false
             yaxis: true
             series: true
+            path: true
+            meanOffsets: false
           defaults:
             glyph: "glyph"
-            chart: @id
+            pointClass: "point"
             timeaxis: "rule"
+          title: options.title
           margin: 20
 
         # Render default
-        @fetchData Date.parse('1 month ago'), Date.parse('today')
+        @fetchData Date.parse('2 months ago'), Date.parse('1 month ago')
         @
 
       # Configure view
@@ -50,10 +53,8 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
 
       render: () ->
         @$el.empty()
-        if @data?
+        if @data? and @data.series?
           QIChart.runChart '#' + @id, @data, @cfg
-        else
-          @$el.html('<p>' + @model.instrument.get('variable') + '</p>')
         @
 
 
@@ -71,18 +72,15 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
             view = new RunChart
               model: model
               id: 'tracker-' + model.instrument.get('src')
+              title: model.instrument.get('variable')
             view
         , @
         _.last(@views).setXaxisView true
         @
 
-      events:
-        'change #rangepicker': 'updateTimeline'
-
       updateTimeline: =>
         @dates = $('#rangepicker').val()
         [start, end] = _.map @dates.split(" - "), Date.parse
-        console.log [start, end]
         _.each @views, (view) ->
           view.fetchData start, end
         @
@@ -90,10 +88,10 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
       render: ->
         # Render tracker Header
         @$el.append @template
-          date: @dates
+          range: @dates
         @$('#rangepicker').daterangepicker
           arrows: true
-          onChange: @updateTimeline
+          onChange: _.debounce(@updateTimeline, 200)
           rangeStartTitle: 'Timeline Start Date'
           rangeEndTitle: 'Timeline End Date'
           earliestDate: ''
@@ -102,6 +100,10 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
         _.map @views, (view) ->
             @$el.append view.render().el
         , @
+
+        # Tooltip support
+        $('svg circle.glyph').tooltip
+          manual: 'true'
         @
 
     return Timeline

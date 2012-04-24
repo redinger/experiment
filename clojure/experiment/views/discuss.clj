@@ -14,7 +14,7 @@
 
 ;; Active forms
 
-(def ^:dynamic *submitted-data* nil)
+(def ^{:dynamic true} *submitted-data* nil)
 
 (defmacro with-submission [data & body]
   `(binding [*submitted-data* ~data]

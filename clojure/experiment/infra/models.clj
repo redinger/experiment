@@ -4,6 +4,7 @@
   (:require
    clojure.set
    [noir.response :as response]
+;;   [clucy.core :as clucy]
    [noir.request :as request]
    [somnium.congomongo :as mongo]
    [clojure.walk :as walk]
@@ -53,6 +54,12 @@
 (defmulti db-reference-params
   "Which parameters coming from a client are the IDs of
    foreign objects that should be stored as DB refs?"
+  (fn [model] (when-let [type (:type model)]
+                (keyword type))))
+
+(defmulti index-params
+  "Which parameters of the model should be indexed for
+   fulltext retrieval"
   (fn [model] (when-let [type (:type model)]
                 (keyword type))))
 
@@ -109,6 +116,10 @@
 (defmethod db-reference-params :default
   [model]
   [])
+
+(defmethod index-params :default
+  [model]
+  [:tags :description :name])
 
 (defmethod public-keys :default
   [model]
@@ -387,7 +398,6 @@
       deserialize-model-refs
       client->server-hook))
 
-
 ;; ------------------------------------------
 ;; Client-Server Models API
 ;; ------------------------------------------
@@ -416,6 +426,28 @@
 (defmethod delete-model-hook :default
   [model]
   model)
+
+
+;; Indexing Models
+
+;;(defonce ft-index (clucy/memory-index))
+
+;;(defn search-models [string & [limit]]
+;;  (clucy/search ft-index string (or limit 10)))
+  
+;;(defn index-model [model]
+;;  (clucy/add ft-index
+;;             (with-meta (select-keys model (concat [:_id :type] (index-params model)))
+;;               (reduce (fn [field]
+;;                         {field {:stored false}})
+;;                       (index-params model)))))
+
+;;(defn index-all-models []
+;;  (alter-var-root #'ft-index (fn [old] (clucy/memory-index)))
+;;  (doall (map index-model (fetch-models :instrument)))
+;;  (doall (map index-model (fetch-models :treatment))) 
+;;  (doall (map index-model (fetch-models :experiment))))
+
 
 ;; Model CRUD API implementation
 
@@ -496,8 +528,7 @@
 
 (defn create-submodel!
   [parent location submodel]
-  (assert (model? parent) (:type submodel))
-  (swank.core/break)
+  (assert (and (model? parent) (:type submodel)))
   (let [new (or (:id submodel) (assign-uid submodel))
         pcoll (model-collection parent)
         pref (select-keys parent [:_id :type])

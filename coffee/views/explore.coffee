@@ -1,21 +1,358 @@
-define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEditors'],
-  (Infra, Core, User, Widgets) ->
+define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/common', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEditors'],
+  (Infra, Core, User, Widgets, Common) ->
 
-    class SearchResults extends Backbone.Collection
-      initialize: ->
-        @results = []
-        @
+# Item Views
+# --------------------------------------------
 
-      updateResults: (references) ->
-        @results = _.map references, (reference) ->
-          Backbone.ReferenceCache.resolve reference.type, reference.id
-
-    class ExploreHome extends Backbone.View
-      initialize: ->
-        @template = Infra.templateLoader.getTemplate 'explore-home'
+#
+# Experiments
+#
+    class ExperimentView extends Backbone.View
+      initialize: (options) ->
+        @template = Infra.templateLoader.getTemplate 'experiment-view'
         @
 
       render: ->
+        if @model.isLoaded()
+           @$el.html @template @model.toJSON()
+        else
+           @model._loading.done =>
+             @render()
+        @
+
+
+#
+# Treatments
+#
+# Experiments (membership), Instruments (via tags)
+#
+    class TreatmentView extends Backbone.View
+      initialize: (options) ->
+        @template = Infra.templateLoader.getTemplate 'treatment-view'
+        @
+
+      render: ->
+        if @model.isLoaded()
+           @$el.html @template @model.toJSON()
+        else
+           @model._loading.done =>
+             @render()
+        @
+
+
+#
+# Instruments
+#
+# Experiments (membership), Treatments (via tags)
+#
+    class InstrumentView extends Backbone.View
+      initialize: (options) ->
+        @template = Infra.templateLoader.getTemplate 'instrument-view'
+        @
+
+      render: ->
+        if @model.isLoaded()
+           @$el.html @template @model.toJSON()
+        else
+           @model._loading.done =>
+             @render()
+        @
+
+
+# Item Creators
+# --------------------------------------------
+
+    class ExperimentEdit extends Backbone.View
+      initialize: (options) ->
+        @template = Infra.templateLoader.getTemplate 'experiment-editor'
+        @
+
+      render: ->
+        if @model.isLoaded()
+           @$el.html @template @model.toJSON()
+        else
+           @model._loading.done =>
+             @render()
+        @
+
+
+    class TreatmentEdit extends Backbone.View
+      initialize: (options) ->
+        @template = Infra.templateLoader.getTemplate 'experiment-editor'
+        @
+
+      render: ->
+        @$el.html @template @model.toJSON()
+        @
+
+    class ScheduleSchemaCreator extends Backbone.View
+
+    class ScheduleInstantiator extends Backbone.View
+
+
+# Search results and state
+# --------------------------------------------
+
+    # Search results model
+    class SearchResults extends Backbone.Collection
+      initialize: (options) ->
+        @query = ""
+        @page = 1
+        if options? and options.pagesize?
+           @size = options.pagesize
+        else
+           @size = 10
+        @
+
+      reset: (results, options) ->
+        models = _.map results, (reference) ->
+           Backbone.ReferenceCache.resolve reference.type, reference.id
+        super models, options
+        @
+
+      doQuery: (query, page) ->
+        @query = query or @query
+        @page = page or @page or 1
+        offset = (@page - 1) * @size
+        $.ajax "/api/search/#{@query}/#{@size}/#{offset}",
+          context: @
+          success: (results) =>
+            @reset results
+
+    # Single result view, multiple types
+    class ResultView extends Backbone.View
+      attributes:
+        class: 'search-result'
+      initialize: (options) ->
+        @model = Backbone.ReferenceCache.resolve options.type, options.mid if not @model?
+        @template = Infra.templateLoader.getTemplate switch @model.get('type')
+              when "experiment" then 'experiment-list-view'
+              when "instrument" then 'instrument-list-view'
+              when "treatment" then 'treatment-list-view'
+        @
+
+      render: ->
+        if @model.isLoaded() and @$el.children().length is 0
+           @$el.html @template @model.toJSON()
+           @$el.append '<hr>'
+        else if not @model.isLoaded()
+           @model._loading.done =>
+             @render()
+        @
+
+      events: ->
+        'click a': 'viewObject'
+
+      viewObject: (event) =>
+        event.preventDefault()
+        id = $(event.currentTarget).attr('data-id')
+        object = Backbone.ReferenceCache.resolve null, id
+        link = "/view/" + object.get('type') + "/" + id
+        window.Explore.router.navigate link,
+          trigger: true
+
+
+    # Result page and handlers
+    class SearchPage extends Backbone.View
+      # STATE
+      initialize: (options) ->
+        # View maintenance and rendering
+        @template = Infra.templateLoader.getTemplate 'search-header'
+        @views = []
+
+        # Result objects
+        @results = options.results
+        @results.on 'reset', @updateViews
+        @render()
+        @
+
+      # MODEL EVENTS
+      updateViews: () =>
+        # Update query box
+        @$('.search-query').val([@results.query])
+        @renderViews()
+
+      # RENDERING
+      render: ->
+        # Render or update search bar
+        if @$('.search-query').length == 0
+           @$el.append @template @query
+        @
+
+      renderViews: ->
+        # Remove if exist
+        _.each @views, (view) -> view.remove()
+        # Create new
+        @views = @results.map (model) ->
+           new ResultView
+             model: model
+        # Render new
+        _.each @views, (view) =>
+           @$el.append view.render().el
+        @
+
+      # UI EVENTS
+      events:
+        'keyup': 'handleKey'
+        'click .search-btn': 'submitQuery'
+
+      handleKey: (event) =>
+        if event.which is 13
+           @submitQuery(event)
+           false
+        else
+           true
+
+      submitQuery: (event) =>
+        alert('submitted')
+        event.preventDefault()
+        query = @$('input').val() or ""
+        window.Explore.router.navigate '/search/query/' + query,
+          trigger: true
+        true
+
+
+
+
+# Explorer Router
+# -------------------------------------------
+    class ExploreRouter extends Backbone.Router
+      initialize: (options = {}) ->
+          @default = options.default
+          @
+
+      routes:
+          '': 'selectDefault'
+          'search/query/:query': 'searchQuery'
+          'search/query/:query/p:page': 'searchQuery'
+          'search/tag/:tag': 'searchTag'
+          'search/tag/:tag/p:page': 'searchTag'
+          'view/:type/:id': 'viewObject'
+          'edit/:type/:id': 'editObject'
+          'edit/:type/': 'createObject'
+          'start/:id': 'startTrial'
+
+      selectDefault: (data) =>
+          @navigate @default, {trigger: true, replace: true} if @default?
+
+# Explorer Breadcrumbs
+# -------------------------------------------
+
+# TBD
+
+# Explorer Application
+# -------------------------------------------
+
+    class ExploreHome extends Backbone.View
+      initialize: ->
+        # Manage some views, default is search
+        @views = {}
+        @editors = {}
+        @results = new SearchResults()
+        @search = new SearchPage
+          results: @results
+        @currentView = @search
+
+        # Change views based on router events
+        @router = new ExploreRouter
+          default: 'search/query'
+        @router.on 'route:viewObject', @viewObject
+        @router.on 'route:editObject', @editObject
+        @router.on 'route:startTrial', @startTrial
+        @router.on 'route:searchQuery', @doSearch
+        @router.on 'route:searchTag', @doSearch
+        @
+
+      # Common events
+      events:
+        'click .tags .label': 'searchTagClick'
+
+      # Common UI event handlers
+      searchTagClick: (event) =>
+        event.preventDefault()
+        tag = $(event.currentTarget).text()
+        link = "/search/tag/" + tag
+        window.Explore.router.navigate link,
+          trigger: true
+
+      # Route Event handlers
+      viewObject: (type,id) =>
+        if not @views[id]?
+           model = Backbone.ReferenceCache.resolve type, id
+           switch type
+             when "experiment" then view = new ExperimentView
+                model: model
+             when "treatment" then view = new TreatmentView
+                model: model
+             when "instrument" then view = new InstrumentView
+                model: model
+             else alert('error, type ' + type + ' not recognized')
+           @views[id] = view
+        @changeView @views[id]
+
+      editObject: (type,id) =>
+        if not @editors[id]?
+           model = Backbone.ReferenceCache.resolve type, id
+           switch type
+             when "experiment" then view = new ExperimentEdit
+                model: model
+             when "treatment" then view = new TreatmentEdit
+                model: model
+             else alert('error, type ' + type + ' not recognized')
+           @editors[id] = view
+        @changeView @editors[id]
+
+      startTrial: (id) =>
+        alert('not implemented')
+
+      doSearch: (query, page) =>
+        @results.doQuery query, page
+        @changeView @search
+        @
+
+      # View utilities
+      changeView: (view) ->
+        @currentView.$el.detach() if @currentView
+        @currentView = view
+        @render()
+
+      render: ->
+        @$el.html @currentView.render().el if @currentView
+        @
+
+    $(document).ready ->
+       # Create the main app body
+       window.Explore = new ExploreHome
+         el: $('#explore')
+
+       # Initialize navigation, resolve URL
+       Backbone.history.start
+            root: '/explore/'
+            pushState: true
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -28,7 +365,6 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'use!Hand
 
     # The BB Model for the current filter state
     class SearchFilterModel extends Backbone.Model
-
 
     # Configuration for the autocomplete
     searchSuggestDefaults =
@@ -62,7 +398,6 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'use!Hand
             App.Suggestions.toJSON()
 
       render: =>
-            @$el.empty()
             @inlineTemplate()
             @
 
@@ -112,7 +447,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'use!Hand
       viewModel: =>
             App.socialView.setContext @model
             type = @model.get 'type'
-            id = @model.get 'id'
+            id = @model.id
             App.router.navigate "search/#{ type }/#{ id }", true
 
     #

@@ -115,5 +115,3 @@
   "The default project entry points starts the server in production mode"
   []
   (start :prod))
-
-

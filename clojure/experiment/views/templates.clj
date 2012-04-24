@@ -152,23 +152,51 @@
 
 ;; TREATMENT
 
+(defn tag-list []
+  [:div.tags
+   (%each tags
+    [:span.label.label-info (% this)] "&nbsp;")])
+  
+
 (deftemplate treatment-list-view
-  [:div {:class "result treatment-list-view"}
-   [:h3 [:b "Treatment:"] (% name)]
-   [:p (% description)]])
+  [:div.result.treatment-list-view
+   [:h3 [:a.title {:href "#" :data-id (% id)} ;; (%str "/explore/view/" (% type) "/" (% id)) }
+         [:i.icon-screenshot] " " (% name)]]
+   [:p (% description-html)]
+   [:div.tags
+    (%each tags
+           [:span.label.label-info (% this)] "&nbsp;")]])
 
 (deftemplate treatment-view
-  [:div {:class "treatment-view"}
-   [:h1 (% name)]
-   [:p [:b "Description: "] (% description)]
-   [:p [:b "Tags: "] (% tags)]])
+  [:div.treatment-view
+   [:div.page-header
+    [:div.span8
+     [:h1 (% name)]]
+    [:div.span4
+     [:span.pull-right
+      [:button.btn.btn-large.clone "Clone"]]]
+    [:div {:style "clear:both;"}]]
+   [:div.row
+    [:div.span6
+     [:p [:b "Description: "] (% description)]
+     [:div.tags
+      (%each tags
+             [:span.label.label-info (% this)] "&nbsp;")]]
+
+    [:div.span6
+     [:div.row.pull-right
+      [:p [:b "Conversations"]]]
+     [:div.row.pull-right
+      [:p [:b "Related"]]]]]])
+     
 
 
 ;; INSTRUMENT
 
 (deftemplate instrument-list-view
-  [:div {:class "result instrument-list-view"}
-   [:h3 [:b "Instrument"] " for " (% variable) " (" (% svc) " tracking)"]
+  [:div.result.instrument-list-view
+   [:h3 [:a.title {:href "#" :data-id (% id)} ;; (%str "/explore/view/" (% type) "/" (% id)) }
+         [:i.icon-eye-open {:style "vertical-align:middle"}] " " (% variable) " (" (% svc) " tracking)"]]
    [:p (% description)]])
 
 (deftemplate instrument-short-table
@@ -192,8 +220,13 @@
 ;; EXPERIMENT
    
 (deftemplate experiment-list-view
-  [:div {:class "result experiment-list-view"}
-   [:h3 [:b "Experiment: "] (% name)]])
+  [:div.result.experiment-list-view
+   [:h3 [:a.title {:href "#" :data-id (% id)} ;; (%str "/explore/view/" (% type) "/" (% id)) }
+        [:i.icon-random] " " (%with treatment (% name))]]
+   [:p (% title)]
+   [:ul
+    (%each instruments
+           [:li (% variable) "(measured by " (% src) ")"])]])
 
 (deftemplate experiment-view
   [:div.experiment-view

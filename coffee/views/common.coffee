@@ -113,14 +113,15 @@ define ['jquery', 'models/infra', 'use!Handlebars', 'use!BackboneFormsBS', 'use!
         @hide()
 
 # Query parsing for internal javascript functions
-    extractParams = () ->
+    Common.extractParams = () ->
         qs = document.location.search.split("+").join(" ")
         re = /[?&]?([^=]+)=([^&]*)/g
         params = {}
         params[decodeURIComponent tokens[1]] = decodeURIComponent tokens[2] while tokens = re.exec qs
         params
 
-    Common.queryParams = extractParams()
+    Common.queryParams = Common.extractParams()
+
 
 # Startup event handlers and actions
 # -----------------------

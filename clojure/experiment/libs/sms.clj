@@ -20,7 +20,8 @@
 
 ;; ## Manage GroupTexting Credentials
 
-(defonce ^:dynamic *credentials* nil)
+(defonce ^{:dynamic true}
+  *credentials* nil)
 
 (defn set-credentials [credentials]
   (assert (and (:user credentials) (:pw credentials)))
@@ -103,7 +104,7 @@
 (defn default-handler [from message]
   (log/spy [from message]))
 
-(defonce ^:dynamic *handler* 'default-handler)
+(defonce ^{:dynamic true} *handler* 'default-handler)
 
 (defn set-reply-handler [handler]
   (alter-var-root #'*handler* (fn [a b] b) handler))
@@ -157,9 +158,9 @@
                (re-pattern
                 (str (or (:sms-prefix event) "")
                      (case (:sms-value-type event)
-                       nil "\\s*(\\d*)"
                        "string" "\\s*([^\\s]+)"
-                       "float" "\\s*([\\d\\.]+)")))))))
+                       "float" "\\s*([\\d\\.]+)"
+                       "\\s*(\\d*)")))))))
 
 (defn default-sms-parser
   "This is the default SMS parser, it supports simple
@@ -172,9 +173,9 @@
   [message event]
   (when-let [value (second (re-matches (default-sms-parser-re event) message))]
     (case (:sms-value-type event)
-      nil (Integer/parseInt value)
       "string" value
-      "float" (Float/parseFloat value))))
+      "float" (Float/parseFloat value)
+      (Integer/parseInt value))))
     
 (defmethod parse-sms :default [message ts event]
   (when-let [val (and (:sms-prefix event)

@@ -82,11 +82,15 @@
 ;; ## Trackers
 
 (defn add-tracker! [user instrument schedule]
-  (create-submodel!
-   user
-   {:type "tracker"
-    :instrument (as-dbref instrument)
-    :schedule schedule}))
+  (let [inst (if (model? instrument)
+               instrument
+               (fetch-model :instrument {:src instrument}))
+        submod {:type "tracker"
+                :state "active"
+                :user (as-dbref user)
+                :instrument (as-dbref inst)
+                :schedule schedule}]
+    (create-submodel! user "trackers" submod)))
 
 (defn trackers [user]
   (vals (:trakers user)))
@@ -95,7 +99,7 @@
   (if (not (empty? (trackers user))) true false))
 
 (defn remove-tracker! [user tracker]
-  (delete-submodel! user tracker))
+  (delete-submodel! user [:trackers (:id tracker)]))
 
 ;; ## Services
 

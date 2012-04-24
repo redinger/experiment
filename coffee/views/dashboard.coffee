@@ -80,7 +80,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
         placement: 'bottom'
 
 
-### ##########
+### #############################################################
 ###
     class Application extends Backbone.View
       el: $('#app-wrap')
@@ -319,9 +319,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
             @trigger "route:selectApp", pname, path
 
     $(document).ready ->
-       # Bootstrap Data
-
-         # Instantiate the SocialView
+       # Instantiate the SocialView
        # App.socialView = new SocialView {el: $('#share-pane')}
 
        # Create the main app body

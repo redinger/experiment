@@ -28,7 +28,6 @@
   (map (comp tracker-summary embed-dbrefs)
        (trackers user)))
 
-
 ;; SMS-based Trackers
 ;; -------------------------------
 

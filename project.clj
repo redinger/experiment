@@ -9,17 +9,18 @@
    [org.clojure/math.numeric-tower "0.0.1"]
    ;; Backends
    [congomongo "0.1.8"]
+   [org.clojars.alexnixon/clucy "0.3.2-SNAPSHOT"]
    [swank-clojure "1.4.0"]
    ;; Frameworks
-   [noir "1.3.0-beta1"]
+   [noir "1.2.2"] ;; noir 1.3.0-beta2
    [quartz-clj "1.1.0-SNAPSHOT"]
    [handlebars-clj "0.9-SNAPSHOT"]
    ;; Clojure Libs
    [clj-logging-config "1.9.1"]
    [clj-time "0.3.2"]
+   [cheshire "3.0.0"]
    [clj-http "0.3.0"]
    [clj-oauth "1.3.1-SNAPSHOT"]
-   [cheshire "3.0.0"]
    [clodown "1.0.2"]
    [com.draines/postal "1.7-SNAPSHOT"]
    ;; Java libs

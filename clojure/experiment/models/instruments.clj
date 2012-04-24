@@ -20,6 +20,8 @@
 ;; set and provide an api to query instruments
 ;;
 
+(def do-refresh-p false)
+
 (defmacro safe-body [& body]
   `(try
      (do ~@body)
@@ -72,18 +74,29 @@
         (time/after?
          (time/minus (dt/now) (sample-interval inst))
          lu))))
- 
+
+(defn min-plot [inst]
+  (if-let [min (:min-domain inst)]
+    min nil))
+
+(defn max-plot [inst]
+  (if-let [max (:max-domain inst)]
+    max nil))
+
+
 ;; Defaults
 
 (defmethod last-update :default [instrument user]
   (last-updated-time user instrument))
 
 (defmethod time-series :default [inst user & [start end convert?]]
-  (safe-body
-   (refresh inst user))
-  (get-samples user inst
-               :start (or start (dt/a-month-ago))
-               :end (or end (dt/now))))
+  (when do-refresh-p
+    (safe-body
+     (refresh inst user)))
+  (doall
+   (get-samples user inst
+                :start (or start (dt/a-month-ago))
+                :end (or end (dt/now)))))
 
 (defmethod refresh :default [inst user & [force?]]
   nil)

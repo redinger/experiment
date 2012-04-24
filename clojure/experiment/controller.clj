@@ -71,13 +71,11 @@
 ;; for a few hours ahead are queued in quartz.  Keep track of
 ;; the end of the last interval that was queued.
 
-(def scheduling-horizon
-  "How many hours ahead do you want the scheduler to queue tasks?"
-  24)
+(def ^{:documentation "How many hours ahead do you want the scheduler to queue tasks?"}
+  scheduling-horizon 24)
 
-(def scheduling-quantum
-  "How many hours do you want to schedule at a time?"
-  6)
+(def ^{:documentation "How many hours do you want to schedule at a time?"}
+  scheduling-quantum 6)
 
 (defn- need-to-schedule?
   "We add a quantum of events to the schedule when the end of the

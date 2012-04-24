@@ -134,7 +134,7 @@ define ['models/infra', 'models/core', 'views/widgets', 'use!Bootstrap', 'use!Ba
       className: "service-view"
       initialize: (options) ->
         @config = options.config
-        if @config.oauth?
+        if @config? and @config.oauth?
            @template = Infra.templateLoader.getTemplate "service-oauth-template"
         else
            @template = Infra.templateLoader.getTemplate "service-template"
@@ -146,7 +146,7 @@ define ['models/infra', 'models/core', 'views/widgets', 'use!Bootstrap', 'use!Ba
 
       # Rendering the View
       render: ->
-        if @config.oauth?
+        if @config? and @config.oauth?
            @renderOauth()
         else
            @renderForm()

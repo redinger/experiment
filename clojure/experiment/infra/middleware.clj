@@ -27,7 +27,7 @@
 ;; # Middleware: Bind the current user
 ;;
 
-(def ^:dynamic *current-user* nil)
+(def ^{:dynamic true} *current-user* nil)
 
 (defn session-user
   "RING MIDDLEWARE: Binds the current session user, when logged in.

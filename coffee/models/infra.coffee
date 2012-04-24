@@ -93,12 +93,15 @@ define ['jquery', 'use!Backbone'],
                 object
 
       resolve: (type, id, options = {lazy: @lazy}) ->
-          if not (id? or type?)
-            throw new Error('ReferenceCache.resolve requires valid type and id')
+          if not (id?)
+            throw new Error('ReferenceCache.resolve requires valid id for existing objects')
           instance = @instances[id]
           if not instance?
+            if not (type?)
+                throw new Error('ReferenceCache.resolve requires valid type and id for uncached objects')
             attrs = options.attrs or {type: type, id: id}
             instance = new(@lookupConstructor(type))(attrs)
+            instance._loaded = false
             @register instance, options
           instance
 
@@ -113,7 +116,8 @@ define ['jquery', 'use!Backbone'],
 
           # Configure lazy status
           if not options.lazy and not instance._loaded
-            instance._loaded = instance.fetch().complete( ->
+            instance._loading = instance.fetch().complete( ->
+                delete instance['_loading']
                 instance._loaded = true
             ).fail( ->
                 console.log 'failed to load:'

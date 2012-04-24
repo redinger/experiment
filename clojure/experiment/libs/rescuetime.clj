@@ -7,7 +7,7 @@
    [experiment.libs.properties :as props]
    [cheshire.core :as json]))
 
-(def ^:dynamic *api-key* nil)
+(def ^{:dynamic true} *api-key* nil)
 (def api-base "https://www.rescuetime.com/anapi/data")
 
 (defn api-request [params]
@@ -65,7 +65,7 @@
        (update-in results [:rows]
                   #(filter (partial matching-row-p pos pattern) %)))))
 
-(defonce ^:dynamic *test* nil)
+(defonce ^{:dynamic true} *test* nil)
 
 (defn aggregate-rows
   [group]

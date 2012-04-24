@@ -1,6 +1,7 @@
 (ns experiment.models.core
   (:use experiment.infra.models)
   (:require
+   [clodown.core :as md]
    [experiment.models.trial :as trial]
    [experiment.libs.datetime :as dt]
    [experiment.infra.session :as session]))
@@ -28,10 +29,15 @@
     (and (every? (set (keys treat)) [:name :description])
 	 (every? #(or (nil? %1) (sequential? %1)) [comments warnings tags]))))
   
-;;(defmethod public-keys :treatment [treat]
-;;  [:_id :type
-;;   :name :tags :description :dynamics
-;;   :help :reminder :votes :warnings :comments])
+(defmethod public-keys :treatment [treat]
+  [:_id :type
+   :name :tags :description :dynamics
+   :help :reminder :votes :warnings :comments])
+
+(defmethod server->client-hook :treatment [treat]
+;;  (if-let [desc (:description treat)]
+;;    (assoc treat :description-html (md/md desc))
+  treat)
 
 ;; INSTRUMENT [type ref]
 ;; -----------------------------------------------------------
