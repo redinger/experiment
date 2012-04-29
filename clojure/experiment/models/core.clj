@@ -34,11 +34,15 @@
       (markdown-convert :description)))
 
 (defmethod public-keys :treatment [treat]
-  [:name :tags :description :description-html
-   :dynamics :help :reminder :votes :warnings :comments])
+  [:name :description :description-html
+   :help :reminder
+   :tags :comments
+   :dynamics :votes :warnings])
 
 (defmethod import-keys :treatment [treat]
-  [:description :name :reminder :help :tags])
+  [:name :description
+   :help :reminder
+   :tags])
 
 
 ;; INSTRUMENT [type ref]

@@ -288,9 +288,9 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/sc
         @
 
       viewCrumbs: (type, id) =>
-        @model.off 'change', @render, @ if @model?
+        @model.off 'change', @rerenderObj, @ if @model?
         @model = Backbone.ReferenceCache.resolve(type, id)
-        @model.on 'change', @render, @
+        @model.on 'change', @rerenderObj, @
         view =
             name: "View"
             class: ""
@@ -307,9 +307,9 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/sc
         @render()
 
       editCrumbs: (type, id) =>
-        @model.off 'change', @render, @ if @model?
+        @model.off 'change', @rerenderObj, @ if @model?
         @model = Backbone.ReferenceCache.resolve(type, id)
-        @model.on 'change', @render, @
+        @model.on 'change', @rerenderObj, @
         view =
             name: "Edit"
             class: ""
@@ -349,6 +349,10 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/sc
             name: tag
             class: "active"
             url: "#"
+        @render()
+
+      rerenderObj: ->
+        @crumbs.tail.name = @model.name()
         @render()
 
       render: ->
