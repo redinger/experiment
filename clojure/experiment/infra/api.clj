@@ -20,11 +20,20 @@
 ;; Utilities
 ;;
 
+(defn- vec-valued-slots
+  "Return a map consisting of key-value pairs where
+   the value is a vector sequence object"
+  [map]
+  (into {} (filter (fn [[k v]] (if (vector? v) [k v] nil)) map)))
+
 (defn- update-and-diff [new-model]
   (let [signature (select-keys new-model [:_id :type])
-        old-model (fetch-model signature)]
-    (map (partial merge signature)
-         (take 2 (data/diff new-model old-model)))))
+        old-model (fetch-model signature)
+        [update result] 
+        (map (partial merge signature)
+             (take 2 (data/diff new-model old-model)))]
+    [(merge update (vec-valued-slots new-model))
+     result]))
 
 ;; Convenience for setting kv-pairs at an interior point in a document
 (defn modify-response [write]
@@ -70,7 +79,10 @@
 
 (defapi backbone-api-update-model [:put "/api/root/:type/:id"]
   {:keys [type id json-payload]}
+  (println "Processing Update Model")
+  (println json-payload)
   (let [new-model (client->server json-payload)
+        _ (println new-model)
         _ (assert (= (deserialize-id id) (:_id new-model)))
         [to-update to-return] (update-and-diff new-model)]
     (let [result (update-model! to-update)]

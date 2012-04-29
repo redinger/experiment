@@ -20,10 +20,21 @@
    (html-template
     (get-template id))))
 
-
 ;;
 ;; Template Views for System Objects
 ;;
+
+;; # Breadcrumbs
+
+(deftemplate breadcrumbs-view
+  [:ul.breadcrumb
+   (%each path
+          [:li {:class (% class)}
+           [:a {:href (% url)} (% name)]
+           [:span.divider "/"]])
+   (%with tail
+          [:li {:class "active"}
+           [:a {:href (% url)} (% name)]])])
 
 ;; # Instrument Templates
 
@@ -162,33 +173,40 @@
   [:div.result.treatment-list-view
    [:h3 [:a.title {:href "#" :data-id (% id)} ;; (%str "/explore/view/" (% type) "/" (% id)) }
          [:i.icon-screenshot] " " (% name)]]
-   [:p (% description-html)]
+   [:p (% description)]
    [:div.tags
     (%each tags
            [:span.label.label-info (% this)] "&nbsp;")]])
 
 (deftemplate treatment-view
   [:div.treatment-view
-   [:div.page-header
-    [:div.span8
-     [:h1 (% name)]]
-    [:div.span4
-     [:span.pull-right
-      [:button.btn.btn-large.clone "Clone"]]]
-    [:div {:style "clear:both;"}]]
    [:div.row
-    [:div.span6
-     [:p [:b "Description: "] (% description)]
-     [:div.tags
+    [:div.page-header
+     [:div.span7
+      [:h1 (% name)]]
+     [:div.span4
+      [:span.pull-right
+       [:button.btn.btn-large.btn-primary.experiment "Experiment"]
+        (%if owner [:button.btn.btn-large.edit {:type "button"} "Edit"])
+       [:button.btn.btn-large.clone "Clone"]]]
+     [:div {:style "clear:both;"}]]]
+   [:div.row
+    [:div.span5
+     [:p [:b "Description"]]
+     [:p (%code description-html)]
+     [:p [:b "Outcomes"]]
+     [:p "instrument list..."]
+     [:p [:b "Tags "]
+      [:a.add-tag {:href "#"} [:i.icon-plus-sign]]]
+     [:p.tags
       (%each tags
              [:span.label.label-info (% this)] "&nbsp;")]]
-
+    [:div.span1 [:p]]
     [:div.span6
-     [:div.row.pull-right
-      [:p [:b "Conversations"]]]
-     [:div.row.pull-right
-      [:p [:b "Related"]]]]]])
-     
+     ;; Related, Discussion
+;;     [:div.row.conversations [:h2 "Conversations"]]
+;;     [:div.row.related [:h2 "Related"]]
+     ]]])
 
 
 ;; INSTRUMENT
@@ -196,8 +214,12 @@
 (deftemplate instrument-list-view
   [:div.result.instrument-list-view
    [:h3 [:a.title {:href "#" :data-id (% id)} ;; (%str "/explore/view/" (% type) "/" (% id)) }
-         [:i.icon-eye-open {:style "vertical-align:middle"}] " " (% variable) " (" (% svc) " tracking)"]]
-   [:p (% description)]])
+         [:i.icon-eye-open {:style "vertical-align:middle"}] " " (% variable) " (" (% service) ")"]]
+   [:p (% description)]
+   [:p.tags
+    (%each tags
+      [:span.label.label-info (% this)] "&nbsp;")]])
+
 
 (deftemplate instrument-short-table
   [:div {:class "instrument-short-table"}
@@ -206,47 +228,75 @@
 	   [:li
 	    [:a {:href (%strcat "/app/search/instrument/" (% id))}
 	     [:span {:class "variable"} (% name)]
-	     [:span {:class "type"} (% src)]]])
+	     [:span {:class "type"} (% service)]]])
     ]])
 
 (deftemplate instrument-view
-  [:div {:class "instrument-view object-view"}
-   [:h1 (% name)]
-   [:p [:b "Source: "] (% src)]
-   (%if nicknames [:p [:b "Nicknames: "] (% nicknames)])
-   [:p [:b "Description: "] (% description)]])
-
+  [:div.instrument-view
+   [:div.row
+    [:div.page-header
+     [:div.span8
+      [:h1 (% variable) " -- " [:a {:href "/account/services"} (% service)]]]
+     [:div.span3
+      [:span.pull-right
+       (%if owner [:button.btn.btn-large.edit "Edit"])
+       (%if tracked [:button.btn.btn-large.untrack "Untrack"])
+       (%unless tracked [:button.btn.btn-large.track "Track"])]]
+     [:div {:style "clear:both;"}]]]
+   [:div.row
+    [:div.span5
+     [:p [:b "Description"]
+      [:p (%code description-html)]]
+     [:p [:b "Tags "]
+      [:a.add-tag {:href "#"} [:i.icon-plus-sign]]]
+     [:p.tags
+      (%each tags
+             [:span.label.label-info (% this)] "&nbsp;")]]
+    [:div.span1 [:p]]
+    [:div.span6
+     ;; Related, Discussion
+     ]]])
+     
 
 ;; EXPERIMENT
    
 (deftemplate experiment-list-view
   [:div.result.experiment-list-view
    [:h3 [:a.title {:href "#" :data-id (% id)} ;; (%str "/explore/view/" (% type) "/" (% id)) }
-        [:i.icon-random] " " (%with treatment (% name))]]
+        [:i.icon-random] " " (% treatment.name)]]
    [:p (% title)]
    [:ul
     (%each instruments
-           [:li (% variable) "(measured by " (% src) ")"])]])
+           [:li (% variable) "(measured by " (% service) ")"])]])
 
 (deftemplate experiment-view
   [:div.experiment-view
-   [:h1.exp-title
-      [:span (% name)]]
-   [:button.run {:type "button"} "Run Experiment"]
-   [:button.clone {:type "button"} "Modify Experiment"]
-   [:h2 "Treatment"]
-   (%with treatment
-	  [:p [:b "Name: "] (% name)]
-	  [:p [:b "Description: "] (% description)]
-	  [:p [:b "Tags: "] (% tags)])
-   [:h2 "Instruments used"]
-   [:div {:class "instrument-sublist"}
-    (%each instruments
-	   [:div {:class "instrument-sublist-view"}
-	    [:div.inst-name (% name) "&nbsp;(" (% src) ")"]
-	    [:div.inst-description (% description)]])]
-   [:h2 "Schedule"]
-   [:div.schedule "Schedule view TBD"]])
+   [:div.row
+    [:div.page-header
+     [:div.span8
+      [:h1 {:href ""}
+       (% treatment.name)]]
+     [:div.span3
+      [:span.pull-right
+       [:span.btn-group
+        [:button.btn.btn-primary.btn-large.run {:type "button"} "Run"]
+        (%if owner [:button.btn.btn-large.edit {:type "button"} "Edit"])
+        [:button.btn.btn-large.clone {:type "button"} "Clone"]]]]
+     [:div {:style "clear:both;"}]]]
+   [:div.row
+    (%with treatment
+      [:div.span5
+       [:p [:b "Description: "]
+        [:p (%code description-html)]]
+       [:p [:b "Tags: "]
+        [:a.add-tag {:href "#"} [:i.icon-plus-sign]]]
+       [:p.tags
+        (%each tags
+               [:span.label.label-info (% this)] "&nbsp;")]])
+    [:div.span1 [:p]]
+    [:div.span6]]])
+;;   [:h2 "Schedule"]
+;;   [:div.schedule "Schedule view TBD"]])
 
 
 ;; COMMENT

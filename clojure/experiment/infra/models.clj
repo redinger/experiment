@@ -3,15 +3,17 @@
    noir.core)
   (:require
    clojure.set
-   [noir.response :as response]
-;;   [clucy.core :as clucy]
-   [noir.request :as request]
-   [somnium.congomongo :as mongo]
-   [clojure.walk :as walk]
    [clojure.string :as str]
-   [clojure.tools.logging :as log])
+   [clojure.walk :as walk]
+   [clojure.tools.logging :as log]
+   [somnium.congomongo :as mongo]
+;;   [clucy.core :as clucy]
+   [noir.response :as response]
+   [noir.request :as request]
+   [clodown.core :as md]
+   [experiment.infra.session :as session])
   (:import [org.bson.types ObjectId]
-	   [com.mongodb DBRef]))
+           [com.mongodb DBRef]))
 
 ;; ------------------------------------------
 ;; Server-Client Model Framework
@@ -70,12 +72,18 @@
   (fn [model] (when-let [type (:type model)]
                 (keyword type))))
 
-(defmulti public-keys 
+(defmulti import-keys 
   "Performs a select-keys on client data so we don't store
-   illegal client-side slots on the server or send server-side
-   slots to the client.  Default is to be permissive."
+   illegal client-side slots on the server."
   (fn [model] (when-let [type (:type model)]
                 (keyword type))))
+
+(defmulti public-keys
+  "Which server-side raw or derived (via hook) keys 
+   to send to the client.  Default is to be permissive."
+  (fn [model] (when-let [type (:type model)]
+                (keyword type))))
+  
 
 (defmulti server->client-hook
   "An optional function that is the identity fn by default which
@@ -222,6 +230,40 @@
   "Import model references from the client"
   (reduce deserialize-model-ref cmodel (db-reference-params cmodel)))
 
+;; ### Utilities for augmenting fields
+
+(defn markdown-convert* [model k]
+  (let [new-key (keyword (str (name k) "-html"))
+        orig (model k)]
+    (if (> (count orig) 1)
+      (assoc model new-key (md/mdp orig))
+      (assoc model new-key "<p><p/>"))))
+
+(defn markdown-convert [model k & ks]
+  (reduce markdown-convert* model (cons k ks)))
+
+(defn ref-oid [ref]
+  (when ref
+    (cond (dbref? ref) (.getId ref)
+          (model? ref) (:_id ref))))
+
+(defn owner-as-bool
+  "Converts a user reference field to a boolean
+   if field reference(s) matches user or current-user"
+  [model field & {:keys [user admins] :or {admins [] user (session/current-user)}}]
+  (let [uid (:_id user)
+        value (model field)
+        users (concat (cond (nil? value)
+                            (list)
+                            (dbref? value)
+                            (list value)
+                            true
+                            value)
+                      admins)]
+    (if (> (count (filter #(= uid (ref-oid %)) users)) 0)
+      (assoc model field true)
+      (assoc model field false))))
+
 ;; ### Filter public-keys on import/export for safety
 
 (defn filter-public-keys
@@ -230,7 +272,14 @@
   (if-let [keys (conj (public-keys cmodel) :_id :id :type)]
     (select-keys cmodel keys)
     cmodel))
-	
+
+(defn filter-import-keys
+  "Must define public-keys for safety purposes"
+  [cmodel]
+  (if-let [keys (conj (import-keys cmodel) :_id :id :type)]
+    (select-keys cmodel keys)
+    cmodel))
+
 (defn as-dbref
   "Return a Mongo DBRef for a model object"
   ([model]
@@ -384,7 +433,7 @@
    manipulated"
   [cmodel]
   (-> cmodel
-      filter-public-keys
+      filter-import-keys
       deserialize-model-id 
       deserialize-model-refs
       client->server-hook))

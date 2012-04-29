@@ -22,9 +22,10 @@
 (defpage "/explore/*" {:as options}
   (page-frame
    ["Explore Experiments"
-    :fixed-size 50
+    :fixed-size 40
     :deps ["views/common", "views/explore"]]
    (nav-fixed (:nav (default-nav "explore")))
+   [:div#crumbs]
    [:div.container {:style "min-height: 400px"}
     [:div#explore]]
    (render-all-templates)))
@@ -34,10 +35,22 @@
 
 (deftemplate search-header
   [:div {:class "well search-box"}
-   (text-field {:class "search-query input-xlarge"} "q" (% this))
-   [:button {:type "button" :class "btn search-btn"} "Search"]])
-               
-   
-;;    [:form {:class "well form-search"}
-;;     [:input {:type "text"  :class "input-xlarge search-query"}]
-;;     [:button {:type "submit" :class "btn"} "Search"]]]))
+   [:div.pull-left
+    (text-field {:class "search-query input-xxlarge"} "q" (% this))
+    [:button.btn {:type "button" :class "btn search-btn"} "Search"]]
+   [:div.pull-right
+    [:div.btn-group
+     [:a.btn.btn-primary.dropdown-toggle {:data-toggle "dropdown" :href "#"}
+      "Create "
+      [:span.caret]]
+     [:ul.dropdown-menu
+      [:li.menuitem
+       [:a {:href "#" :class "action create-experiment"}
+        "Experiment"]]
+      [:li.menuitem
+       [:a {:href "#" :class "action create-treatment"}
+        "Treatment"]]
+      [:li.menuitem
+       [:a {:href "#" :class "action create-instrument"}
+        "Instrument"]]]]]])
+      

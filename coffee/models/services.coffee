@@ -10,9 +10,5 @@ define(['models/infra', 'models/core', 'models/user', 'use!Backbone'],
     class Service extends Common.Model
       serviceType: 'service'
 
-
-
     class Services extends Common.Model
       model: Service
-
-

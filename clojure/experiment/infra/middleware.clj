@@ -50,7 +50,9 @@
     (if (and (string? ctype) (re-find #"application/json" ctype))
       (update-in req [:params] assoc :json-payload
                  (try
-                   (json/parse-string (slurp (:body req)) true)
+                   (let [serialized (slurp (:body req))]
+                     (println "Serialized: " serialized)
+                     (json/parse-string serialized true))
                    (catch java.lang.Throwable e
                      (log/error "Ignoring JSON payload"))))
       req)

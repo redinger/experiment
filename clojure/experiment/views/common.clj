@@ -45,7 +45,7 @@
 
 ;; ## CSS Libraries
 (defpartial include-css-libs []
-  (include-css "/css/bootstrap.css")
+  (include-css "/css/bootstrap-cerulean.css")
   (include-css "/css/override.css")
   (include-css "/css/autoSuggest.css")
   (include-css "/css/calendar.css")

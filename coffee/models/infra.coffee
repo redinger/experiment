@@ -1,4 +1,4 @@
-define ['jquery', 'use!Backbone'],
+define ['jquery', 'use!Backbone', 'use!Handlebars'],
   ($, Backbone) ->
 
 # ----------------------------------------
@@ -28,7 +28,6 @@ define ['jquery', 'use!Backbone'],
         Object.defineProperty Function.prototype, "implements", value : _implements
     else
         Function::implements = _implements
-
 
 # ----------------------------------------
 # Backbone.Embedded Extension
@@ -116,10 +115,7 @@ define ['jquery', 'use!Backbone'],
 
           # Configure lazy status
           if not options.lazy and not instance._loaded
-            instance._loading = instance.fetch().complete( ->
-                delete instance['_loading']
-                instance._loaded = true
-            ).fail( ->
+            instance._loading = instance.fetch().fail( ->
                 console.log 'failed to load:'
                 console.log instance
             )
@@ -229,26 +225,49 @@ define ['jquery', 'use!Backbone'],
           [importer, conType] = @embedded[attr]
           if not importer
              throw new Error('Trying to set non-embedded attribute ' + attr)
+          # Set embedded value, trigger cascaded change events
+          @[attr].off 'change', @_forceChange, @ if @[attr]?
           @[attr] = @_importers[importer].call(@,attr,@[attr],conType,value)
+          if @.get('type') is not 'user'
+             @[attr].on 'change', @_forceChange, @
           @
 
-      set: (attr, value, options) ->
-          @_loaded = true
+      _forceChange: (obj, options) ->
+          if options? and options.triggered?
+             if _.include(options.triggered, @)
+                false
+             else
+                options.triggered.push @
+                @trigger 'change', @, options
+          else
+             @trigger 'change', @, {triggered: [@]}
+
+      set: (attr, value, options = {}) ->
+          if _.isObject attr
+             delete @['_loading'] if @_loading
+             @_loaded = true
           if not @embedded?
              return _set.apply(@,arguments)
+          # Set all embedded objects
           if _.isObject attr
              _.each attr, (val,key) ->
                 if @embedded[key]
                    @_setEmbedded key, val
-                   @trigger 'change:' + key, @
                    delete attr[key]
+                   if not options.silent
+                       @trigger 'change:' + attr, @, @get attr, options
              , @
-             _set.call(this, attr, options)
+             if _.isEmpty(attr)
+                if not options.silent
+                    @trigger 'change', @, options
+             else
+                _set.call(this, attr, options)
+          # Set embedded object instance
           else if @embedded[attr]
              @_setEmbedded attr, value
-             if not options.silent is true
-                @trigger 'change:', @
-                @trigger 'change' + attr, @
+             if not options.silent
+                @trigger 'change', @, options
+                @trigger 'change:' + attr, @, @get attr, options
              @
           else
              _set.apply(@,arguments)
@@ -266,6 +285,15 @@ define ['jquery', 'use!Backbone'],
                  [exporter] = record
                  if exporter is 'reference' and @[attr]
                     json[attr] = @[attr].asReference()
+          , @
+          json
+
+      toTemplateJSON: (options) ->
+          json = _toJSONModel.call(@, options)
+          _.each @embedded, (record, attr) ->
+                 [exporter] = record
+                 if exporter is 'reference' and @[attr]
+                    json[attr] = @[attr].toTemplateJSON()
           , @
           json
 
@@ -387,6 +415,33 @@ define ['jquery', 'use!Backbone'],
           else
             "/api/root/#{ @model.getServerType() }"
 
+# Common Mixins for Models
+# ---------------------------
+
+    class Taggable
+      addTagString: (tagstr) =>
+        if tagstr?
+          tags = tagstr.split(',')
+          tags = _.map tags, $.trim
+          @addTags(tags)
+
+      addTags: (tags) ->
+        if tags.length > 0
+          alltags = _.union @get('tags'), tags
+          @save {tags: alltags}
+
+      remTags: (tags) ->
+        if tags.length > 0
+          alltags = _.difference @get('tags'), tags
+          if alltags.length > 0
+            @save {tags: alltags}
+
+    class Commentable
+
+
+# Global Setup
+# ---------------------------
+
     # ## Setup Underscore templates for trivial templating
     #    Use Handlebars.clj for more complex variants
     _.templateSettings =
@@ -394,6 +449,8 @@ define ['jquery', 'use!Backbone'],
 
     # ## Return the map of useful classes
     Model: Model
+    Taggable: Taggable
+    Commentable: Commentable
     Collection: Collection
     ReferenceCache: ReferenceCache
     templateLoader: new TemplateLoader('/api/templates/{{ id }}')

@@ -177,8 +177,8 @@
          {key (re-pattern term)})
        terms))
 
-(defn phrase-search-cluases [key terms]
-  [{:$in (re-pattern term)}
+;;(defn phrase-search-clauses [key terms]
+;;  [{:$in (re-pattern term)}
 
 (defpage search "/api/search/:q/:n/:skip" {:keys [q n skip]}
   (let [terms (vec (str/split q #" "))
@@ -186,32 +186,31 @@
         skip (Integer/parseInt (or skip "0"))]
     (if (> (count terms) 0)
       (let [es (mongo/fetch :experiment
-                      :only [:_id :type]
-                      :limit (or n 10) :skip (or skip 0)
+                      :limit n :skip skip
                       :where {:$or
                               (vec
                                (concat [{:tags {:$in terms}}]
                                        (term-search-clauses :title terms)))})
             is (mongo/fetch :instrument
-                        :only [:_id :type]
-                        :limit (or n 10) :skip (or skip 0)
+                        :limit n :skip skip
                         :where {:$or
                                 (vec
                                  (concat [{:tags {:$in terms}}
+                                          {:variable {:$in terms}}
                                           {:nicknames {:$in (map re-pattern terms)}}]
                                          (term-search-clauses :description terms)))})
             ts (mongo/fetch :treatment
-                        :only [:_id :type]
-                        :limit (or n 10) :skip (or skip 0)
+                        :limit n :skip skip
                         :where {:$or
                                 (vec
                                  (concat [{:tags {:$in terms}}]
                                          (term-search-clauses :description terms)))})
-            results (map serialize-model-id (concat es is ts))]
+            results (server->client (take n (concat es ts is)))]
         (response/json results))
       (response/json
-       (map serialize-model-id
-            (mongo/fetch :experiment
-                         :only [:_id :type]
-                         :limit (or n 10)
-                         :skip (or skip 0)))))))
+       (server->client
+        (mongo/fetch :experiment
+                     :limit (or n 10)
+                     :skip (or skip 0)))))))
+
+;; RELATED OBJECTS (Treatment->Experiments, Outcomes)

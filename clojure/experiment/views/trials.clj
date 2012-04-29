@@ -56,7 +56,7 @@
         (bs/popover-link (:name treat)
                          (treatment-href treat)
                          "Treatment Description"
-                         (md/md (:description treat)))]
+                         (md/mdp (:description treat)))]
        "&nbsp;"
        [:span "Primary Outcome: "
         (:variable (:outcome exp))]

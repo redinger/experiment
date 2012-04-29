@@ -2,8 +2,8 @@
 # View Widgets
 # ------------------------------------------------------------
 
-define ['models/infra', 'use!Backbone'],
-  (Infra) ->
+define ['models/infra', 'views/common', 'use!Backbone'],
+  (Infra, Common) ->
 
 # ## TemplateView - default template support for Backbone.View apps
 #
@@ -94,8 +94,31 @@ define ['models/infra', 'use!Backbone'],
         @router.navigate name, {trigger: true} if @router? and name?
         @selectTab tab if @select?
 
+    class AddTagDialog extends Common.ModalForm
+      attributes:
+        id: 'addTagModal'
+        class: 'modal hide'
+
+      initialize: (options) ->
+        @schema =
+          tags:
+            title: "Tag(s)"
+            editorClass: "input-xlarge"
+            help: "Separate multiple short tag phrases by commas"
+        super()
+        @
+
+      render: ->
+        @$el.html @template
+          id: 'addTagModal'
+          header: '<h1>Add Tags</h1>'
+          footer: "<a class='btn btn-primary accept'>Add</a>
+                   <a class='btn reject'>Cancel</a>"
+        @$('.modal-body').append @form.render().el
+        @
 
 
 # ## Return the widget library
     NavBar: NavBar
     TemplateView: TemplateView
+    AddTagDialog: AddTagDialog

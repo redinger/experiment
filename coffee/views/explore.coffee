@@ -1,43 +1,60 @@
-define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/common', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEditors'],
-  (Infra, Core, User, Widgets, Common) ->
+define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/scheduling', 'views/common', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEditors'],
+  (Infra, Core, User, Widgets, Scheduling, Common) ->
 
 # Item Views
 # --------------------------------------------
 
+    class ItemView extends Backbone.View
+      # Common Handlers
+      addTags: (event) =>
+        event.preventDefault()
+        if not @tagDialog?
+          @tagDialog = new Widgets.AddTagDialog()
+          @tagDialog.on 'form:accept', (result) ->
+             @model.addTagString result.tags
+          , @
+        @tagDialog.show()
+
+
 #
 # Experiments
 #
-    class ExperimentView extends Backbone.View
+    class ExperimentView extends ItemView
       initialize: (options) ->
         @template = Infra.templateLoader.getTemplate 'experiment-view'
+        @model.on 'change', @render, @
         @
 
       render: ->
         if @model.isLoaded()
-           @$el.html @template @model.toJSON()
-        else
-           @model._loading.done =>
-             @render()
+           @$el.html @template @model.toTemplateJSON()
+        else if not @model._loading
+           @model.fetch()
         @
 
+      events:
+        'click .add-tag': 'addTags'
 
 #
 # Treatments
 #
 # Experiments (membership), Instruments (via tags)
 #
-    class TreatmentView extends Backbone.View
+    class TreatmentView extends ItemView
       initialize: (options) ->
         @template = Infra.templateLoader.getTemplate 'treatment-view'
+        @model.on 'change', @render, @
         @
 
       render: ->
         if @model.isLoaded()
-           @$el.html @template @model.toJSON()
-        else
-           @model._loading.done =>
-             @render()
+           @$el.html @template @model.toTemplateJSON()
+        else if not @model._loading
+           @model.fetch()
         @
+
+      events:
+        'click .add-tag': 'addTags'
 
 
 #
@@ -45,18 +62,36 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/co
 #
 # Experiments (membership), Treatments (via tags)
 #
-    class InstrumentView extends Backbone.View
+    class InstrumentView extends ItemView
       initialize: (options) ->
         @template = Infra.templateLoader.getTemplate 'instrument-view'
+        @model.on 'change', @render, @
         @
 
       render: ->
         if @model.isLoaded()
-           @$el.html @template @model.toJSON()
-        else
-           @model._loading.done =>
-             @render()
+           @$el.html @template @model.toTemplateJSON()
+        else if not @model._loading
+           @model.fetch()
         @
+
+      events:
+        'click .track': 'track'
+        'click .untrack': 'untrack'
+        'click .edit': 'edit'
+        'click .add-tag': 'addTags'
+
+      track: (event) =>
+        schedule = Scheduling.configureSchedule @model
+        @model.track schedule if schedule?
+
+      untrack: (event) =>
+        @model.untrack()
+
+      edit: (event) =>
+        @trigger 'edit', @model
+
+
 
 
 # Item Creators
@@ -69,10 +104,9 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/co
 
       render: ->
         if @model.isLoaded()
-           @$el.html @template @model.toJSON()
-        else
-           @model._loading.done =>
-             @render()
+           @$el.html @template @model.toTemplateJSON()
+        else if not @model._loading?
+           @model.fetch()
         @
 
 
@@ -82,7 +116,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/co
         @
 
       render: ->
-        @$el.html @template @model.toJSON()
+        @$el.html @template @model.toTemplateJSON()
         @
 
     class ScheduleSchemaCreator extends Backbone.View
@@ -105,8 +139,8 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/co
         @
 
       reset: (results, options) ->
-        models = _.map results, (reference) ->
-           Backbone.ReferenceCache.resolve reference.type, reference.id
+        models = _.map results, (object) ->
+           Backbone.ReferenceCache.import object
         super models, options
         @
 
@@ -124,20 +158,18 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/co
       attributes:
         class: 'search-result'
       initialize: (options) ->
-        @model = Backbone.ReferenceCache.resolve options.type, options.mid if not @model?
         @template = Infra.templateLoader.getTemplate switch @model.get('type')
               when "experiment" then 'experiment-list-view'
               when "instrument" then 'instrument-list-view'
               when "treatment" then 'treatment-list-view'
+        @model = Backbone.ReferenceCache.resolve options.type, options.mid if not @model?
+        @model.on 'change', @render, @
         @
 
       render: ->
-        if @model.isLoaded() and @$el.children().length is 0
-           @$el.html @template @model.toJSON()
+        if @model? and @model.isLoaded()
+           @$el.html @template @model.toTemplateJSON()
            @$el.append '<hr>'
-        else if not @model.isLoaded()
-           @model._loading.done =>
-             @render()
         @
 
       events: ->
@@ -204,7 +236,6 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/co
            true
 
       submitQuery: (event) =>
-        alert('submitted')
         event.preventDefault()
         query = @$('input').val() or ""
         window.Explore.router.navigate '/search/query/' + query,
@@ -223,6 +254,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/co
 
       routes:
           '': 'selectDefault'
+          'search/query': 'searchQuery'
           'search/query/:query': 'searchQuery'
           'search/query/:query/p:page': 'searchQuery'
           'search/tag/:tag': 'searchTag'
@@ -238,7 +270,99 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/co
 # Explorer Breadcrumbs
 # -------------------------------------------
 
-# TBD
+    class Breadcrumbs extends Backbone.View
+      initialize: (options = {}) ->
+        @template = Infra.templateLoader.getTemplate 'breadcrumbs-view'
+        @base =
+          name: "Explore"
+          class: ""
+          url: "/"
+        @crumbs =
+          path: []
+          tail: @base
+        @router = options.router or null
+        @router.on 'route:viewObject', @viewCrumbs
+        @router.on 'route:editObject', @editCrumbs
+        @router.on 'route:searchQuery', @queryCrumbs
+        @router.on 'route:searchTag', @tagCrumbs
+        @
+
+      viewCrumbs: (type, id) =>
+        @model.off 'change', @render, @ if @model?
+        @model = Backbone.ReferenceCache.resolve(type, id)
+        @model.on 'change', @render, @
+        view =
+            name: "View"
+            class: ""
+            url: "/view"
+        thetype =
+            name: type[0].toUpperCase() + type.slice(1)
+            class: ""
+            url: "/view/#{type.toLowerCase()}"
+        @crumbs.path = [@base, view, thetype]
+        @crumbs.tail =
+            name: @model.name()
+            class: "active"
+            url: "/view/#{type}/#{id}"
+        @render()
+
+      editCrumbs: (type, id) =>
+        @model.off 'change', @render, @ if @model?
+        @model = Backbone.ReferenceCache.resolve(type, id)
+        @model.on 'change', @render, @
+        view =
+            name: "Edit"
+            class: ""
+            url: "/edit"
+        thetype =
+            name: type[0].toUpperCase() + type.slice(1)
+            class: ""
+            url: "/edit/#{type.toLowerCase()}"
+        @crumbs =
+           path: [@base, view, thetype]
+           tail:
+             name: @model.name()
+             class: "active"
+             url: "/edit/#{type}/#{id}"
+        @render()
+
+      queryCrumbs: (query, page) =>
+        @crumbs.path = [ @base,
+            name: "Query"
+            class: ""
+            url: "/search/query"
+        ]
+        @crumbs.tail =
+           name: query
+           class: "active"
+           url: if page then "/search/query/#{query}/#{page}" else "/search/query/#{query}"
+        @render()
+
+      tagCrumbs: (tag) =>
+        @crumbs =
+          path: [@base,
+            name: "Tags"
+            class: ""
+            url: "/search/tag"
+          ]
+          tail:
+            name: tag
+            class: "active"
+            url: "#"
+        @render()
+
+      render: ->
+        @$el.html @template @crumbs
+        @
+
+      events:
+        'click a': 'navigate'
+
+      navigate: (event) =>
+        event.preventDefault()
+        link = $(event.currentTarget).attr('href')
+        @router.navigate link, { trigger: true, replace: true } if @router
+
 
 # Explorer Application
 # -------------------------------------------
@@ -291,8 +415,11 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/co
         @changeView @views[id]
 
       editObject: (type,id) =>
-        if not @editors[id]?
+        if _.isObject type
+           model = type
+        else
            model = Backbone.ReferenceCache.resolve type, id
+        if not @editors[id]?
            switch type
              when "experiment" then view = new ExperimentEdit
                 model: model
@@ -306,18 +433,20 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/co
         alert('not implemented')
 
       doSearch: (query, page) =>
-        @results.doQuery query, page
+        @results.doQuery query or "p", page
         @changeView @search
         @
 
       # View utilities
       changeView: (view) ->
-        @currentView.$el.detach() if @currentView
+        @currentView.off 'edit', @editObject if @currentView
         @currentView = view
+        @currentView.on 'edit', @editObject, @
         @render()
 
       render: ->
-        @$el.html @currentView.render().el if @currentView
+        @$el.children().detach()
+        @$el.append @currentView.render().el if @currentView
         @
 
     $(document).ready ->
@@ -325,12 +454,17 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/co
        window.Explore = new ExploreHome
          el: $('#explore')
 
+       crumbs = new Breadcrumbs
+          el: $('#crumbs')
+          router: window.Explore.router
+       crumbs.render()
+
        # Initialize navigation, resolve URL
        Backbone.history.start
             root: '/explore/'
             pushState: true
 
-
+       window.Explore.render()
 
 
 

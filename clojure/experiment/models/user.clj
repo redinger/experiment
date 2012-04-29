@@ -1,8 +1,10 @@
 (ns experiment.models.user
-  (:use noir.core
-	experiment.infra.models)
-  (:require [experiment.infra.session :as session]
-	    [experiment.infra.auth :as auth]))
+  (:use
+   noir.core
+   experiment.infra.models)
+  (:require
+   [experiment.infra.session :as session]
+   [experiment.infra.auth :as auth]))
 
 ;; USER
 ;; ---------------------------------
@@ -138,8 +140,12 @@
 (defn is-admin? []
   (has-permission? "admin"))
   
+(defn site-admins []
+  (list (get-user "eslick")))
 
-
+(defn site-admin-refs []
+  (map as-dbref (site-admins)))
+  
 ;; Generate Test Users
 ;; ------------------------
 

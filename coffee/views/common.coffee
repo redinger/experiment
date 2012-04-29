@@ -9,7 +9,8 @@ define ['jquery', 'models/infra', 'use!Handlebars', 'use!BackboneFormsBS', 'use!
 # ------------------------------
 
     class Common.ModalView extends Backbone.View
-      initialize: (opts) ->
+      initialize: (opts = {}) ->
+        @schema = opts.schema if opts.schema?
         @template = Infra.templateLoader.getTemplate 'modal-dialog-template'
         @
 
@@ -86,15 +87,26 @@ define ['jquery', 'models/infra', 'use!Handlebars', 'use!BackboneFormsBS', 'use!
 
 # Provide extra support for modal dialogs with form bodies
 
+    # ## Modal Form
+    #
+    # Provides a base class for modal form based widgets.  Fires
+    # 'form:accept', values, formObj and 'form:reject', formObj
+    #
+    # By default handles 'enter', and clicks on objects with class
+    # .accept, .reject
+    #
+    # Subclasses can override accept(), reject() and event handling
+    # Assumes superclass has set @schema prior to calling super()
     class Common.ModalForm extends Common.ModalView
-      initialize: ->
+      initialize: (options) ->
         super()
-        if @schema
+        if @schema or @schema = options.schema
            @makeForm @schema
            $('.templates').append @render().el
            @$el.css('display', 'none')
         else
            alert 'schema not initialized'
+        @
 
       makeForm: (schema, data) ->
         @form = new Backbone.Form
@@ -108,9 +120,26 @@ define ['jquery', 'models/infra', 'use!Handlebars', 'use!BackboneFormsBS', 'use!
         @form.setValue vals
         @
 
+      events:
+        'keyup': 'handleKey'
+        'click .accept': 'accept'
+        'click .reject': 'reject'
+
+      enterPressed: =>
+        @accept()
+
+      accept: =>
+        @hide()
+        @trigger 'form:accept', @form.getValue(), @form
+
+      reject: =>
+        @cancel()
+        @trigger 'form:reject', @form
+
       cancel: =>
         @clearForm()
         @hide()
+
 
 # Query parsing for internal javascript functions
     Common.extractParams = () ->

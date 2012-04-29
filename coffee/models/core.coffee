@@ -8,30 +8,63 @@
 define ['jquery', 'use!Backbone', 'models/infra', 'models/user'],
   ($, Backbone, Infra, UserSub) ->
 
+# ## Comments
+    class Comment extends Infra.Model
+      serverType: 'comment'
+
+    class Comments extends Infra.Collection
+      model: Comment
 
 # ## Treatments
     class Treatment extends Infra.Model
+      @implements Infra.Taggable
       serverType: 'treatment'
       defaults:
         'tags': []
         'comments': []
+
+      name: ->
+        @get('name')
 
     class Treatments extends Infra.Collection
       model: Treatment
 
 # ## Instruments
     class Instrument extends Infra.Model
+      @implements Infra.Taggable
       serverType: 'instrument'
+
+      name: ->
+        @get('variable')
+
+      track: (schedule) ->
+        tracker = theUser.trackers.create
+          type: "tracker"
+          user: theUser
+          instrument: @model
+          schedule: schedule
+        tracker.save()
+        @
+
+      untrack: ->
+        tracker = _.find theUser.trackers, (tracker) =>
+            tracker.instrument.id is @model.id
+        tracker.destroy()
+        @
 
     class Instruments extends Infra.Collection
       model: Instrument
 
 # ## Experiments
     class Experiment extends Infra.Model
+      @implements Infra.Taggable
       serverType: 'experiment'
       embedded:
-        treatment: ['reference', 'treatment']
+        treatment: ['reference', 'Treatment']
         instruments: ['references', 'Instruments']
+
+      name: ->
+        @treatment.get('name') if @treatment?
 
     class Experiments extends Infra.Collection
       model: Experiment
@@ -40,18 +73,23 @@ define ['jquery', 'use!Backbone', 'models/infra', 'models/user'],
     class Trial extends Infra.Model
       serverType: 'trial'
       embedded:
-        experiment: ['reference', 'experiment']
+        experiment: ['reference', 'Experiment']
 
     class Trials extends Infra.Collection
       model: Trial
+
+# ## Schedule
+    class Schedule extends Infra.Model
+      serverType: 'schedule'
 
 # ## Trackers
 
     class Tracker extends Infra.Model
       serverType: 'tracker'
       embedded:
-        user: ['reference', 'user']
-        instrument: ['reference', 'instrument']
+        user: ['reference', 'User']
+        instrument: ['reference', 'Instrument']
+        schedule: ['submodel', 'schedule']
 
     class Trackers extends Infra.Collection
       model: Tracker
@@ -60,7 +98,7 @@ define ['jquery', 'use!Backbone', 'models/infra', 'models/user'],
     class Journal extends Infra.Model
       serverType: 'journal'
       embedded:
-        user: ['reference', 'user']
+        user: ['reference', 'User']
 
     class JournalEntries extends Infra.Collection
       model: Journal
@@ -107,6 +145,7 @@ define ['jquery', 'use!Backbone', 'models/infra', 'models/user'],
       Instrument: Instrument
       Experiment: Experiment
       Trial: Trial
+      Schedule: Schedule
       Tracker: Tracker
       Suggestion: Suggestion
       UserPrefs: UserSub.UserPrefs

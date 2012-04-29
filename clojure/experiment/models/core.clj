@@ -1,7 +1,7 @@
 (ns experiment.models.core
-  (:use experiment.infra.models)
+  (:use experiment.infra.models
+        experiment.models.user)
   (:require
-   [clodown.core :as md]
    [experiment.models.trial :as trial]
    [experiment.libs.datetime :as dt]
    [experiment.infra.session :as session]))
@@ -29,15 +29,17 @@
     (and (every? (set (keys treat)) [:name :description])
 	 (every? #(or (nil? %1) (sequential? %1)) [comments warnings tags]))))
   
-(defmethod public-keys :treatment [treat]
-  [:_id :type
-   :name :tags :description :dynamics
-   :help :reminder :votes :warnings :comments])
-
 (defmethod server->client-hook :treatment [treat]
-;;  (if-let [desc (:description treat)]
-;;    (assoc treat :description-html (md/md desc))
-  treat)
+  (-> treat
+      (markdown-convert :description)))
+
+(defmethod public-keys :treatment [treat]
+  [:name :tags :description :description-html
+   :dynamics :help :reminder :votes :warnings :comments])
+
+(defmethod import-keys :treatment [treat]
+  [:description :name :reminder :help :tags])
+
 
 ;; INSTRUMENT [type ref]
 ;; -----------------------------------------------------------
@@ -47,6 +49,27 @@
 ;; -  has variable
 ;; -  has implementedp -- new instrument objects are requests
 ;; -  contains Comments
+
+(defmethod public-keys :instrument [treat]
+  [:variable :description :description-html :service :tags
+   :comments :owner :src])
+
+(defmethod import-keys :instrument [treat]
+  [:description :nicknames :tags])
+
+(defn has-tracker-for-inst [user inst]
+  (> (count
+      (filter #(and (dbref? %) (= (:_id inst) (.getId %)))
+              (map :instrument
+                   (vals (:trackers user)))))
+     0))
+
+(defmethod server->client-hook :instrument [inst]
+  (-> inst
+      (markdown-convert :description)
+      (owner-as-bool :owner :admins (site-admin-refs))
+      (assoc :tracked (has-tracker-for-inst (session/current-user) inst))))
+      
 
 
 ;; EXPERIMENT
@@ -89,12 +112,12 @@
 (defmethod public-keys :journal [model]
   [:date :date-str :sharing :short :content :annotation])
 
+(defmethod import-keys :journal [treat]
+  [:date :sharing :short :content :annotation])
+
 (defmethod server->client-hook :journal [model]
   (assoc model
     :date-str (dt/as-blog-date (:date model))))
-  
-(defmethod client->server-hook :journal [model]
-  (dissoc model :date-str))
 
 
 ;; COMMENT (embedded)

@@ -134,7 +134,8 @@ define ['models/infra', 'models/core', 'views/widgets', 'use!Bootstrap', 'use!Ba
       className: "service-view"
       initialize: (options) ->
         @config = options.config
-        if @config? and @config.oauth?
+        console.log @config
+        if @config? and @config.oauth? and @config.oauth
            @template = Infra.templateLoader.getTemplate "service-oauth-template"
         else
            @template = Infra.templateLoader.getTemplate "service-template"
@@ -210,10 +211,12 @@ define ['models/infra', 'models/core', 'views/widgets', 'use!Bootstrap', 'use!Ba
         @
 
       addSubView: (model) ->
-        view = new ServiceView
-          model: model
-          config: @registry[model.id]
-        @views.push view
+        config = @registry[model.id]
+        if config?
+          view = new ServiceView
+            model: model
+            config: @registry[model.id]
+          @views.push view
 
       # NOTE: Move to services model
       computeServiceList: () ->
