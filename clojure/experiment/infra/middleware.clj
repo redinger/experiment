@@ -47,11 +47,12 @@
    
 (defn- extract-json [req]
   (if-let [ctype (get-in req [:headers "content-type"])]
-    (if (and (string? ctype) (re-find #"application/json" ctype))
+    (if (and (string? ctype) (re-find #"application/json" ctype)
+             (not (get-in req [:params :json-payload])))
       (update-in req [:params] assoc :json-payload
                  (try
                    (let [serialized (slurp (:body req))]
-                     (println "Serialized: " serialized)
+;;                     (println "Serialized: " serialized)
                      (json/parse-string serialized true))
                    (catch java.lang.Throwable e
                      (log/error "Ignoring JSON payload"))))

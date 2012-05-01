@@ -31,18 +31,22 @@
   
 (defmethod server->client-hook :treatment [treat]
   (-> treat
-      (markdown-convert :description)))
+      (markdown-convert :description)
+      (owner-as-bool :owner :admins (site-admins))))
 
 (defmethod public-keys :treatment [treat]
-  [:name :description :description-html
+  [:name :description :description-html :owner
    :help :reminder
    :tags :comments
    :dynamics :votes :warnings])
 
 (defmethod import-keys :treatment [treat]
   [:name :description
-   :help :reminder
+   :help :reminder :dynamics
    :tags])
+
+(defmethod index-keys :treatment [treat]
+  [:name :description :tags])
 
 
 ;; INSTRUMENT [type ref]
@@ -59,7 +63,10 @@
    :comments :owner :src])
 
 (defmethod import-keys :instrument [treat]
-  [:description :nicknames :tags])
+  [:variable :description :tags])
+
+(defmethod index-keys :instrument [treat]
+  [:variable :description :tags :service])
 
 (defn has-tracker-for-inst [user inst]
   (> (count
@@ -90,6 +97,9 @@
 
 (defmethod db-reference-params :experiment [model]
   [:treatment :instruments])
+
+(defmethod index-keys :experiment [treat]
+  [:title :instructions :tags])
 
 ;; TRACKER
 ;; -----------------------------------------------------------
@@ -131,6 +141,13 @@
 ;; -  has downVotes
 ;; -  has title
 ;; -  has content
+
+(defmethod import-keys :journal [treat]
+  [:date :content])
+
+(defmethod server->client-hook :comment [model]
+  (assoc model
+    :date-str (dt/as-blog-date (:date model))))
 
 (defmethod make-annotation :comment [{:keys [text]}]
   (when (> (count text) 5)

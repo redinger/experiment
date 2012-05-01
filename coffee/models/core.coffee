@@ -26,6 +26,33 @@ define ['jquery', 'use!Backbone', 'models/infra', 'models/user'],
       name: ->
         @get('name')
 
+      schema:
+        name:
+          type: 'Text'
+          title: 'Title'
+          editorClass: 'input-xlarge'
+        description:
+          type: 'TextArea'
+          editorClass: 'input-xxlarge'
+          editorAttrs:
+            rows: '8'
+        reminder:
+          type: 'Text'
+          title: 'Text for Reminders'
+          editorClass: 'input-xxlarge'
+        dynamics:
+          type: 'Object'
+          title: 'Treatment Impact'
+          subSchema:
+            onset:
+              type: 'Number'
+              title: 'Onset period'
+              help: 'How many days from the start of the treatment until you see an effect?'
+            washout:
+              type: 'Number'
+              title: 'Washout period'
+              help: 'How many days after you stop treatment before you return to "normal"?'
+
     class Treatments extends Infra.Collection
       model: Treatment
 
@@ -51,6 +78,21 @@ define ['jquery', 'use!Backbone', 'models/infra', 'models/user'],
             tracker.instrument.id is @model.id
         tracker.destroy()
         @
+
+      schema:
+        variable:
+          type: 'Text'
+          title: 'Variable Name'
+          editorClass: 'input-large'
+        description:
+          type: 'TextArea'
+          editorClass: 'input-xxlarge'
+          editorAttrs:
+            rows: '8'
+        service:
+          type: 'Text'
+          title: 'Service Name'
+          editorClass: 'input-large'
 
     class Instruments extends Infra.Collection
       model: Instrument

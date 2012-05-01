@@ -36,6 +36,13 @@
           [:li {:class "active"}
            [:a {:href (% url)} (% name)]])])
 
+;; # Pagination
+
+(deftemplate pagination-view
+  [:ul
+   (%each this
+          [:li {:class (% class)} [:a {:href "#"} (% text)]])])
+
 ;; # Instrument Templates
 
 (deftemplate journal-page
@@ -113,6 +120,20 @@
                [:i.icon-remove.icon-white]]]
              ])]]])
             
+;; Related Objects List
+
+(deftemplate related-objects
+  [:div.related-objects
+   [:table.table
+    [:thead
+     [:th
+      [:td "Type"]
+      [:td "Name"]]]
+    [:tbody
+     (%each this
+            [:tr
+             [:td (% type)]
+             [:td (% name)]])]]])
 
 ;; TIMELINE
 
@@ -179,35 +200,59 @@
            [:span.label.label-info (% this)] "&nbsp;")]])
 
 (deftemplate treatment-view
-  [:div.treatment-view
+  [:div.treatment-view.object-view
    [:div.row
     [:div.page-header
      [:div.span7
       [:h1 (% name)]]
      [:div.span4
       [:span.pull-right
-       [:button.btn.btn-large.btn-primary.experiment "Experiment"]
-        (%if owner [:button.btn.btn-large.edit {:type "button"} "Edit"])
-       [:button.btn.btn-large.clone "Clone"]]]
+       [:button.btn.btn-large.btn-primary.experiment {:type "button"} "Experiment"]
+       (%if owner [:button.btn.btn-large.edit {:type "button"} "Edit"])
+       [:button.btn.btn-large.clone {:type "button"} "Clone"]]]
      [:div {:style "clear:both;"}]]]
    [:div.row
     [:div.span5
-     [:p [:b "Description"]]
+     [:p [:h3 "Protocol"]]
      [:p (%code description-html)]
-     [:p [:b "Outcomes"]]
-     [:p "instrument list..."]
+     [:p [:b "Behavior"]]
+     [:p
+      [:span "Onset period of " (% dynamics.onset) " days, &nbsp;"]
+      [:span "Washout period of " (% dynamics.washout) " days"]]
      [:p [:b "Tags "]
       [:a.add-tag {:href "#"} [:i.icon-plus-sign]]]
      [:p.tags
       (%each tags
-             [:span.label.label-info (% this)] "&nbsp;")]]
+             [:span.label.label-info (% this)] "&nbsp;")]
+     [:div#discuss]]
     [:div.span1 [:p]]
     [:div.span6
      ;; Related, Discussion
+     [:div#related]]
 ;;     [:div.row.conversations [:h2 "Conversations"]]
-;;     [:div.row.related [:h2 "Related"]]
-     ]]])
+     ]])
 
+(deftemplate treatment-editor
+  [:div.treatment-edit.object-editor
+   [:div.row
+    [:div.page-header
+     [:div.span7
+      (%if name [:h1 "Editing " (% name)])
+      (%unless name [:h1 "Create a new Treatment"])]
+     [:div.span4]
+     [:div {:style "clear:both"}]]]
+   [:div.row
+    [:div.span12
+     [:div#editForm]]]
+   [:div.row
+    [:div.span3 [:p]]
+    [:div.span5
+     [:button.btn.btn-large.btn-success.accept.pull-left
+      {:type "button"}
+      (%if name "Update")
+      (%unless name "Create")]
+     [:button.btn.btn-large.btn-danger.cancel.pull-right
+      {:type "button"} "Cancel"]]]])
 
 ;; INSTRUMENT
 
@@ -258,6 +303,25 @@
      ]]])
      
 
+(deftemplate instrument-editor
+  [:div.instrument-edit.object-editor
+   [:div.row
+    [:div.page-header
+     [:div.span7
+      [:h1 "Editing " (% variable) " -- " (% service)]]
+     [:div.span4]
+     [:div {:style "clear:both"}]]]
+   [:div.row
+    [:div.span12
+     [:div#editForm]]]
+   [:div.row
+    [:div.span3 [:p]]
+    [:div.span5
+     [:button.btn.btn-large.btn-success.accept.pull-left
+      {:type "button"} "Update"]
+     [:button.btn.btn-large.btn-danger.cancel.pull-right
+      {:type "button"} "Cancel"]]]])
+
 ;; EXPERIMENT
    
 (deftemplate experiment-list-view
@@ -278,15 +342,14 @@
        (% treatment.name)]]
      [:div.span3
       [:span.pull-right
-       [:span.btn-group
-        [:button.btn.btn-primary.btn-large.run {:type "button"} "Run"]
-        (%if owner [:button.btn.btn-large.edit {:type "button"} "Edit"])
-        [:button.btn.btn-large.clone {:type "button"} "Clone"]]]]
+       [:button.btn.btn-primary.btn-large.run {:type "button"} "Run"]
+       (%if owner [:button.btn.btn-large.edit {:type "button"} "Edit"])
+       [:button.btn.btn-large.clone {:type "button"} "Clone"]]]
      [:div {:style "clear:both;"}]]]
    [:div.row
     (%with treatment
       [:div.span5
-       [:p [:b "Description: "]
+       [:p [:b "Treatment"]
         [:p (%code description-html)]]
        [:p [:b "Tags: "]
         [:a.add-tag {:href "#"} [:i.icon-plus-sign]]]

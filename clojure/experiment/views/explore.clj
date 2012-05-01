@@ -37,7 +37,8 @@
   [:div {:class "well search-box"}
    [:div.pull-left
     (text-field {:class "search-query input-xxlarge"} "q" (% this))
-    [:button.btn {:type "button" :class "btn search-btn"} "Search"]]
+    [:button.btn {:type "button" :class "btn search-btn"} "Search"]
+    [:button.btn {:type "button" :class "btn help-btn"} "Help"]]
    [:div.pull-right
     [:div.btn-group
      [:a.btn.btn-primary.dropdown-toggle {:data-toggle "dropdown" :href "#"}
@@ -49,8 +50,8 @@
         "Experiment"]]
       [:li.menuitem
        [:a {:href "#" :class "action create-treatment"}
-        "Treatment"]]
-      [:li.menuitem
-       [:a {:href "#" :class "action create-instrument"}
-        "Instrument"]]]]]])
+        "Treatment"]]]]]])
+;;      [:li.menuitem
+;;       [:a {:href "#" :class "action create-instrument"}
+;;        "Instrument"]]]]]])
       

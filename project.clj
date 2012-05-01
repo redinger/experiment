@@ -11,6 +11,7 @@
    [congomongo "0.1.8"]
    [org.clojars.alexnixon/clucy "0.3.2-SNAPSHOT"]
    [swank-clojure "1.4.0"]
+   [clucy "0.3.0"]
    ;; Frameworks
    [noir "1.2.2"] ;; noir 1.3.0-beta2
    [quartz-clj "1.1.0-SNAPSHOT"]

@@ -45,7 +45,7 @@
 
 ;; ## CSS Libraries
 (defpartial include-css-libs []
-  (include-css "/css/bootstrap-cerulean.css")
+  (include-css "/css/bootstrap.css")
   (include-css "/css/override.css")
   (include-css "/css/autoSuggest.css")
   (include-css "/css/calendar.css")
@@ -72,11 +72,13 @@
 (defn nav-user-name [& [user]]
   (let [user (or user (session/current-user))]
     (or (:name user)
-        (and (:preferences.firstname user)
+        (and (get-in user [:preferences :firstname])
+             (get-in user [:preferences :lastname])
              (str (get-in user [:preferences :firstname])
                   " "
-                  (get-in user [:preferences :lastname])))
-        (:username user))))
+                  (get-in user [:preferences :lastname])
+                  " "))
+        (str (:username user) " "))))
 
 (defn- research-submenu []
   [{:name "Authoring Study" :href "/study1"}])

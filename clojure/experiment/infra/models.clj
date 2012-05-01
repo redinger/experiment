@@ -59,22 +59,10 @@
   (fn [model] (when-let [type (:type model)]
                 (keyword type))))
 
-(defmulti index-params
-  "Which parameters of the model should be indexed for
-   fulltext retrieval"
-  (fn [model] (when-let [type (:type model)]
-                (keyword type))))
-
 (defmulti model-collection 
   "Maps a model to a mongodb collection.  Embedded models
    are TBD, but I imagine we'll return a vector that includes
    the parent's collection + id + path"
-  (fn [model] (when-let [type (:type model)]
-                (keyword type))))
-
-(defmulti import-keys 
-  "Performs a select-keys on client data so we don't store
-   illegal client-side slots on the server."
   (fn [model] (when-let [type (:type model)]
                 (keyword type))))
 
@@ -84,6 +72,18 @@
   (fn [model] (when-let [type (:type model)]
                 (keyword type))))
   
+
+(defmulti import-keys 
+  "Performs a select-keys on client data so we don't store
+   illegal client-side slots on the server."
+  (fn [model] (when-let [type (:type model)]
+                (keyword type))))
+
+(defmulti index-keys 
+  "Performs a select-keys on client data so we don't store
+   illegal client-side slots on the server."
+  (fn [model] (when-let [type (:type model)]
+                (keyword type))))
 
 (defmulti server->client-hook
   "An optional function that is the identity fn by default which
@@ -125,9 +125,9 @@
   [model]
   [])
 
-(defmethod index-params :default
+(defmethod public-keys :default
   [model]
-  [:tags :description :name])
+  (keys model))
 
 (defmethod public-keys :default
   [model]
@@ -475,27 +475,6 @@
 (defmethod delete-model-hook :default
   [model]
   model)
-
-
-;; Indexing Models
-
-;;(defonce ft-index (clucy/memory-index))
-
-;;(defn search-models [string & [limit]]
-;;  (clucy/search ft-index string (or limit 10)))
-  
-;;(defn index-model [model]
-;;  (clucy/add ft-index
-;;             (with-meta (select-keys model (concat [:_id :type] (index-params model)))
-;;               (reduce (fn [field]
-;;                         {field {:stored false}})
-;;                       (index-params model)))))
-
-;;(defn index-all-models []
-;;  (alter-var-root #'ft-index (fn [old] (clucy/memory-index)))
-;;  (doall (map index-model (fetch-models :instrument)))
-;;  (doall (map index-model (fetch-models :treatment))) 
-;;  (doall (map index-model (fetch-models :experiment))))
 
 
 ;; Model CRUD API implementation

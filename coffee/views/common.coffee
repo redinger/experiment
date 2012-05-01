@@ -23,7 +23,7 @@ define ['jquery', 'models/infra', 'use!Handlebars', 'use!BackboneFormsBS', 'use!
       handleKey: (e) =>
         if e.which == 13
            e.preventDefault()
-           @enterPressed() if @enterPressed
+           @enterPressed() if @enterPressed?
 
 # ModalMessage is a singleton class for programmatically calling
 # a simple modal dialog

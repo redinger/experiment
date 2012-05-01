@@ -1,5 +1,5 @@
-define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/scheduling', 'views/common', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEditors'],
-  (Infra, Core, User, Widgets, Scheduling, Common) ->
+define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/journal', 'views/scheduling', 'views/common', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEditors'],
+  (Infra, Core, User, Widgets, Journal, Scheduling, Common) ->
 
 # Item Views
 # --------------------------------------------
@@ -15,6 +15,17 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/sc
           , @
         @tagDialog.show()
 
+      render: ->
+        if @model.isLoaded()
+           @$el.html @template @model.toTemplateJSON()
+           @renderAux() if @renderAux?
+        else if not @model._loading
+           @model.fetch()
+        @
+
+      edit: =>
+        @trigger 'nav:edit', @model
+
 
 #
 # Experiments
@@ -25,15 +36,10 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/sc
         @model.on 'change', @render, @
         @
 
-      render: ->
-        if @model.isLoaded()
-           @$el.html @template @model.toTemplateJSON()
-        else if not @model._loading
-           @model.fetch()
-        @
-
       events:
         'click .add-tag': 'addTags'
+        'click .edit': 'edit'
+
 
 #
 # Treatments
@@ -44,17 +50,17 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/sc
       initialize: (options) ->
         @template = Infra.templateLoader.getTemplate 'treatment-view'
         @model.on 'change', @render, @
+        @jview = new Journal.View
+            model: @model
         @
 
-      render: ->
-        if @model.isLoaded()
-           @$el.html @template @model.toTemplateJSON()
-        else if not @model._loading
-           @model.fetch()
+      renderAux: ->
+        @$('#journal').html @jview.render().el
         @
 
       events:
         'click .add-tag': 'addTags'
+        'click .edit': 'edit'
 
 
 #
@@ -66,13 +72,6 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/sc
       initialize: (options) ->
         @template = Infra.templateLoader.getTemplate 'instrument-view'
         @model.on 'change', @render, @
-        @
-
-      render: ->
-        if @model.isLoaded()
-           @$el.html @template @model.toTemplateJSON()
-        else if not @model._loading
-           @model.fetch()
         @
 
       events:
@@ -88,15 +87,84 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/sc
       untrack: (event) =>
         @model.untrack()
 
-      edit: (event) =>
-        @trigger 'edit', @model
-
-
-
 
 # Item Creators
 # --------------------------------------------
 
+    treatmentFieldsets = [
+      legend: "Content"
+      fields: ['name', 'description', 'reminder']
+    ,
+      legend: "Treatment Information"
+      fields: ['dynamics']
+    ]
+
+    # ## Treatment
+    class TreatmentEdit extends Backbone.View
+      initialize: (options) ->
+        alert('Treatment editor requires treatment object, got ' + @model.get('type')) if @model.get('type') is not 'treatment'
+        @model.on 'change', @render, @
+        @template = Infra.templateLoader.getTemplate 'treatment-editor'
+        @form = new Backbone.Form
+            model: @model
+            fieldsets: treatmentFieldsets
+        @
+
+      render: ->
+        @$el.html @template @model.toTemplateJSON()
+        @$('#editForm').html @form.render().el
+        @
+
+      events:
+        'click .cancel': 'cancel'
+        'click .accept': 'accept'
+
+      cancel: =>
+        if @model.name()?
+          @trigger 'nav:view', @model
+        else
+          @trigger 'nav:search'
+
+      accept: =>
+        errors = @form.commit();
+        if not errors
+           @model.save()
+           @trigger 'nav:action', 'view', @model
+
+
+    # ## Instrument
+    class InstrumentEdit extends Backbone.View
+      initialize: (options) ->
+        alert('Treatment editor requires treatment object, got ' + @model.get('type')) if @model.get('type') is not 'treatment'
+        @model.on 'change', @render, @
+        @template = Infra.templateLoader.getTemplate 'instrument-editor'
+        @form = new Backbone.Form
+            model: @model
+        @
+
+      render: ->
+        @$el.html @template @model.toTemplateJSON()
+        @$('#editForm').html @form.render().el
+        @
+
+      events:
+        'click .cancel': 'cancel'
+        'click .accept': 'accept'
+
+      cancel: =>
+        if @model.name()?
+          @trigger 'nav:view', @model
+        else
+          @trigger 'nav:search'
+
+      accept: =>
+        errors = @form.commit();
+        if not errors
+           @model.save()
+           @trigger 'nav:view', 'view', @model
+
+
+    # ## EXPERIMENT
     class ExperimentEdit extends Backbone.View
       initialize: (options) ->
         @template = Infra.templateLoader.getTemplate 'experiment-editor'
@@ -110,15 +178,6 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/sc
         @
 
 
-    class TreatmentEdit extends Backbone.View
-      initialize: (options) ->
-        @template = Infra.templateLoader.getTemplate 'experiment-editor'
-        @
-
-      render: ->
-        @$el.html @template @model.toTemplateJSON()
-        @
-
     class ScheduleSchemaCreator extends Backbone.View
 
     class ScheduleInstantiator extends Backbone.View
@@ -130,12 +189,14 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/sc
     # Search results model
     class SearchResults extends Backbone.Collection
       initialize: (options) ->
+        @total = 0
         @query = ""
         @page = 1
+        @pages = 1
         if options? and options.pagesize?
            @size = options.pagesize
         else
-           @size = 10
+           @size = 5
         @
 
       reset: (results, options) ->
@@ -145,18 +206,38 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/sc
         @
 
       doQuery: (query, page) ->
+        @last = 'query'
         @query = query or @query
+        if @query.length is 0
+           @query = 'show treatments'
         @page = page or @page or 1
         offset = (@page - 1) * @size
-        $.ajax "/api/search/#{@query}/#{@size}/#{offset}",
+        $.ajax "/api/search/query/#{@query}/#{@size}/#{offset}",
           context: @
           success: (results) =>
-            @reset results
+            @total = results.hits
+            @pages = Math.ceil(@total / @size)
+            @trigger 'search:pagecount', @pages
+            @reset results.models
+
+      doTagQuery: (tag, page) ->
+        @last = 'tag'
+        @query = tag or @query
+        @page = page or @page or 1
+        offset = (@page - 1) * @size
+        $.ajax "/api/search/tag/#{@query}/#{@size}/#{offset}",
+          context: @
+          success: (results) =>
+            @total = results.hits
+            @pages = Math.ceil(@total / @size)
+            @trigger 'search:pagecount', @pages
+            @reset results.models
 
     # Single result view, multiple types
     class ResultView extends Backbone.View
       attributes:
         class: 'search-result'
+
       initialize: (options) ->
         @template = Infra.templateLoader.getTemplate switch @model.get('type')
               when "experiment" then 'experiment-list-view'
@@ -173,16 +254,13 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/sc
         @
 
       events: ->
-        'click a': 'viewObject'
+        'click a': 'view'
 
-      viewObject: (event) =>
+      view: (event) =>
         event.preventDefault()
         id = $(event.currentTarget).attr('data-id')
-        object = Backbone.ReferenceCache.resolve null, id
-        link = "/view/" + object.get('type') + "/" + id
-        window.Explore.router.navigate link,
-          trigger: true
-
+        model = Backbone.ReferenceCache.resolve null, id
+        @trigger 'nav:view', @model
 
     # Result page and handlers
     class SearchPage extends Backbone.View
@@ -190,6 +268,10 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/sc
       initialize: (options) ->
         # View maintenance and rendering
         @template = Infra.templateLoader.getTemplate 'search-header'
+        @pagination = new Widgets.Pagination()
+        @pagination.on 'pagination:change', (page) ->
+          @trigger 'pagination:change', page
+        , @
         @views = []
 
         # Result objects
@@ -200,26 +282,33 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/sc
 
       # MODEL EVENTS
       updateViews: () =>
-        # Update query box
+        # Update header views
         @$('.search-query').val([@results.query])
-        @renderViews()
+        @pagination.changePage @results.page, @results.pages
+        # Render our results
+        @renderResults()
 
       # RENDERING
       render: ->
         # Render or update search bar
         if @$('.search-query').length == 0
            @$el.append @template @query
+           @$el.append @pagination.render().el
         @
 
-      renderViews: ->
+      renderResults: ->
         # Remove if exist
-        _.each @views, (view) -> view.remove()
+        _.each @views, (view) ->
+           view.remove()
         # Create new
         @views = @results.map (model) ->
            new ResultView
              model: model
         # Render new
         _.each @views, (view) =>
+           view.on 'all', (action, model) ->
+             @trigger action, model
+           , @
            @$el.append view.render().el
         @
 
@@ -227,6 +316,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/sc
       events:
         'keyup': 'handleKey'
         'click .search-btn': 'submitQuery'
+        'click .help-btn': 'showHelp'
 
       handleKey: (event) =>
         if event.which is 13
@@ -238,9 +328,14 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/sc
       submitQuery: (event) =>
         event.preventDefault()
         query = @$('input').val() or ""
-        window.Explore.router.navigate '/search/query/' + query,
-          trigger: true
+        @trigger 'nav:search', query
         true
+
+      showHelp: (event) =>
+        Common.modalMessage.showMessage
+          header: "Search Help"
+          message: "To see different types of objects: 'show <type>' where type can be instrument, treatment, or experiment.<br>
+      To filter by a given treatment: 'using <treatment keyword>'"
 
 
 
@@ -261,11 +356,32 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/sc
           'search/tag/:tag/p:page': 'searchTag'
           'view/:type/:id': 'viewObject'
           'edit/:type/:id': 'editObject'
-          'edit/:type/': 'createObject'
+          'edit/:type': 'createObject'
           'start/:id': 'startTrial'
 
       selectDefault: (data) =>
           @navigate @default, {trigger: true, replace: true} if @default?
+
+      navQuery: (query, page) ->
+          @navigate "/search/query/#{query}/p#{page}",
+            trigger: true
+
+      navTag: (tag, page) ->
+          @navigate "/search/tag/#{tag}/p#{page}",
+            trigger: true
+
+      navEditModel: (model) ->
+          @navigate "/edit/#{model.get('type')}/#{model.id}",
+            trigger: true
+
+      navCreateModel: (type) ->
+          @navigate "/edit/#{type}"
+            trigger: true
+
+      navViewModel: (model) ->
+          @navigate "/view/#{model.get('type')}/#{model.id}",
+            trigger: true
+
 
 # Explorer Breadcrumbs
 # -------------------------------------------
@@ -283,6 +399,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/sc
         @router = options.router or null
         @router.on 'route:viewObject', @viewCrumbs
         @router.on 'route:editObject', @editCrumbs
+        @router.on 'route:createObject', @editCrumbs
         @router.on 'route:searchQuery', @queryCrumbs
         @router.on 'route:searchTag', @tagCrumbs
         @
@@ -308,8 +425,11 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/sc
 
       editCrumbs: (type, id) =>
         @model.off 'change', @rerenderObj, @ if @model?
-        @model = Backbone.ReferenceCache.resolve(type, id)
-        @model.on 'change', @rerenderObj, @
+        if type? and id?
+          @model = Backbone.ReferenceCache.resolve(type, id)
+          @model.on 'change', @rerenderObj, @
+        else
+          @model = null
         view =
             name: "Edit"
             class: ""
@@ -321,7 +441,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/sc
         @crumbs =
            path: [@base, view, thetype]
            tail:
-             name: @model.name()
+             name: if @model? then @model.name() else "Create"
              class: "active"
              url: "/edit/#{type}/#{id}"
         @render()
@@ -379,6 +499,8 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/sc
         @results = new SearchResults()
         @search = new SearchPage
           results: @results
+        @search.on 'pagination:change', @changeSearchPage, @
+        @search.on 'all', @viewAction, @
         @currentView = @search
 
         # Change views based on router events
@@ -386,22 +508,52 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/sc
           default: 'search/query'
         @router.on 'route:viewObject', @viewObject
         @router.on 'route:editObject', @editObject
+        @router.on 'route:createObject', @editObject
         @router.on 'route:startTrial', @startTrial
         @router.on 'route:searchQuery', @doSearch
-        @router.on 'route:searchTag', @doSearch
+        @router.on 'route:searchTag', @doTagSearch
+        @
+
+      render: ->
+        @$el.children().detach()
+        @$el.append @currentView.render().el if @currentView
         @
 
       # Common events
       events:
         'click .tags .label': 'searchTagClick'
+        'click .create-experiment': 'createExp'
+        'click .create-treatment': 'createTreat'
 
       # Common UI event handlers
       searchTagClick: (event) =>
         event.preventDefault()
         tag = $(event.currentTarget).text()
-        link = "/search/tag/" + tag
-        window.Explore.router.navigate link,
-          trigger: true
+        @router.navTag tag, 1
+
+      createExp: (event) =>
+        @router.navCreateModel('experiment')
+
+      createTreat: (event) =>
+        @router.navCreateModel('treatment')
+
+      # Managing view and view navigation actions
+      changeView: (view) ->
+        @currentView.off 'all', @viewAction if @currentView
+        @currentView = view
+        @currentView.on 'all', @viewAction, @
+        @render()
+
+      viewAction: (action, object, arg) ->
+        if action is 'nav:edit'
+           @router.navEditModel object
+        else if action is 'nav:view'
+           @router.navViewModel object
+        else if action is 'nav:search'
+           @router.navQuery object or "", arg or 1
+
+      changeSearchPage: (page) ->
+        @viewAction 'nav:search', @results.query, page
 
       # Route Event handlers
       viewObject: (type,id) =>
@@ -414,44 +566,48 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/sc
                 model: model
              when "instrument" then view = new InstrumentView
                 model: model
-             else alert('error, type ' + type + ' not recognized')
+             else alert('Error: type ' + type + ' not recognized')
            @views[id] = view
         @changeView @views[id]
 
-      editObject: (type,id) =>
+      editObject: (type, id) =>
         if _.isObject type
            model = type
-        else
+        else if type? and id?
            model = Backbone.ReferenceCache.resolve type, id
-        if not @editors[id]?
-           switch type
+        else if type?
+           model = new (Backbone.ReferenceCache.lookupConstructor(type))
+           model.set('type', type)
+        else
+           alert 'Error, cannot edit unless type is provided'
+        view = @editors[type]
+        if not view?
+           switch model.get('type')
              when "experiment" then view = new ExperimentEdit
+                model: model
+             when "instrument" then view = new InstrumentEdit
                 model: model
              when "treatment" then view = new TreatmentEdit
                 model: model
-             else alert('error, type ' + type + ' not recognized')
-           @editors[id] = view
-        @changeView @editors[id]
+             else alert('Error: type ' + model.get('type') + ' not recognized')
+           @editors[type] = view
+        else
+           view.model = model
+        @changeView view
 
       startTrial: (id) =>
         alert('not implemented')
 
       doSearch: (query, page) =>
-        @results.doQuery query or "p", page
+        @results.doQuery query or "", page or 1
         @changeView @search
         @
 
-      # View utilities
-      changeView: (view) ->
-        @currentView.off 'edit', @editObject if @currentView
-        @currentView = view
-        @currentView.on 'edit', @editObject, @
-        @render()
-
-      render: ->
-        @$el.children().detach()
-        @$el.append @currentView.render().el if @currentView
+      doTagSearch: (tag, page) =>
+        @results.doTagQuery tag or "", page or 1
+        @changeView @search
         @
+
 
     $(document).ready ->
        # Create the main app body
@@ -489,300 +645,3 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/sc
 
 
 
-
-
-
-
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # OLD MODELS AND VIEWS!!!
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    # -----------------------------
-    #   NLP Filter Box
-    # -----------------------------
-
-    # The BB Model for the current filter state
-    class SearchFilterModel extends Backbone.Model
-
-    # Configuration for the autocomplete
-    searchSuggestDefaults =
-       startText: 'What are you looking for?'
-       keyDelay: 200
-       resultsHighlight: false
-       neverSubmit: true
-       retrieveLimit: 20
-       selectedValuesProp: 'value'
-       selectedItemProp: 'title'
-       searchObjProps: 'trigger,title,search'
-       resultsHighlight: false
-
-    # The UI View for the filter state, handles autocomplete for phrases
-    class SearchFilterView extends Backbone.View
-#      @implements TemplateView
-      initialize: ->
-            @model = App.searchFilter or= new SearchFilterModel
-            @initTemplate '#search-filter'
-
-      update: (elt) =>
-            results = $('input.as-values').attr('value').split(',').filter( (x) ->
-                    x.length > 1 )
-            @model.set filters: results
-
-      removeUpdate: (elt) =>
-            elt.remove()
-            @update()
-
-      allObjects: ->
-            App.Suggestions.toJSON()
-
-      render: =>
-            @inlineTemplate()
-            @
-
-      finalize: =>
-            defaults = searchSuggestDefaults
-            defaults.selectionAdded = @update
-            defaults.selectionRemoved = @removeUpdate
-            @$el.find('#search-filter-input').autoSuggest @allObjects(), defaults
-            $('input.as-values').attr('value', ',')
-
-    # Help Dialog
-      events:
-            'click a.help-link': 'showHelpDialog'
-
-      showHelpDialog: (e) ->
-            e.preventDefault()
-            root.renderDialog "Search Help", "Type 'show X' to filter by experiment"
-
-
-    # -----------------------------
-    #   NLP filter list according to selected tags
-    # -----------------------------
-
-    # Views for individual models
-    # - requires @model and @parent to be valid
-    class SearchItemView extends Backbone.View
-      className: 'search-list-item'
-      initTemplate: ->
-            @template = @parent.lookupTemplate @model
-
-      initialize: ->
-            @parent = @options.parent
-            @initTemplate()
-            @
-
-      events:
-            'mouseover': 'inspect'
-            'click': 'viewModel'
-
-      render: =>
-            @$el.html @template @model.toJSON()
-            @
-
-      inspect: =>
-            App.socialView.setContext @model
-
-      viewModel: =>
-            App.socialView.setContext @model
-            type = @model.get 'type'
-            id = @model.id
-            App.router.navigate "search/#{ type }/#{ id }", true
-
-    #
-    # The UI View for the filtered object set
-    #
-    class SearchListView extends Backbone.View
-      # State
-      limit: 20
-
-      # View configuration and setup
-      className: 'search-list'
-
-      subviews:
-            experiment: '#experiment-list-view'
-            treatment: '#treatment-list-view'
-            instrument: '#instrument-list-view'
-
-      buildTemplates: ->
-            results = {}
-            _.map @subviews, (id, type) ->
-                    results[type] = Handlebars.compile $(id).html()
-            results
-
-      lookupTemplate: (model) ->
-            type = model.get 'type'
-            @templates[type]
-
-      initialize: ->
-            @views = []
-            @templates = @buildTemplates()
-            # Handle search bar changes
-            @model.on('change', @updateModels)
-            # Handle new models
-            @models = new Backbone.Collection
-            @models.on('reset', @updateView)
-            @updateModels() # called when new filters added
-            @
-
-      # Handling changes
-      allModels: ->
-             App.Experiments.models.concat App.Treatments.models.concat App.Instruments.models
-
-      selectModels: (selects) ->
-            selects or= []
-            if selects.length == 0
-                    models = @allModels()
-                    @models.reset models
-            else
-                    $.get "/api/fsearch?query=#{ selects }&limit=#{ @limit }",
-                          {},
-                          ( refs, status, jqxhr ) =>
-                              @models.reset App.lookupModels refs
-
-      updateModels: =>
-            filters = @model.get 'filters'
-            @selectModels filters
-
-
-
-      # Rendering current result list
-      asItemView: (model) =>
-            new SearchItemView
-                    model: model
-                    parent: this
-
-      updateView: =>
-            @views = _.map(@models.models, @asItemView)
-            @render()
-
-      render: =>
-            @$el.empty()
-            @$el.append view.render().el for view in @views
-            @
-
-      finalize: ->
-            view.delegateEvents() for view in @views
-
-    class SearchView extends Backbone.View
-#      @implements TemplateView
-      className: "search-view"
-      initialize: ->
-            @filterView = new SearchFilterView
-            @filterView.render()
-            @listView = new SearchListView
-                    model: @filterView.model
-            @listView.render()
-
-      show: ->
-            @$el.show()
-      hide: ->
-            @$el.hide()
-
-      render: =>
-            @$el.append @filterView.el
-            @$el.append @listView.el
-            @
-
-      finalize: =>
-            @filterView.finalize()
-            @listView.finalize()
-
-    #
-    # SINGLE OBJECT VIEW
-    #
-    class ObjectView extends Backbone.View
-#      @implements TemplateView
-      className: "object-view"
-      viewMap:
-            experiment: '#experiment-view'
-            treatment: '#treatment-view'
-            instrument: '#instrument-view'
-      templateMap: {}
-      initialize: ->
-            try
-                    _.map @viewMap, (id, type) =>
-                            @templateMap[type] = Handlebars.compile $(id).html()
-            catch error
-                    alert 'Failed to load object view templates'
-
-      # Actions
-      show: ->
-            @$el.show()
-
-      hide: ->
-            @$el.hide()
-
-      setModel: (model) =>
-            @model = model
-            @render()
-
-      # Rendering
-      render: =>
-            @$el.empty()
-            @$el.append "<span class='breadcrumb'><a href='search'>Search</a> -> <a href='search'>#{ @model.attributes.type }</a> -> <a href='search/#{ @model.attributes.type }/#{ @model.attributes.id }'>#{ @model.attributes.name }</a></span>" if @model
-            @$el.append "<span class='breadcrumb'><a  href='search'>Search</a></span>" unless @model
-            @$el.append @templateMap[@model.get 'type'] @model.toJSON() if @model
-            if @model
-                App.socialView.setContext @model
-                App.socialView.setEdit true
-            @
-
-      finalize: =>
-            @delegateEvents()
-
-      # Events
-      events:
-            'click .run': 'startExperiment'
-
-      startExperiment: (e) =>
-            e.preventDefault()
-            root.renderDialog "Configure Experiment", "Placeholder Dialog pending Forms Package"
-
-    # ----------------------------------------
-    #  Main browser window - rarely refreshed
-    # ----------------------------------------
-    class SearchPane extends Backbone.View
-#      @implements TemplateView, SwitchPane
-      id: 'search'
-      initialize: ->
-            @search = new SearchView
-            @search.render()
-            @view = new ObjectView
-            @
-
-      # Dispatch object
-      dispatchObject: (ref) =>
-               models = App.lookupModels [ ref ]
-               if models.length > 0
-                    @view.setModel models[0]
-                    document.name = models[0].get 'name'
-                    return true
-               else
-                    alert "no model found for #{ ref }" unless models
-                    App.router.navigate "search", true
-                    return false
-
-      # Dispatch view type
-      dispatch: (path) =>
-            if @$el.children().size() == 0
-               @render()
-
-            ref = path.split("/") if path
-            if ref and ref.length = 2
-               if @dispatchObject(ref)
-                  @search.hide()
-                  @view.show()
-            else
-               @search.show()
-               @view.hide()
-            @
-
-      render: =>
-            @$el.empty()
-            @$el.append @search.render().el
-            @$el.append @view.render().el
-            @search.finalize()
-            @view.finalize()
-            @
-
-    {}

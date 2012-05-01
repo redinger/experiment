@@ -1,15 +1,18 @@
 (ns experiment.models.suggestions
-  (:require [somnium.congomongo :as mongo]
-	    [noir.response :as response]
-	    [noir.request :as request]
-	    [clojure.string :as str]
-        [cheshire.core :as json])
+  (:use
+   noir.core
+   experiment.infra.models 
+   experiment.infra.api
+   [experiment.models.core]
+   [experiment.models.user])
   (:import [org.bson.types ObjectId])
-  (:use noir.core
-	experiment.infra.models 
-	experiment.infra.api
-	[experiment.models.core]
-	[experiment.models.user]))
+  (:require
+   [somnium.congomongo :as mongo]
+   [noir.response :as response]
+   [noir.request :as request]
+   [clojure.string :as str]
+   [cheshire.core :as json]
+   [experiment.libs.fulltext :as ft]))
 
 ;;
 ;; This file generates a dictionary of autoSuggest objects which
@@ -166,51 +169,85 @@
 
 (defpage filtered-search "/api/fsearch" {:keys [query limit]}
   (let [filters (str/split query #",")]
-    (println filters)
     (response/json
      (vec
       (map model->client-ref
 	   (filter-models filters))))))
 
-(defn term-search-clauses [key terms]
-  (map (fn [term]
-         {key (re-pattern term)})
-       terms))
+;;
+;; New Style Search
+;; -----------------------------------
 
-;;(defn phrase-search-clauses [key terms]
-;;  [{:$in (re-pattern term)}
+;; ## Special constraints on search
 
-(defpage search "/api/search/:q/:n/:skip" {:keys [q n skip]}
-  (let [terms (vec (str/split q #" "))
-        n (Integer/parseInt (or n "10"))
+(defn trim-plural [string]
+  (if (= (last string) \s)
+    (.substring string 0 (- (count string) 1))
+    string))
+
+(def constraint-exprs
+  [[:type "show" trim-plural]
+   [:tags "for"]
+   [:treatment "with"]
+   [:service "using"]])
+
+(defn- match-prefix [term arg]
+  (some (fn [[field prefix pfn]]
+          (when (= term prefix)
+            {field ((or pfn identity) arg)}))
+        constraint-exprs))
+
+(defn- parse-query-map [query]
+  (if (= query "*")
+    {:type "treatment"}
+    (loop [terms (str/split query #" ")
+           cmap {}
+           default-query ""]
+      (if (< (count terms) 2)
+        (assoc cmap
+          :default (str/trim (str/join " " (cons default-query terms))))
+        (if-let [constraint (match-prefix (first terms) (second terms))]
+          (recur (drop 2 terms) (merge cmap constraint) default-query)
+          (recur (drop 1 terms) cmap (str/join " " [(first terms) default-query])))))))
+
+(defn search-response [result-map]
+  (response/json
+   (dissoc
+    (update-in result-map
+               [:models] (comp vec server->client))
+    :results)))
+
+(defpage query-srch "/api/search/query/:q/:n/:skip" {:keys [q n skip]}
+  (let [n (Integer/parseInt (or n "10"))
         skip (Integer/parseInt (or skip "0"))]
-    (if (> (count terms) 0)
-      (let [es (mongo/fetch :experiment
-                      :limit n :skip skip
-                      :where {:$or
-                              (vec
-                               (concat [{:tags {:$in terms}}]
-                                       (term-search-clauses :title terms)))})
-            is (mongo/fetch :instrument
-                        :limit n :skip skip
-                        :where {:$or
-                                (vec
-                                 (concat [{:tags {:$in terms}}
-                                          {:variable {:$in terms}}
-                                          {:nicknames {:$in (map re-pattern terms)}}]
-                                         (term-search-clauses :description terms)))})
-            ts (mongo/fetch :treatment
-                        :limit n :skip skip
-                        :where {:$or
-                                (vec
-                                 (concat [{:tags {:$in terms}}]
-                                         (term-search-clauses :description terms)))})
-            results (server->client (take n (concat es ts is)))]
-        (response/json results))
-      (response/json
-       (server->client
-        (mongo/fetch :experiment
-                     :limit (or n 10)
-                     :skip (or skip 0)))))))
+    (search-response
+     (ft/search (parse-query-map q) :size n :skip skip))))
+    
+(defpage tag-srch "/api/search/tag/:q/:n/:skip" {:keys [q n skip]}
+  (let [n (Integer/parseInt (or n "10"))
+        skip (Integer/parseInt (or skip "0"))]
+    (search-response
+     (ft/search {:tags q} :size n :skip skip))))
 
 ;; RELATED OBJECTS (Treatment->Experiments, Outcomes)
+
+(defn fetch-related [type dbref]
+  (case type
+    "treatment"
+    (fetch-models :experiment {:treatment dbref})
+    "experiment"
+    (let [model (.fetch dbref)]
+      (fetch-models :experiment
+                    {:$or [{:treatment (:treatment model)}
+                           {:instruments {:$in (:instruments model)}}]}))
+    "instrument"
+    (fetch-models :experiment {:instruments dbref})))
+
+(defpage related "/api/search/related/:type/:sid" {:keys [type id]}
+  (let [oid (deserialize-id id)
+        ref (as-dbref type oid)]
+    (let [results (fetch-related type ref)]
+      (search-response
+       {:models results
+        :hits (count results)}))))
+                                                      

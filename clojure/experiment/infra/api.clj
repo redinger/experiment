@@ -6,7 +6,8 @@
    [clojure.string :as str]
    [cheshire.core :as json]
    [noir.response :as response]
-   [noir.request :as request]))
+   [noir.request :as request]
+   [experiment.libs.fulltext :as ft]))
 
 ;; ## Be clear about what methods are content pages and which are APIs
 
@@ -19,21 +20,6 @@
 ;;
 ;; Utilities
 ;;
-
-(defn- vec-valued-slots
-  "Return a map consisting of key-value pairs where
-   the value is a vector sequence object"
-  [map]
-  (into {} (filter (fn [[k v]] (if (vector? v) [k v] nil)) map)))
-
-(defn- update-and-diff [new-model]
-  (let [signature (select-keys new-model [:_id :type])
-        old-model (fetch-model signature)
-        [update result] 
-        (map (partial merge signature)
-             (take 2 (data/diff new-model old-model)))]
-    [(merge update (vec-valued-slots new-model))
-     result]))
 
 ;; Convenience for setting kv-pairs at an interior point in a document
 (defn modify-response [write]
@@ -63,7 +49,8 @@
   {:keys [type json-payload]}
   (server->client 
    (try
-     (create-model! (new-client->server (assoc json-payload :type type)))
+     (doto (create-model! (new-client->server (assoc json-payload :type type)))
+       ft/index)
      (catch java.lang.Throwable t
        (response/status
         400
@@ -79,16 +66,13 @@
 
 (defapi backbone-api-update-model [:put "/api/root/:type/:id"]
   {:keys [type id json-payload]}
-  (println "Processing Update Model")
-  (println json-payload)
   (let [new-model (client->server json-payload)
-        _ (println new-model)
-        _ (assert (= (deserialize-id id) (:_id new-model)))
-        [to-update to-return] (update-and-diff new-model)]
-    (let [result (update-model! to-update)]
-      (if (string? result) ;; error?
-        {}
-        (server->client to-return)))))
+        result (update-model! new-model)]
+    (if (string? result) ;; error?
+      {}
+      (server->client
+       (doto (fetch-model (:type new-model) {:_id (:_id new-model)})
+         ft/index)))))
 
 ;; Read - GET
 (defapi backbone-api-read-all [:get "/api/root/:type"]
@@ -105,11 +89,15 @@
 ;; Delete - DELETE
 (defapi backbone-api-delete-id [:delete "/api/root/:type/:id"]
   {:keys [type id]}
-  (delete-model! {:type type :_id (deserialize-id id)}))
+  (doto {:type type :_id (deserialize-id id)}
+    ft/delete
+    delete-model!))
 
 (defapi backbone-api-delete-model [:delete "/api/root/:type"]
   {:keys [type json-payload]}
-  (delete-model! (client->server json-payload)))
+  (doto (client->server json-payload)
+    ft/delete
+    delete-model!))
 
 
 ;; ----------------------------
@@ -140,7 +128,9 @@
                      (assoc json-payload
                        :submodel true)))]
       (server->client
-       (create-submodel! parent location submodel)))))
+       (let [model (create-submodel! parent location submodel)]
+         (ft/index model)
+         model)))))
 
 ;; ### GET Submodel 
 (defapi backbone-sub-api-read [:get "/api/embed/:mtype/:mid/*"]

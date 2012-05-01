@@ -9,6 +9,7 @@
    [experiment.infra.session :as session]
    [experiment.libs.sms :as sms]
    [experiment.libs.properties :as props]
+   [experiment.libs.fulltext :as ft]
    [experiment.models.events :as events]
    [experiment.models.trackers :as track]
    [somnium.congomongo :as mongo]
@@ -70,6 +71,9 @@
    (mongo/make-connection
     (props/get :db.name) {} mongo-options))
 
+  ;; Indexing setup
+  (ft/start)
+  
   ;; Setup logging
   (let [mode (keyword (or mode (props/get :mode) :dev))]
     (if (= mode :dev)
