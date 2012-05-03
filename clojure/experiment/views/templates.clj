@@ -181,23 +181,25 @@
 	    [:p (%with stats
 		       (%str "Run for " (% elapsed) " days with " (% remaining) " days remaining"))]])]])
 
-
-;; TREATMENT
-
 (defn tag-list []
   [:div.tags
    (%each tags
     [:span.label.label-info (% this)] "&nbsp;")])
-  
+
+;; TREATMENT
 
 (deftemplate treatment-list-view
   [:div.result.treatment-list-view
    [:h3 [:a.title {:href "#" :data-id (% id)} ;; (%str "/explore/view/" (% type) "/" (% id)) }
-         [:i.icon-screenshot] " " (% name)]]
+         [:i.icon-play] " " (% name)]]
    [:p (% description)]
    [:div.tags
     (%each tags
            [:span.label.label-info (% this)] "&nbsp;")]])
+
+(deftemplate treatment-row-view
+  [:tr [:td [:a.title {:href "#" :data-id (% id)}
+             [:i.icon-play] " " (% name)]]])
 
 (deftemplate treatment-view
   [:div.treatment-view.object-view
@@ -213,7 +215,7 @@
      [:div {:style "clear:both;"}]]]
    [:div.row
     [:div.span5
-     [:p [:h3 "Protocol"]]
+     [:h3 "Protocol"]
      [:p (%code description-html)]
      [:p [:b "Behavior"]]
      [:p
@@ -276,6 +278,10 @@
 	     [:span {:class "type"} (% service)]]])
     ]])
 
+(deftemplate instrument-row-view
+  [:tr [:td [:a.title {:href "#" :data-id (% id)}
+             [:i.icon-eye-open] " " (% variable)]]])
+
 (deftemplate instrument-view
   [:div.instrument-view
    [:div.row
@@ -290,8 +296,8 @@
      [:div {:style "clear:both;"}]]]
    [:div.row
     [:div.span5
-     [:p [:b "Description"]
-      [:p (%code description-html)]]
+     [:h3 "Description"]
+     [:p (%code description-html)]
      [:p [:b "Tags "]
       [:a.add-tag {:href "#"} [:i.icon-plus-sign]]]
      [:p.tags
@@ -300,6 +306,7 @@
     [:div.span1 [:p]]
     [:div.span6
      ;; Related, Discussion
+     [:div#related]
      ]]])
      
 
@@ -333,13 +340,17 @@
     (%each instruments
            [:li (% variable) "(measured by " (% service) ")"])]])
 
+(deftemplate experiment-row-view
+  [:tr [:td [:a.title {:href "#" :data-id (% id)}
+             [:i.icon-random] " " (% title)]]])
+  
 (deftemplate experiment-view
   [:div.experiment-view
    [:div.row
     [:div.page-header
      [:div.span8
       [:h1 {:href ""}
-       (% treatment.name)]]
+       (% title)]]
      [:div.span3
       [:span.pull-right
        [:button.btn.btn-primary.btn-large.run {:type "button"} "Run"]
@@ -347,17 +358,22 @@
        [:button.btn.btn-large.clone {:type "button"} "Clone"]]]
      [:div {:style "clear:both;"}]]]
    [:div.row
-    (%with treatment
-      [:div.span5
-       [:p [:b "Treatment"]
-        [:p (%code description-html)]]
-       [:p [:b "Tags: "]
-        [:a.add-tag {:href "#"} [:i.icon-plus-sign]]]
-       [:p.tags
-        (%each tags
-               [:span.label.label-info (% this)] "&nbsp;")]])
+    [:div.span5
+     (%with treatment
+            [:h3 "Protocol"]
+            [:p "&nbsp; from: " [:a {:href "#" :data-id (% id)} (% name)]]
+            [:p (%code description-html)])
+     (%with outcome
+            [:p [:b "Outcome"]]
+            [:p [:b "Other Measures"]])
+     [:p [:b "Tags: "] [:a.add-tag {:href "#"} [:i.icon-plus-sign]]]
+     [:p.tags
+      (%each tags
+             [:span.label.label-info (% this)] "&nbsp;")]]
     [:div.span1 [:p]]
-    [:div.span6]]])
+    [:div.span6
+     [:div#related]]
+    ]])
 ;;   [:h2 "Schedule"]
 ;;   [:div.schedule "Schedule view TBD"]])
 

@@ -56,11 +56,11 @@
      "&nbsp;"]]])
 
 (defpartial bootstrap-data []
-  (bootstrap-models-json
-   (concat
-    (models/fetch-models :treatment)
-    (models/fetch-models :instrument)
-    (models/fetch-models :experiment)))
+;;  (bootstrap-models-json
+;;   (concat
+;;    (models/fetch-models :treatment)
+;;    (models/fetch-models :instrument)
+;;    (models/fetch-models :experiment)))
   (bootstrap-user-json)
   )
 

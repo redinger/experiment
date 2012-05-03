@@ -243,7 +243,7 @@
     "instrument"
     (fetch-models :experiment {:instruments dbref})))
 
-(defpage related "/api/search/related/:type/:sid" {:keys [type id]}
+(defpage related "/api/search/related/:type/:id" {:keys [type id]}
   (let [oid (deserialize-id id)
         ref (as-dbref type oid)]
     (let [results (fetch-related type ref)]

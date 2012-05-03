@@ -108,9 +108,6 @@ define ['models/infra', 'views/common', 'use!Backbone'],
         super()
         @
 
-      enterPressed: =>
-        @accept()
-
       render: ->
         @$el.html @template
           id: 'addTagModal'
@@ -120,15 +117,6 @@ define ['models/infra', 'views/common', 'use!Backbone'],
         @$('.modal-body').append @form.render().el
         @
 
-# ## Related Objects -
-#
-# A standard view for viewing a list of objects connected to the current
-# object in some way.  Views results of an ajax server call based on the
-# current model
-
-    class RelatedObjects extends Backbone.View
-      attributes:
-        class: "related-objects"
 
 # ## Pagination
 
@@ -190,4 +178,3 @@ define ['models/infra', 'views/common', 'use!Backbone'],
     TemplateView: TemplateView
     Pagination: Pagination
     AddTagDialog: AddTagDialog
-    RelatedObjects: RelatedObjects

@@ -22,8 +22,7 @@ define ['jquery', 'models/infra', 'use!Handlebars', 'use!BackboneFormsBS', 'use!
 
       handleKey: (e) =>
         if e.which == 13
-           e.preventDefault()
-           @enterPressed() if @enterPressed?
+           @enterPressed(e) if @enterPressed?
 
 # ModalMessage is a singleton class for programmatically calling
 # a simple modal dialog
@@ -68,12 +67,16 @@ define ['jquery', 'models/infra', 'use!Handlebars', 'use!BackboneFormsBS', 'use!
         @show()
 
       events:
-        'keyup': 'handleKey'
+        'keyup input[type=text]': 'handleKey'
+        'submit form': 'enterPressed'
         'click .accept': 'accept'
         'click .reject': 'reject'
 
-      enterPressed: =>
+      enterPressed: (e) =>
+        e.preventDefault()
+        e.stopPropagation()
         @accept()
+        false
 
       accept: =>
         @hide()
@@ -121,12 +124,15 @@ define ['jquery', 'models/infra', 'use!Handlebars', 'use!BackboneFormsBS', 'use!
         @
 
       events:
-        'keyup': 'handleKey'
+        'keyup input[type=text]': 'handleKey'
+        'submit form': 'enterPressed'
         'click .accept': 'accept'
         'click .reject': 'reject'
 
-      enterPressed: =>
+      enterPressed: (e) =>
+        e.preventDefault()
         @accept()
+        false
 
       accept: =>
         @hide()

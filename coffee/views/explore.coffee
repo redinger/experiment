@@ -1,10 +1,66 @@
 define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/journal', 'views/scheduling', 'views/common', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEditors'],
   (Infra, Core, User, Widgets, Journal, Scheduling, Common) ->
 
+# ## Related Objects -
+#
+# A standard view for viewing a list of objects connected to the current
+# object in some way.  Views results of an ajax server call based on the
+# current model
+
+    class RelatedObjects extends Backbone.View
+      attributes:
+        class: "related-objects"
+
+      initialize: ->
+        @templates = {}
+        @templates.treatment = Infra.templateLoader.getTemplate 'treatment-row-view'
+        @templates.instrument = Infra.templateLoader.getTemplate 'instrument-row-view'
+        @templates.experiment = Infra.templateLoader.getTemplate 'experiment-row-view'
+        @total = 0
+        @results = null
+        @fetchRelated()
+        @
+
+      fetchRelated: ->
+        $.ajax "/api/search/related/#{@model.get('type')}/#{@model.id}",
+          context: @
+          success: (results) =>
+            @total = results.hits
+            @results = _.map results.models, (result) ->
+              Backbone.ReferenceCache.resolve null, null,
+                attrs: result
+            @render()
+
+      render: ->
+        @$el.html '<h3>Related</h3>'
+        _.map @results, (result) ->
+          @$el.append @templates[result.type()] result.toTemplateJSON()
+        , @
+        @
+
+      events:
+        'click a': 'view'
+
+      view: ->
+        event.preventDefault()
+        id = $(event.target).attr('data-id')
+        model = Backbone.ReferenceCache.resolve null, id
+        @trigger 'nav:view', model
+
+
 # Item Views
 # --------------------------------------------
 
     class ItemView extends Backbone.View
+      initialize: ->
+        @model.on 'change', @render, @
+        @related = new RelatedObjects
+            model: @model
+        @related.on 'all', (action, arg1, arg2) ->
+          @trigger action, arg1, arg2
+        , @
+        @
+
       # Common Handlers
       addTags: (event) =>
         event.preventDefault()
@@ -18,6 +74,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
       render: ->
         if @model.isLoaded()
            @$el.html @template @model.toTemplateJSON()
+           @$('#related').html @related.render().el
            @renderAux() if @renderAux?
         else if not @model._loading
            @model.fetch()
@@ -26,20 +83,28 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
       edit: =>
         @trigger 'nav:edit', @model
 
+      clone: =>
+        clone = null # TODO: Create new model, populate from toJSON?
+        # TODO: Change title/name of clone to add '(clone)'
+        @trigger 'nav:edit', clone
+
 
 #
 # Experiments
 #
     class ExperimentView extends ItemView
       initialize: (options) ->
+        super(options)
         @template = Infra.templateLoader.getTemplate 'experiment-view'
-        @model.on 'change', @render, @
         @
 
       events:
         'click .add-tag': 'addTags'
         'click .edit': 'edit'
 
+      run: ->
+
+      clone: ->
 
 #
 # Treatments
@@ -48,8 +113,8 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
 #
     class TreatmentView extends ItemView
       initialize: (options) ->
+        super(options)
         @template = Infra.templateLoader.getTemplate 'treatment-view'
-        @model.on 'change', @render, @
         @jview = new Journal.View
             model: @model
         @
@@ -62,6 +127,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
         'click .add-tag': 'addTags'
         'click .edit': 'edit'
 
+      clone: ->
 
 #
 # Instruments
@@ -70,8 +136,8 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
 #
     class InstrumentView extends ItemView
       initialize: (options) ->
+        super(options)
         @template = Infra.templateLoader.getTemplate 'instrument-view'
-        @model.on 'change', @render, @
         @
 
       events:
@@ -222,7 +288,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
 
       doTagQuery: (tag, page) ->
         @last = 'tag'
-        @query = tag or @query
+        @query = '"' + ( tag or @query ) + '"'
         @page = page or @page or 1
         offset = (@page - 1) * @size
         $.ajax "/api/search/tag/#{@query}/#{@size}/#{offset}",
@@ -258,8 +324,6 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
 
       view: (event) =>
         event.preventDefault()
-        id = $(event.currentTarget).attr('data-id')
-        model = Backbone.ReferenceCache.resolve null, id
         @trigger 'nav:view', @model
 
     # Result page and handlers
@@ -314,7 +378,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
 
       # UI EVENTS
       events:
-        'keyup': 'handleKey'
+        'keyup input[type=text]': 'handleKey'
         'click .search-btn': 'submitQuery'
         'click .help-btn': 'showHelp'
 
@@ -336,7 +400,6 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
           header: "Search Help"
           message: "To see different types of objects: 'show <type>' where type can be instrument, treatment, or experiment.<br>
       To filter by a given treatment: 'using <treatment keyword>'"
-
 
 
 
@@ -612,7 +675,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
     $(document).ready ->
        # Create the main app body
        window.Explore = new ExploreHome
-         el: $('#explore')
+          el: $('#explore')
 
        crumbs = new Breadcrumbs
           el: $('#crumbs')
@@ -621,8 +684,8 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
 
        # Initialize navigation, resolve URL
        Backbone.history.start
-            root: '/explore/'
-            pushState: true
+          root: '/explore/'
+          pushState: true
 
        window.Explore.render()
 

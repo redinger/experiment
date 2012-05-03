@@ -60,7 +60,7 @@
 
 (defmethod public-keys :instrument [treat]
   [:variable :description :description-html :service :tags
-   :comments :owner :src])
+   :comments :owner :src :tracked])
 
 (defmethod import-keys :instrument [treat]
   [:variable :description :tags])

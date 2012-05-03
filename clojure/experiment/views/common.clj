@@ -226,12 +226,12 @@
 (defn render-all-templates
   ([]
      (map (fn [[name template]]
-	    (render-template name template))
-	  (all-templates)))
+            (render-template name template))
+          (all-templates)))
   ([names]
      (map (fn [[name template]]
-	    (render-template name template))
-	  (select-keys (all-templates) list))))
+            (render-template name template))
+          (select-keys (all-templates) list))))
 
                 
 

@@ -28,7 +28,8 @@
    [:div#crumbs]
    [:div.container {:style "min-height: 400px"}
     [:div#explore]]
-   (render-all-templates)))
+   [:div#templates
+    (render-all-templates)]))
    
 (defpage "/explore" {:as options}
   (resp/redirect "/explore/search"))

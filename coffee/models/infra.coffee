@@ -92,6 +92,8 @@ define ['jquery', 'use!Backbone', 'use!Handlebars'],
                 object
 
       resolve: (type, id, options = {lazy: @lazy}) ->
+          id ?= options.attrs.id if options.attrs?
+          type ?= options.attrs.type if options.attrs?
           if not (id?)
             throw new Error('ReferenceCache.resolve requires valid id for existing objects')
           instance = @instances[id]
@@ -100,7 +102,10 @@ define ['jquery', 'use!Backbone', 'use!Handlebars'],
                 throw new Error('ReferenceCache.resolve requires valid type and id for uncached objects')
             attrs = options.attrs or {type: type, id: id}
             instance = new(@lookupConstructor(type))(attrs)
-            instance._loaded = false
+            if options.attrs
+               instance._loaded = true
+            else
+               instance._loaded = false
             @register instance, options
           instance
 
@@ -114,7 +119,7 @@ define ['jquery', 'use!Backbone', 'use!Handlebars'],
           instance._embedParent = null
 
           # Configure lazy status
-          if not options.lazy and not instance._loaded
+          if not options.lazy and ( _.values(instance.attributes).length <= 2 )
             instance._loading = instance.fetch().fail( ->
                 console.log 'failed to load:'
                 console.log instance
@@ -125,12 +130,12 @@ define ['jquery', 'use!Backbone', 'use!Handlebars'],
               throw new Error('Lazy loading not implemented')
 
           # Remove when destroyed
-          instance.on 'destroy', @unregister
+          instance.on 'destroy', @unregister, @
           @instances[instance.id] = instance
           instance
 
       unregister: ( instance ) ->
-          instance.off 'destroy', @unregister
+          instance.off 'destroy', @unregister, @
           delete @instances[instance.id]
 
     # Create a singleton cache instance to track instances
@@ -297,6 +302,8 @@ define ['jquery', 'use!Backbone', 'use!Handlebars'],
           , @
           json
 
+      type: ->
+        @get('type')
 
     # Extensions to Backbone.Collection for Embedded Models
     __prepareModel = Backbone.Collection.prototype._prepareModel
