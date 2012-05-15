@@ -81,7 +81,8 @@
         (str (:username user) " "))))
 
 (defn- research-submenu []
-  [{:name "Authoring Study" :href "/study1"}])
+  [{:name "Authoring Study Page" :href "/study1"}
+   {:name "Self-Experiment Study Page" :href "/study2"}])
 ;;   {:name "Site Analysis" :href "/article/analysis"}
 
 (defn- about-submenu []

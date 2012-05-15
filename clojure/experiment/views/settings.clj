@@ -9,7 +9,8 @@
    [noir.response :as resp]
    [experiment.infra.services :as services]
    [experiment.infra.session :as session]
-   [experiment.views.common :as common]))
+   [experiment.views.common :as common]
+   [experiment.libs.zeo :as zeo]))
 
 
 (defn settings-subnav [active]

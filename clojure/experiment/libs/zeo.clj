@@ -1,9 +1,16 @@
 (ns experiment.libs.zeo
   (:use experiment.infra.models)
   (:require [clj-http.client :as http]
+            [experiment.infra.services :as services]
             [experiment.libs.datetime :as dt]))
 
-
+(services/register
+ :zeo
+ ["Zeo"
+  :description "Download data from the Zeo service"]
+ :email {:title "Account Email"}
+ :password {:title "Password" :type "Password"})
+ 
 ;; "ACE41D854610E84DAF16419E087C2ADF" ;; mit.edu
 ;; "6B58F54966A8A9632A68EBBFF0192D4C" ;; media.mit.edu
 
@@ -66,8 +73,6 @@
         (string? date)
         (do (assert (re-matches #"(\d\d\d\d)-(\d\d)-(\d\d)" date))
             date)))
-        
-         
 
 ;;
 ;; These methods require default or dynamic *auth* setting

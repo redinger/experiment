@@ -71,7 +71,7 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
         @views = @collection.map (model) ->
             view = new RunChart
               model: model
-              id: 'tracker-' + model.instrument.get('src')
+              id: 'tracker-' + model.id
               title: model.instrument.get('variable')
             view
         , @
@@ -79,7 +79,7 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
         @
 
       updateTimeline: =>
-        @dates = $('#rangepicker').val()
+        @dates = $('#timelinerange').val()
         [start, end] = _.map @dates.split(" - "), Date.parse
         _.each @views, (view) ->
           view.fetchData start, end
@@ -87,10 +87,11 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
 
       render: ->
         # Render tracker Header
-        @$el.append @template
+        @$el.html @template
           range: @dates
-        @$('#rangepicker').daterangepicker
+        @$('#timelinerange').daterangepicker
           arrows: true
+          autoSize: true
           onChange: _.debounce(@updateTimeline, 200)
           rangeStartTitle: 'Timeline Start Date'
           rangeEndTitle: 'Timeline End Date'

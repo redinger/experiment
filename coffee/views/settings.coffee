@@ -133,8 +133,8 @@ define ['models/infra', 'models/core', 'views/widgets', 'use!Bootstrap', 'use!Ba
     class ServiceView extends Backbone.View
       className: "service-view"
       initialize: (options) ->
+        @rendered = false
         @config = options.config
-        console.log @config
         if @config? and @config.oauth? and @config.oauth
            @template = Infra.templateLoader.getTemplate "service-oauth-template"
         else
@@ -147,10 +147,13 @@ define ['models/infra', 'models/core', 'views/widgets', 'use!Bootstrap', 'use!Ba
 
       # Rendering the View
       render: ->
-        if @config? and @config.oauth?
-           @renderOauth()
-        else
-           @renderForm()
+        if not @rendered
+          if @config? and @config.oauth?
+             @renderOauth()
+          else
+             @renderForm()
+        @rendered = true
+        @
 
       renderOauth: ->
         data = @model.toJSON()
@@ -163,12 +166,13 @@ define ['models/infra', 'models/core', 'views/widgets', 'use!Bootstrap', 'use!Ba
         data.config = @config
         @$el.html @template data
         @$('.svcform').append @form.render().el
-
         @
 
       # Handling UI Events
       events:
-        'keyup': 'handleKey'
+        'keyup input[type=text]': 'handleKey'
+        'keyup input[type=password]': 'handleKey'
+        'change input': 'update'
 
       handleKey: =>
         if not @handleKeyAux
@@ -178,7 +182,7 @@ define ['models/infra', 'models/core', 'views/widgets', 'use!Bootstrap', 'use!Ba
       update: =>
         error = @form.commit()
         if not error
-           @model.save()
+           @model.save {}, {silent: true}
 
 
     # ## Service submodel containers
@@ -204,8 +208,7 @@ define ['models/infra', 'models/core', 'views/widgets', 'use!Bootstrap', 'use!Ba
         @computeServiceList()
 
         # In case services change in the background
-        @collection.on 'change add remove', ->
-           @computeServiceList()
+        @collection.on 'add remove', ->
            @render()
         , @
         @
@@ -216,7 +219,7 @@ define ['models/infra', 'models/core', 'views/widgets', 'use!Bootstrap', 'use!Ba
           view = new ServiceView
             model: model
             config: @registry[model.id]
-          @views.push view
+          @views = [view].concat @views
 
       # NOTE: Move to services model
       computeServiceList: () ->
@@ -244,8 +247,8 @@ define ['models/infra', 'models/core', 'views/widgets', 'use!Bootstrap', 'use!Ba
           id: tag
           type: "service"
         @collection.add model if model
+        @addSubView model
         # Update page
-        @computeServiceList()
         @render()
 
       delService: (event) =>
@@ -258,10 +261,10 @@ define ['models/infra', 'models/core', 'views/widgets', 'use!Bootstrap', 'use!Ba
         @views = _.without @views, view
         view.model.destroy()
         # Update page
-        @computeServiceList()
         @render()
 
       render: ->
+        @computeServiceList()
         @$el.html @template
           services: @serviceList
         _.each @views, (view) =>

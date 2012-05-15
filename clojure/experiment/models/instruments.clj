@@ -10,6 +10,7 @@
             [experiment.libs.zeo :as zeo]
             [experiment.libs.withings :as wi]
             [experiment.libs.strava :as strava]
+            [experiment.libs.twitter :as twitter]
             [experiment.libs.fitbit :as fit]
             [experiment.libs.rescuetime :as rt]))
 

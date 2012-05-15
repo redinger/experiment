@@ -2,7 +2,8 @@
   (:require
    [clojure.tools.logging :as log]
    [somnium.congomongo :as mongo]
-   [noir.session :as session]
+   [experiment.infra.session :as session2]
+;;   [noir.session :as session]
    [noir.request :as req]
    [noir.response :as resp]
    [cheshire.core :as json]
@@ -35,11 +36,75 @@
    users"
   [handler]
   (fn [req]
-    (let [userid (session/get :userid)]
+    (let [userid (session2/get :userid)]
       (binding [*current-user*
-		(and userid
-		     (mongo/fetch-one :user :where {:_id userid}))]
-	(handler req)))))
+                (and userid
+                     (mongo/fetch-one :user :where {:_id userid}))]
+        (handler req)))))
+
+
+;;
+;; # Middleware: Session timezone
+;;
+
+(def ^{:dynamic true} *timezone* nil)
+
+(defn user-timezone []
+  (when *current-user*
+    (let [tz (or (get-in *current-user* [:preferences :tz])
+                 (get-in *current-user* [:preferences :tz_default]))]
+      (when (> (count tz) 0)
+        (org.joda.time.DateTimeZone/forID tz)))))
+
+(defn user-timezone-default! [default]
+  (when *current-user*
+    (println "Setting default for " (:username *current-user*))
+    (somnium.congomongo/update! :user
+                                {:_id (:_id *current-user*)}
+                                {:$set {:preferences.tz_default default}}
+                                :upsert false)))
+
+(defn request-timezone [req]
+  (let [stz (session2/get :timezone)
+        rtz (get-in req [:params :_timezone])]
+    (when (and (not stz) rtz)
+      (session2/put! :timezone rtz))
+    (org.joda.time.DateTimeZone/forID (or stz rtz nil))))
+
+(defn compute-timezone [req]
+  (let [user-tz (user-timezone)
+        req-tz (request-timezone req)
+        default (org.joda.time.DateTimeZone/getDefault)]
+    (when (and (not user-tz) req-tz)
+      (user-timezone-default! req-tz))
+    (if-let [tz (or user-tz req-tz)]
+      (or tz default)
+      default)))
+
+(defn session-timezone-handler
+  "RING Middleware: Binds *timezone* to a timezone based on the
+   following algorithm (assumes session-user is set in chain)
+   - User object timezone (Home TZ explicitly set by user)
+   - Detected browser timezone (if set on session by javascript)
+   - Server timezone (default)"
+  [handler]
+  (fn [req]
+    (let [tz (compute-timezone req)]
+      (binding [*timezone* tz]
+        (handler req)))))
+
+(defn session-timezone
+  "Use active session TZ; default to server's TZ"
+  []
+  (or *timezone*
+      (org.joda.time.DateTimeZone/getDefault)))
+
+(defn server-timezone
+  "Server TZ"
+  []
+  (org.joda.time.DateTimeZone/getDefault))
+
+  
 
 ;;
 ;; # Middleware: pre-parse JSON payloads

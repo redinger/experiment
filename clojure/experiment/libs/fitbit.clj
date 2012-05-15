@@ -18,9 +18,10 @@
 
 ;; Service configuration
 (services/register-oauth
- :fitbit ["FitBit"]
+ :fitbit 
+ ["Fitbit"
+  :description "Connect to your FitBit tracking data"]
  :title "Fitbit"
- :img nil
  :url "http://personalexperiments.org/api/svc/fitbit/authorize")
 
 

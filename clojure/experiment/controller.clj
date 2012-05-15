@@ -3,7 +3,7 @@
    experiment.infra.models
    experiment.models.user
    experiment.models.events
-   experiment.models.schedule)
+   experiment.models.trackers)
   (:require
    [quartz-clj.core :as q]
    [experiment.libs.datetime :as dt]
@@ -44,11 +44,29 @@
     (if-let [event (fetch-model :event {:_id (deserialize-id id)})]
       event
       (log/error (str "Event " id " not found")))
-    (log/error (str "Not event ID (eid) found in job context"))))
+    (log/error (str "No event ID (eid) found in job context"))))
+
+;;
+;; ## EventActionJob
+;;
+;; When an event is scheduled, this job will call fire-event
+;; on the event object pulled from the DB (via context reference)
+;; 
 
 (q/defjob EventActionJob [context]
-  (let [event (event-from-context context)]
+  (when-let [event (event-from-context context)]
     (fire-event event)))
+
+;;
+;; ## Setup Jobs
+;;
+
+
+(defn report-scheduling-event [event]
+  (log/tracef "Scheduling tracker event (%s) for %s"
+              (:variable (event-inst event))
+              (:username (event-user event)))
+  event)
 
 (defn schedule-event
   "Schedule the firing of an event stored in the mongo DB collection :event
@@ -57,12 +75,18 @@
    - :start - must contain a valid time reference (long, java, or Joda date)
   "
   [event]
-  (q/schedule-task [(format "EventAction-" (:_id event))
+  (q/schedule-task [(str "EventAction-" (:_id event))
                     "experiment-events"]
                    EventActionJob
-                   :start (dt/as-date (:start event))
+                   :start (:start event)
                    :datamap {"eid" (serialize-id (:_id event))}))
 
+(defn schedule-tracker [tracker inter]
+  (doseq [event (tracker-events tracker inter)]
+    (-> event
+        register-event
+        report-scheduling-event
+        schedule-event)))
 
 ;;
 ;; ## Site Job: Event Manager
@@ -94,27 +118,27 @@
       (time/interval (.getEnd last)
                      (time/plus (.getEnd last) (time/hours scheduling-quantum))))))
 
+(def user-fields* [:trials :trackers :services :preferences])
+
+(defn get-expired-events []
+  [])
+
 (defn event-manager-task
   "Loop over all event generating objects and queue any events
    within the event manager horizon defined by next-interval"
   [context]
-  (when (= (prop/get :mode) :prod)
+  (when (= (prop/get :mode) :dev)
     (when-let [inter (next-interval (:last (q/context-data context)))]
       (log/info "Scheduling new events")
-      ;; TESTING
-      (doall
-       (map #(log/spy %) (:trackers (get-user "eslick"))))
-      ;; for each user
-      ;;    for each trial
-      ;;       get events overlapping 'inter'
-      ;;         schedule-event
-      ;;         (logging?)  
-      ;;    for each tracker
-      ;;       get events overlaping 'inter'
-      ;;         schedule-event
-      ;;         (logging?)
-      ;; for all expired events
-      ;;     cancel-even for reason of expiration
+      (doseq [user (fetch-models :user {:trackers {:$exists true}} :only user-fields*)]
+        (dt/with-user-timezone [user]
+          (doseq [trial (trials user)]
+            (doseq [tracker (:trackers trial)]
+              (schedule-tracker tracker inter)))
+          (doseq [tracker (trackers user)]
+            (schedule-tracker tracker inter))))
+      (doseq [expired (get-expired-events)]
+          (cancel-event expired))
       (.put context :last inter))))
 
 (q/defjob EventJob [context]

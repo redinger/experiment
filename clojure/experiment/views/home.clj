@@ -121,8 +121,9 @@
   (common/layout
    ["Welcome to Personal Experiments"
     (common/default-nav "Home")
-    :deps ["views/home"]]
+    :deps ["views/home" "libs/misc/jstz.min"]]
    [:div.container.home-page
     (home-carousel "homeCarousel")
     (home-page-details)
     (sponsor-bar)]))
+

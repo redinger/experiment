@@ -2,8 +2,11 @@
   (:use experiment.infra.models)
   (:require
    [clojure.tools.logging :as log]
+   [noir.response :as resp]
+   [clj-time.core :as time]
    [experiment.libs.datetime :as dt]
    [experiment.infra.session :as session]
+   [experiment.infra.api :as api]
    [experiment.libs.sms :as sms]
    [experiment.models.user :as user]
    [experiment.models.instruments :as inst]
@@ -18,28 +21,48 @@
   (>= (:date reminder) start))
 
 
-;; Event Model
+;; Event Handling
 ;; --------------------------
 ;;
-;; Status:
+;; Events are intended to support actions to be taken (automatically, or via
+;; reminders over some channel) and are stores persistently in a database.
+;;
+;; ## EVENT MODEL
+;; 
+;; ### Status
 ;;
 ;; - pending :: schedule but not fired
 ;; - active :: fired but not done (e.g. sms sent)
 ;; - done :: event is fully satisfied
 ;;
-;; Required keys
+;; ### Required keys
 ;; 
 ;; - :type "event"
 ;; - :etype <event type>
 ;; - :user (user ref associated with the event)
 ;; - :inst (instrument ref associated with the event)
 ;;
-;; Other keys:
-;; 
+;; ### Other keys
+;;
 ;; - :start - target start of event
 ;; - :wait - whether to remain active waiting for a response
 ;; - :result - was the event satisfied (e.g. delivered, responded, etc)
 ;; - :timeout - how long to wait before failing when response is needed
+
+;; Event Model Protocol
+;; ----------------------------
+
+(defmethod public-keys :event [event]
+  [:status :start :instrument :user :message :sms-value-type])
+
+(defmethod import-keys :event [event]
+  [:status])
+
+(defmethod server->client-hook :event [event]
+  (update-in event [:start] dt/as-iso-8601))
+
+;; Event primitives
+;; ----------------------------
 
 (def required-event-keys [:type :etype :user :start])
 
@@ -55,9 +78,6 @@
 (defn requires-reply? [event]
   (:wait event))
 
-(defn event-user [event]
-  (resolve-dbref (:user event)))
-  
 (defn- modify-if
   ([map key value]
      (if (contains? map key)
@@ -68,14 +88,23 @@
        (dissoc (assoc map new-key value) key)
        map)))
 
+;; Event storage and manipulation
+;; ----------------------------
+
+(defn register-event [event]
+  (create-model!
+   (update-in event [:start] dt/as-date)))
+
 (defn- event-query [query]
   (-> query
       (modify-if :user (as-dbref (:user query)))
-      (modify-if :type :etype (:type query))))
+      (modify-if :type :etype (:type query))
+      (modify-if :start {:$gte (dt/as-date (:start query))})
+      (modify-if :end {:$lte (dt/as-date (:end query))})))
 
 (defn get-events 
   "Return the events for the user associated with this incoming message"
-  [{:keys [user status type] :as query}]
+  [& {:keys [user status type start end] :as query}]
   (fetch-models :event (event-query query) :sort {:start 1}))
 
 (defn set-status [event status]
@@ -92,8 +121,21 @@
                                :result (or reason "fail")
                                :result-ts (dt/as-date (dt/now))}}))
 
+(defn event-user [event]
+  (assert (and (= (:type event) "event") (:user event)))
+  (resolve-dbref (:user event)))
+  
+(defn event-inst [event]
+  (assert (and (= (:type event) "event") (:inst event)))
+  (resolve-dbref (:inst event)))
 
-;; Event Actions
+(defn link-event [user inst event]
+  (-> event
+      (assoc :user (as-dbref user))
+      (assoc :inst (as-dbref inst))))
+
+
+;; Event Action Protocol
 ;; ---------------------------------------
 
 (defmulti fire-event (comp keyword :etype))
@@ -106,5 +148,4 @@
 (defmethod fire-event :log [event]
   (println "Log event firing")
   (log/spy event))
-
 

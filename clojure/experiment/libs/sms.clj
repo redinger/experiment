@@ -77,14 +77,17 @@
 
 ;; ## Send an SMS
 
+(defn- clean-phone-number [number]
+  (string/replace-re #"-" "" number))
+
 (defn send-sms [number message & [credentials]]
   (assert (< (count message) 160))
   (assert (not (re-find #"[']" message)))
   (with-credentials [credentials]
     (http/get (compose-request-url
 	       "https://app.grouptexting.com/api/sending"
-	       {:phonenumber number
-		:message message}))))
+	       {:phonenumber (clean-phone-number number)
+            :message message}))))
 
 ;; ## Account mgmt
 
@@ -156,7 +159,7 @@
     (or (find @patterns lookup)
         (swap! patterns assoc lookup
                (re-pattern
-                (str (or (:sms-prefix event) "")
+                (str (or (str "(?i:" (:sms-prefix event) ")") "")
                      (case (:sms-value-type event)
                        "string" "\\s*([^\\s]+)"
                        "float" "\\s*([\\d\\.]+)"
@@ -171,7 +174,7 @@
    - :sms-value-type '<type of value after prefix>' | nil <int by default>
   "  
   [message event]
-  (when-let [value (second (re-matches (default-sms-parser-re event) message))]
+  (when-let [value (second (re-matches (second (default-sms-parser-re event)) message))]
     (case (:sms-value-type event)
       "string" value
       "float" (Float/parseFloat value)

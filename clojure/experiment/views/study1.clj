@@ -169,7 +169,8 @@
         (if (patient-consented?)
           [:h2 "You have consented to this study"]
           (render-consent-form))
-        [:h2 "You must register and login to consent to this study"])]]))
+        [:h2
+         "You must click on register (top right of page) and then return and login to consent to this study"])]]))
      
 (defpage "/study1/consent" {}
   (common/layout
@@ -272,7 +273,8 @@
 (defpage "/study1/author" {:as options}
   (common/layout
    ["Author an Experiment"
-    (study1-nav "Author")]
+    (study1-nav "Author")
+    :deps []
    [:div.container
     [:div.study1-author
      [:div.page-header

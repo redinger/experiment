@@ -197,3 +197,6 @@ We will contact you shortly when the site or the site's study is ready to launch
     {:result "fail"
      :message "You must be logged into to change your password"}))
       
+
+(defapi touch-timezone [:get "/action/timezone"] {:keys [_timezone] :as options}
+  (resp/empty))

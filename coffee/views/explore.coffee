@@ -27,8 +27,10 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
           success: (results) =>
             @total = results.hits
             @results = _.map results.models, (result) ->
-              Backbone.ReferenceCache.resolve null, null,
+              model = Backbone.ReferenceCache.resolve null, null,
                 attrs: result
+              model.on 'change', @render, @
+              model
             @render()
 
       render: ->
@@ -44,7 +46,8 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
       view: ->
         event.preventDefault()
         id = $(event.target).attr('data-id')
-        model = Backbone.ReferenceCache.resolve null, id
+        type = $(event.target).attr('data-type')
+        model = Backbone.ReferenceCache.resolve type, id
         @trigger 'nav:view', model
 
 
@@ -147,11 +150,19 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
         'click .add-tag': 'addTags'
 
       track: (event) =>
-        schedule = Scheduling.configureSchedule @model
+        Scheduling.configureTrackerSchedule @, @model, @trackSchedule
+
+      trackSchedule: (schedule) =>
         @model.track schedule if schedule?
 
       untrack: (event) =>
-        @model.untrack()
+        Common.modalMessage.showMessage
+          header: "Stop tracking '#{@model.title()}'"
+          message: "<p>Are you sure you wish to stop tracking?  You may lose historical data by disabling this tracker.</p>"
+          accept: "Yes"
+          reject: "No"
+          callback: (result) =>
+            @model.untrack() if result is 'accept'
 
 
 # Item Creators
@@ -227,7 +238,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
         errors = @form.commit();
         if not errors
            @model.save()
-           @trigger 'nav:view', 'view', @model
+           @trigger 'nav:view', @model
 
 
     # ## EXPERIMENT
@@ -243,10 +254,6 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
            @model.fetch()
         @
 
-
-    class ScheduleSchemaCreator extends Backbone.View
-
-    class ScheduleInstantiator extends Backbone.View
 
 
 # Search results and state
@@ -332,6 +339,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
       initialize: (options) ->
         # View maintenance and rendering
         @template = Infra.templateLoader.getTemplate 'search-header'
+        @popular = Infra.templateLoader.getTemplate 'popular-searches'
         @pagination = new Widgets.Pagination()
         @pagination.on 'pagination:change', (page) ->
           @trigger 'pagination:change', page
@@ -357,7 +365,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
         # Render or update search bar
         if @$('.search-query').length == 0
            @$el.append @template @query
-           @$el.append @pagination.render().el
+           @$('#pagination').append @pagination.render().el
         @
 
       renderResults: ->
@@ -373,7 +381,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
            view.on 'all', (action, model) ->
              @trigger action, model
            , @
-           @$el.append view.render().el
+           @$('#results').append view.render().el
         @
 
       # UI EVENTS
@@ -381,6 +389,13 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
         'keyup input[type=text]': 'handleKey'
         'click .search-btn': 'submitQuery'
         'click .help-btn': 'showHelp'
+        'click .popsearch': 'doSearch'
+
+      doSearch: (event) =>
+        event.preventDefault()
+        query = $(event.target).text()
+        console.log query
+        @trigger 'nav:search', query
 
       handleKey: (event) =>
         if event.which is 13
@@ -612,6 +627,8 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
            @router.navEditModel object
         else if action is 'nav:view'
            @router.navViewModel object
+        else if action is 'nav:doView'
+           @changeView object
         else if action is 'nav:search'
            @router.navQuery object or "", arg or 1
 

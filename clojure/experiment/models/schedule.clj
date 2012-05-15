@@ -7,16 +7,25 @@
    [experiment.libs.datetime :as dt]))
 
 
+;; Scheduling
+;; -----------------------
+;; 
+;; Methods to convert a scheduling object associated with a tracker or trial
+;; into a set of events dictated by the schedule's event template
+;; 
+;; Exports: (events <schedule> <interval>)
+;;
+;; Schedule Object:
 ;; {
 ;;  :type "schedule"
-;;  :stype "daily"
+;;  :stype [ "daily" | "weekly | "periodic" ]
 ;;  :times <seconds>
 ;;  :event {...}
 ;; }
 
-;;
+
 ;; Scheduler utilities
-;;
+;; --------------------------
 
 (defn decimate-fn [chunksize]
   (case (keyword chunksize)
@@ -52,7 +61,7 @@
   ([i]
      (assert (= (type i) org.joda.time.Interval))
      (lazy-seq
-      (let [start (decimate :day (start i))
+      (let [start (decimate :day (dt/in-session-tz (start i)))
             newstart (plus start (days 1))]
         (if (before? newstart (end i))
           (cons start (interval->days (interval newstart (end i))))
@@ -70,11 +79,14 @@
         (if (before? newstart (end i))
           (cons start (interval->days (interval newstart (end i))))
           (cons start nil))))))
-      
-;; ==================================================================
+
+(defn events-within [interval events]
+  (filter (comp (partial within? interval) :start) events))
+
+
 ;;
 ;; Basic interface, relies on embedded event template and dispatch
-;; 
+;; ------------------------------------------------------------------
 
 (defn schedule-dispatcher
   ([schedule & rest]
@@ -85,22 +97,20 @@
 
 ;;
 ;; Scheduler types
-;;
+;; -------------------------------
 
 ;; Daily
 ;; Every day, one or more fixed times
 ;; :times - [{:hour :min}, ...] event times
 ;; :jitter +/- jitter minutes for each time spec
 
-(defn events-within [interval events]
-  (filter (comp (partial within? interval) :start) events))
-
 (defn daily-events [schedule day-dt]
   (assert (= (:stype schedule) "daily"))
-  (for [{:keys [hour min] :or {min 0 jitter 0}} (:times schedule)]
-    (assoc (:event schedule)
-      :start (plus day-dt (hours hour) (minutes min))
-      :jitter (:jitter schedule))))
+  (let [day-dt (dt/to-session-tz day-dt)]
+    (for [{:keys [hour min] :or {min 0}} (:times schedule)]
+      (assoc (:event schedule)
+        :start (dt/in-server-tz (plus day-dt (hours hour) (minutes min)))
+        :jitter (:jitter schedule)))))
   
 (defmethod events :daily [schedule & [interval]]
   (assert (:times schedule))
@@ -116,9 +126,11 @@
 
 (defn weekly-events [schedule week-dt]
   (for [{:keys [day hour min]} (:times schedule)]
-    (assoc (:event schedule)
-      :start (.withDayOfWeek (plus week-dt (hours hour) (minutes min)) day)
-      :jitter (:jitter schedule))))
+    (let [week-dt (dt/to-session-tz week-dt)
+          day-dt (.withDayOfWeek (plus week-dt (hours hour) (minutes min)) day)]
+      (assoc (:event schedule)
+        :start (dt/in-server-tz day-dt)
+        :jitter (:jitter schedule)))))
 
 (defmethod events :weekly [schedule interval]
   (assert (:times schedule))

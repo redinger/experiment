@@ -64,20 +64,33 @@ define ['jquery', 'use!Backbone', 'models/infra', 'models/user'],
       name: ->
         @get('variable')
 
+      title: ->
+        @get('variable') + " -- " + @get('service')
+
       track: (schedule) ->
+        # Use create parser, requires refs as references
+        console.log @
+        console.log schedule
+        schedule.event = @get('event') if @get('event')?
+        schedule.event.type = 'event'
+        schedule.event.wait = true
+        console.log schedule
         tracker = theUser.trackers.create
           type: "tracker"
-          user: theUser
-          instrument: @model
+          user: theUser.asReference()
+          instrument: @asReference()
           schedule: schedule
-        tracker.save()
-        @
+        @set 'tracked', true
 
       untrack: ->
-        tracker = _.find theUser.trackers, (tracker) =>
-            tracker.instrument.id is @model.id
-        tracker.destroy()
-        @
+        tracker = theUser.trackers.find (tracker) ->
+            tracker.instrument.id is @id
+        , @
+        if tracker?
+          tracker.destroy()
+          @set('tracked', false)
+        else
+          alert 'Unable to untrack this tracker - contact the admin'
 
       schema:
         variable:
@@ -93,6 +106,22 @@ define ['jquery', 'use!Backbone', 'models/infra', 'models/user'],
           type: 'Text'
           title: 'Service Name'
           editorClass: 'input-large'
+        event:
+          type: 'Object'
+          title: 'Manual Event Spec'
+          subSchema:
+            etype:
+              type: 'Text'
+            message:
+              type: 'Text'
+              editorClass: 'input-xxlarge'
+            "sms-value-type":
+              type: 'Select'
+              title: 'SMS Value Type'
+              options: ["int", "float", "string"]
+            "sms-prefix":
+              type: 'Text'
+              title: 'SMS Response Prefix'
 
     class Instruments extends Infra.Collection
       model: Instrument

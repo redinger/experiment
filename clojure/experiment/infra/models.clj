@@ -129,9 +129,13 @@
   [model]
   (keys model))
 
-(defmethod public-keys :default
+(defmethod import-keys :default
   [model]
   (keys model))
+
+(defmethod index-keys :default
+  [model]
+  nil)
 
 (defmethod server->client-hook :default
   [model]

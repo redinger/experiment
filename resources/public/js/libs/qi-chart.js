@@ -278,7 +278,6 @@ var QIchart = {
 			extra = cfg.h + cfg.margin;
 		}
 
-		console.log(extra);
 		var chart = d3.selectAll(cid).append("svg")
 			.attr("width", cfg.w + cfg.margin*2.5)
 			.attr("height", extra)

@@ -11,11 +11,14 @@
 
 ;; ## Be clear about what methods are content pages and which are APIs
 
+(defn add-meta-status [resp result]
+  (assoc resp :status (or (:status (meta result)) 200)))
+
 (defmacro defapi [name spec params & body]
   `(defpage ~name ~spec ~params
-     ~@(if (> (count body) 1)
-         (concat (butlast body) `((response/json ~(last body))))
-         `((response/json ~@body)))))
+     (let [result# (do ~@body)]
+       (-> (response/json result#)
+           (experiment.infra.api/add-meta-status result#)))))
 
 ;;
 ;; Utilities

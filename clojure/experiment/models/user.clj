@@ -95,7 +95,7 @@
     (create-submodel! user "trackers" submod)))
 
 (defn trackers [user]
-  (vals (:trakers user)))
+  (vals (:trackers user)))
 
 (defn has-trackers? [user]
   (if (not (empty? (trackers user))) true false))
@@ -122,13 +122,13 @@
 
 (defn get-pref
   ([user property]
-     (get-in user [:prefs property]))
+     (get-in user [:preferences property]))
   ([property]
      (get-pref (session/current-user) property)))
   
 (defn set-pref!
   ([user property value]
-     (modify-model! user {:$set {:prefs {property value}}}))
+     (modify-model! user {:$set {:preferences {property value}}}))
   ([property value]
      (set-pref! (session/current-user) property value)))
 

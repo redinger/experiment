@@ -213,8 +213,7 @@
 (defn search-response [result-map]
   (response/json
    (dissoc
-    (update-in result-map
-               [:models] (comp vec server->client))
+    (update-in result-map [:models] (comp vec server->client))
     :results)))
 
 (defpage query-srch "/api/search/query/:q/:n/:skip" {:keys [q n skip]}
@@ -236,12 +235,16 @@
     "treatment"
     (fetch-models :experiment {:treatment dbref})
     "experiment"
-    (let [model (.fetch dbref)]
-      (fetch-models :experiment
-                    {:$or [{:treatment (:treatment model)}
-                           {:instruments {:$in (:instruments model)}}]}))
+    (let [model (resolve-dbref dbref)]
+      (remove #(= % model)
+              (fetch-models :experiment
+                            {:$or [{:treatment (:treatment model)}
+                                   {:instruments {:$in (:instruments model)}}]})))
     "instrument"
-    (fetch-models :experiment {:instruments dbref})))
+    (let [inst (resolve-dbref dbref)]
+      (concat (fetch-models :experiment {:instruments dbref})
+              (remove #(= % inst)
+                      (fetch-models :instrument {:service (:service inst)}))))))
 
 (defpage related "/api/search/related/:type/:id" {:keys [type id]}
   (let [oid (deserialize-id id)

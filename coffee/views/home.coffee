@@ -250,5 +250,15 @@ define ['jquery', 'views/common', 'use!Handlebars', 'use!BackboneFormsBS', 'use!
                         e.preventDefault()
                         regModal.show()
 
+        # Establish this sessions' home TZ
+        if not session_timezone?
+          timezone = jstz.determine()
+          $.ajax
+              url: '/action/timezone'
+              data: {_timezone: timezone.name()}
+              timeout: 2000
+              spinner: false
+          , 600
+
 # Return the empty set for now
     {}

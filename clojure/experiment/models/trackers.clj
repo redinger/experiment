@@ -7,6 +7,7 @@
 	    [experiment.libs.datetime :as dt]
             [experiment.libs.sms :as sms]
 	    [experiment.models.samples :as samples]
+	    [experiment.models.schedule :as schedule]
 	    [experiment.models.events :as event]))
 
 ;;
@@ -15,30 +16,39 @@
 ;;
 ;; Trackers are associated with active trials or can be standalone
 ;; if a user decides to track specific parameters.  The instrument
-;; template determines the parameter of the tracker.  The tracker
-;; in turn dictate the specific tracking events (when appropriate)
+;; template determines the parameters of the tracker.  The tracker
+;; in turn dictates the specific tracking events (when appropriate)
 ;;
-;; - :instrument
-;; - :schedule
 
-(defn tracker-summary [tracker]
-  {:name tracker})
+(defn tracker-events [tracker interval]
+  (when-let [schedule (:schedule tracker)]
+    (let [refs (select-keys tracker [:user :instrument])]
+      (map #(merge % refs) (schedule/events schedule interval)))))
 
-(defn tracker-summary-list [user]
-  (map (comp tracker-summary embed-dbrefs)
-       (trackers user)))
+(defn all-tracker-events [user interval]
+  (mapcat #(tracker-events % interval) (trackers user)))
 
-;; SMS-based Trackers
+;; Service-based Trackers
 ;; -------------------------------
+;; Download for service-based trackers are done automatically, no
+;; explicit event generation is provided at present.
+
+
+;; SMS-based Tracker Protocol
+;; -------------------------------
+;;
+;; We allow the web to satisfy a future or past (ignored) SMS event
+;; as a hack to support manual tracking via a web interface
+;;
 
 ;; ## Fire an SMS Event
 
 (defmethod event/fire-event :sms [event]
-  (let [number nil;;(profile-get (event-user event) :cell)
+  (let [number (get-pref (event/event-user event) :cell)
         message (:message event)]
-    (sms/send-sms number message)
+    (log/spy (sms/send-sms number message))
     (let [status (if (event/requires-reply? event) "active" "done")]
-      (event/set-status status))))
+      (event/set-status event status))))
 
 ;; ## Complete SMS Events on SMS reply
 
@@ -87,22 +97,22 @@
     (or (associate-message-with-events user ts text)
         (associate-message-with-tracker user ts text))))
 
-;; Testing
+;; Example
 ;; -------------------
 
-(defn make-tracker [user instrument params]
-  {:type "tracker"
-   :user (as-dbref user)
-   :instrument (as-dbref instrument)
-   :schedule {:type "schedule"
-              :stype "daily"
-              :times [{:hour 10 :min 0} {:hour 21 :min 0}]
-              :jitter 5
-              :wait true
-              
-              :event {:type "event"
-                      :etype "sms"
-                      :message "What is your energy today? Reply 'e [0-10]' where 0 is lowest and 10 is manic"
-                      :sms-prefix "e"
-                      :sms-value-type "int"}}})
+(comment
+  (defn make-tracker [user instrument params]
+    {:type "tracker"
+     :user (as-dbref user)
+     :instrument (as-dbref instrument)
+     :schedule {:type "schedule"
+                :stype "daily"
+                :times [{:hour 10 :min 0} {:hour 21 :min 0}]
+                :jitter 5
+                :wait true
+                :event {:type "event"
+                        :etype "sms"
+                        :message "What is your energy today? Reply 'e [0-10]' where 0 is lowest and 10 is manic"
+                        :sms-prefix "e"
+                        :sms-value-type "int"}}})
 

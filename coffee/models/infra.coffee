@@ -92,21 +92,25 @@ define ['jquery', 'use!Backbone', 'use!Handlebars'],
                 object
 
       resolve: (type, id, options = {lazy: @lazy}) ->
-          id ?= options.attrs.id if options.attrs?
-          type ?= options.attrs.type if options.attrs?
+          attrs = options.attrs
+          providedp = attrs? and ( _.values(attrs).length > 2 )
+          id = attrs.id if attrs?
+          type = attrs.type if attrs?
           if not (id?)
             throw new Error('ReferenceCache.resolve requires valid id for existing objects')
           instance = @instances[id]
           if not instance?
             if not (type?)
                 throw new Error('ReferenceCache.resolve requires valid type and id for uncached objects')
-            attrs = options.attrs or {type: type, id: id}
+            attrs = attrs or {type: type, id: id}
             instance = new(@lookupConstructor(type))(attrs)
-            if options.attrs
+            if providedp
                instance._loaded = true
             else
                instance._loaded = false
             @register instance, options
+          else if providedp
+            instance.set(attrs)
           instance
 
       register: (instance, options = {lazy: @lazy}) ->
@@ -119,7 +123,7 @@ define ['jquery', 'use!Backbone', 'use!Handlebars'],
           instance._embedParent = null
 
           # Configure lazy status
-          if not options.lazy and ( _.values(instance.attributes).length <= 2 )
+          if not options.lazy and instance._loaded is false
             instance._loading = instance.fetch().fail( ->
                 console.log 'failed to load:'
                 console.log instance
@@ -188,6 +192,7 @@ define ['jquery', 'use!Backbone', 'use!Handlebars'],
               coll ?= new(Backbone.ReferenceCache.lookupConstructor(type))
               coll._embedParent = this
               coll._embedLocation = () -> attr
+              coll._submodelCollection = true
               if not _.isEmpty attrs_array
                 importModel = (attrs) ->
                     if not _.isObject attrs
@@ -290,15 +295,32 @@ define ['jquery', 'use!Backbone', 'use!Handlebars'],
                  [exporter] = record
                  if exporter is 'reference' and @[attr]
                     json[attr] = @[attr].asReference()
+                 else if exporter is 'submodel' and @[attr]
+                    json[attr] = @[attr].toJSON()
+                 else if exporter is 'submodels' and @[attr]
+                    json[attr] = @[attr].toJSON()
           , @
           json
 
       toTemplateJSON: (options) ->
+          if options? and options.depth?
+            if options.depth is 0
+              return
+            else
+              options.depth = options.depth - 1
+          else
+            options = _.extend options or {}, {depth: 2}
+
           json = _toJSONModel.call(@, options)
           _.each @embedded, (record, attr) ->
                  [exporter] = record
                  if exporter is 'reference' and @[attr]
-                    json[attr] = @[attr].toTemplateJSON()
+                    json[attr] = @[attr].toTemplateJSON(options)
+                 else if exporter is 'submodel' and @[attr]
+                    json[attr] = @[attr].toTemplateJSON(options)
+                 else if exporter is 'submodels' and @[attr]
+                    json[attr] = _.map @[attr], (mod) ->
+                        mod.toTemplateJSON(options)
           , @
           json
 
@@ -326,7 +348,7 @@ define ['jquery', 'use!Backbone', 'use!Handlebars'],
       # if we're an embedded collection
       _prepareModel: (model, options) ->
           model = __prepareModel.call(@, model, options)
-          if @_embedParent
+          if @_submodelCollection?
             model._embedParent ?= @
             model._embedLocation = () ->
                 if @id then @id else null
@@ -389,6 +411,9 @@ define ['jquery', 'use!Backbone', 'use!Handlebars'],
             @get 'type'
           else
             throw new Error('No server type provided for Model')
+
+      type: ->
+          @get('type')
 
       # Default submodel URLs
       url: ->

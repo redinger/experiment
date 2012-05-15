@@ -1,6 +1,7 @@
 (ns experiment.libs.fulltext
   (:use experiment.infra.models)
-  (:require [clucy.core :as clucy]))
+  (:require [clucy.core :as clucy]
+            [clojure.tools.logging :as log]))
 
 ;; # Setup
 
@@ -28,19 +29,20 @@
   
 (defn index [model]
   (assert (and db (map? model) (:type model)))
-  (if-let [model (index-model model)]
-    (do
-      (clucy/search-and-delete db (str "_id:" (:_id model)))
-      (clucy/add
-       db
-       (with-meta model
-         (assoc {} ;;(into {} (map (fn [[field val]]lt
-                     ;;           {field {:stored false}})
-                       ;;       model))
-           :_id {:tokenized false}
-           :type {:tokenized false}))))
-    (clojure.tools.logging/warnf "Cannot index model %s" (:_id model))))
-  
+  (let [mod (index-model model)]
+    (if (not (empty? mod))
+      (do
+        (clucy/search-and-delete db (str "_id:" (:_id mod)))
+        (clucy/add
+         db
+         (with-meta mod
+           (assoc {}
+             ;; (into {} (map (fn [[field val]]lt
+             ;;         {field {:stored false}})
+             ;;       mod))
+             :_id {:tokenized false}
+             :type {:tokenized false}))))
+      (log/warnf "Cannot index model type: %s" (:type model)))))
 
 (defn index-all [& [collections]]
   (let [colls (or collections ["instrument" "treatment" "experiment"])]

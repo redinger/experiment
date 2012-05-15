@@ -27,14 +27,18 @@
      [:ie6 "/not-supported"]
      [:ie7 "/not-supported"]]}))
 
+;; Redirection rules
 (server/add-middleware redirect-url-for-user-agent
-		       agent-redirect-rules)
+                       agent-redirect-rules)
 
 ;; Make body available as parsed JSON when mime type is json
 (server/add-middleware extract-json-payload)
 
 ;; Always track the current user when logged in
 (server/add-middleware session-user)
+
+;; Track the current timezone
+(server/add-middleware session-timezone-handler)
 
 ;; Load all the site views
 (server/load-views "clojure/experiment/views/")

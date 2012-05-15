@@ -59,8 +59,9 @@
 ;; -  contains Comments
 
 (defmethod public-keys :instrument [treat]
-  [:variable :description :description-html :service :tags
-   :comments :owner :src :tracked])
+  [:variable :description :description-html
+   :service :src :tracked :event
+   :tags :comments :owner])
 
 (defmethod import-keys :instrument [treat]
   [:variable :description :tags])
@@ -110,6 +111,13 @@
 
 (defmethod db-reference-params :tracker [model]
   [:user :instrument])
+
+(defmethod public-keys :tracker [model]
+  [:user :instrument :schedule :state])
+
+(defmethod import-keys :tracker [model]
+  [:user :instrument :schedule :state])
+
 
 
 ;; JOURNAL (embedded)

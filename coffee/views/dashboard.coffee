@@ -1,20 +1,119 @@
-define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/journal', 'views/timeline', 'use!Handlebars', 'use!D3time', 'use!BackboneFormsBS', 'use!BackboneFormsEditors' ], #, 'use!BackboneRelational'],
+define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/journal', 'views/timeline', 'use!Handlebars', 'use!D3time', 'use!BackboneFormsBS', 'use!BackboneFormsEditors', 'use!jQueryDatePicker' ],
   (Infra, Core, User, Widgets, Journal, Timeline) ->
+
+# Control Chart
+# ------------------------------------------
+
+    class ControlChart extends Backbone.View
+      initialize: (options) ->
+        @trials = Core.theUser.trials
+
+      render: ->
+        @$el.append
+        @
 
 
 # Overview
 # ------------------------------------------
+    studyLinks = () ->
+      prefs = Core.theUser.get('prefs')
+      msgs = []
+      if prefs["study1-consented"]
+         msgs.push("<p>You are a member of the <a href='/study1'>Authoring Study</a></p>")
+      if prefs["study2-consented"]
+         msgs.push("<p>You are a member of the <a href='/study1'>Self-Experiment Study</a></p>")
+      msgs
 
+
+# Summary View
+# ---------------------------------
     class Overview extends Backbone.View
       initialize: ->
-          @
 
       render: ->
-          @$el.html("<h1>Overview</h1>")
-          @
+        msgs = studyLinks().join()
+        @$el.html msgs
+        @$el.append "<h1>Overview</h1>"
+        @
+
+# Event Log
+# ---------------------------------
+    class Event extends Backbone.View
+      attributes:
+        class: "event"
+
+      initialize: ->
+        @template = Infra.templateLoader.getTemplate 'event-view'
+        @
+
+      render: ->
+        @$el.html @template @model.toTemplateJSON()
+        @
+
+    periodHeader = (target, date) ->
+      $(target).append("<div class='dateheader'>" + date + "</div>")
 
     class EventLog extends Backbone.View
+      initialize: (options) ->
+        @template = Infra.templateLoader.getTemplate 'event-log'
+        @dates = "1 day ago" + " - " + "tomorrow"
+        @
 
+      updateResults: =>
+        @dates = $('#eventrange').val()
+        [start, end] = _.map @dates.split(" - "), Date.parse
+        @fetchResults(start, end)
+
+      fetchResults: (start, end) ->
+        $.ajax "/api/events/fetch",
+          data:
+            start: start.toISOString()
+            end: end.toISOString()
+          context: @
+          success: (groups) =>
+            console.log groups
+            # Remove old views, if any
+            if @groups
+              _.each @groups, (group) ->
+                _.each group.views, (view) ->
+                  view.remove()
+                , @
+              , @
+            @$('#eventlist').empty() # pick up the headers too
+            # Create views for the events in each group
+            @groups = _.map groups, (group) ->
+              group.views = _.map group.events, (datum) ->
+                new Event
+                  model: new Infra.Model(datum)
+              , @
+              group
+            , @
+            # Update the document
+            @renderResults()
+
+      renderResults: ->
+        listDiv = @$('#eventlist')
+        if @groups? and not _.isEmpty @groups
+          _.each @groups, (group) ->
+            periodHeader(listDiv, group.date)
+            _.each group.views, (view) ->
+              listDiv.append view.render().el
+            , @
+          , @
+        else
+          listDiv.html "<h3>No Events Found</h3>"
+
+      render: ->
+        @$el.html @template {range: @dates}
+        @$('#eventrange').daterangepicker
+          arrows: true
+          autoSize: true
+          onChange: _.debounce(@updateResults, 200)
+          rangeStartTitle: 'Events Start'
+          rangeEndTitle: 'Events End'
+          earliestDate: '1 month ago'
+        @updateResults()
+        @
 
 # Dashboard Navigation
 # -------------------------------------------
@@ -56,7 +155,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
               el: $('#timeline')
               router: @router
           @tabs.eventlog = new EventLog
-              el: $('#events')
+              el: $('#eventlog')
               router: @router
           @tabs.journal = new Journal.Page
               collection: Core.theUser.journals

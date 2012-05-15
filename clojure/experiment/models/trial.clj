@@ -1,6 +1,9 @@
 (ns experiment.models.trial
-  (:use experiment.infra.models)
-  (:require [experiment.libs.datetime :as dt]))
+  (:use
+   experiment.infra.models
+   experiment.models.user)
+  (:require
+   [experiment.libs.datetime :as dt]))
 
 ;; ===========================================================
 ;; TRIAL
@@ -40,5 +43,18 @@
     :donep (trial-done? trial)
     :end-str (when-let [end (:end trial)] (dt/as-short-string end))))
 
+(defn trial-user [trial]
+  (resolve-dbref (:user trial)))
 
+(defn trial-trackers [trial]
+  (let [ids (:tracker-ids trial)
+        trackers (:trackers (trial-user trial))]
+    (map #((keyword %) trackers) ids)))
+
+(defn reminder-events [trial interval]
+;; TODO
+  nil)
+
+(defn all-reminder-events [user interval]
+  (mapcat #(reminder-events % interval) (trials user)))
   

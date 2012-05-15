@@ -43,6 +43,25 @@
    (%each this
           [:li {:class (% class)} [:a {:href "#"} (% text)]])])
 
+;; # Scheduling
+
+(deftemplate scheduler-view
+  [:div
+   [:div.page-header
+    [:h1 "Configure Instrument Tracker"]]
+   [:ul#schedTab.nav.nav-tabs
+    (%if daily [:li [:a {:href "#daily"} "Daily"]])
+    (%if weekly [:li [:a {:href "#weekly"} "Weekly"]])
+    (%if periodic [:li [:a {:href "#periodic"} "Periodic"]])]
+   [:div.tab-content.well
+    [:div#daily.tab-pane]
+    [:div#weekly.tab-pane]
+    [:div#periodic.tab-pane]]
+   [:div.controls
+    [:button.btn.btn-primary.accept "Configure"]
+    [:button.btn.cancel "Cancel"]]])
+
+
 ;; # Instrument Templates
 
 (deftemplate journal-page
@@ -140,7 +159,7 @@
 (deftemplate timeline-header
   [:div#timeline-header {:style "height: 60px;"}
    [:div.daterange.pull-left
-    [:input {:type "text" :name "rangepicker" :value (% range) :id "rangepicker"}]]
+    [:input {:type "text" :name "timelinerange" :value (% range) :id "timelinerange"}]]
    [:div.pull-right
     [:div.btn-group
      [:a.btn.dropdown-toggle {:data-toggle "dropdown" :href "#"}
@@ -148,6 +167,22 @@
       [:span.caret]]
      [:ul.dropdown-menu]]]])
     
+
+(deftemplate event-view
+  [:div.event-view
+   [:p (% status) " " (% message)]])
+
+(deftemplate event-log
+  [:div
+   [:div.page-header
+    [:div
+     [:h1.pull-left "Event Log"]
+     [:span.pull-right {:style "display: inline;"}
+      [:input {:type "text" :name "eventrange" :value (% range) :id "eventrange"}]]
+     [:div {:style "clear: both;"}]]]
+   [:div.row
+    [:div#eventlist.span6]
+    [:div.span6 [:p]]]])
 
 ;; TRIAL
 
@@ -198,7 +233,7 @@
            [:span.label.label-info (% this)] "&nbsp;")]])
 
 (deftemplate treatment-row-view
-  [:tr [:td [:a.title {:href "#" :data-id (% id)}
+  [:tr [:td [:a.title {:href "#" :data-id (% id) :data-type (% type)}
              [:i.icon-play] " " (% name)]]])
 
 (deftemplate treatment-view
@@ -260,7 +295,7 @@
 
 (deftemplate instrument-list-view
   [:div.result.instrument-list-view
-   [:h3 [:a.title {:href "#" :data-id (% id)} ;; (%str "/explore/view/" (% type) "/" (% id)) }
+   [:h3 [:a.title {:href "#" :data-id (% id) :data-type (% type)} ;; (%str "/explore/view/" (% type) "/" (% id)) }
          [:i.icon-eye-open {:style "vertical-align:middle"}] " " (% variable) " (" (% service) ")"]]
    [:p (% description)]
    [:p.tags
@@ -279,15 +314,17 @@
     ]])
 
 (deftemplate instrument-row-view
-  [:tr [:td [:a.title {:href "#" :data-id (% id)}
-             [:i.icon-eye-open] " " (% variable)]]])
+  [:tr [:td [:a.title {:href "#" :data-id (% id) :data-type (% type)}
+             [:i.icon-eye-open] " " (% variable) " -- " (% service)]]])
 
 (deftemplate instrument-view
   [:div.instrument-view
    [:div.row
     [:div.page-header
      [:div.span8
-      [:h1 (% variable) " -- " [:a {:href "/account/services"} (% service)]]]
+      [:h1 (%if tracked [:a {:href "/dashboard/timeline"} (% variable)])
+           (%unless tracked (% variable))
+       " -- " [:a {:href "/account/services"} (% service)]]]
      [:div.span3
       [:span.pull-right
        (%if owner [:button.btn.btn-large.edit "Edit"])

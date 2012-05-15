@@ -29,29 +29,43 @@
    [:div.container {:style "min-height: 400px"}
     [:div#explore]]
    [:div#templates
-    (render-all-templates)]))
+    (render-all-templates)
+    (bootstrap-user-json)]))
    
 (defpage "/explore" {:as options}
   (resp/redirect "/explore/search"))
 
 (deftemplate search-header
-  [:div {:class "well search-box"}
-   [:div.pull-left
-    (text-field {:class "search-query input-xxlarge"} "q" (% this))
-    [:button.btn {:type "button" :class "btn search-btn"} "Search"]
-    [:button.btn {:type "button" :class "btn help-btn"} "Help"]]
-   [:div.pull-right
-    [:div.btn-group
-     [:a.btn.btn-primary.dropdown-toggle {:data-toggle "dropdown" :href "#"}
-      "Create "
-      [:span.caret]]
-     [:ul.dropdown-menu
-      [:li.menuitem
-       [:a {:href "#" :class "action create-experiment"}
-        "Experiment"]]
-      [:li.menuitem
-       [:a {:href "#" :class "action create-treatment"}
-        "Treatment"]]]]]])
+  [:div.header
+   [:div {:class "well search-box"}
+    [:div.pull-left
+     (text-field {:class "search-query input-xxlarge"} "q" (% this))
+     [:button.btn {:type "button" :class "btn search-btn"} "Search"]
+     [:button.btn {:type "button" :class "btn help-btn"} "Help"]]
+    [:div.pull-right
+     [:div.btn-group
+      [:a.btn.btn-primary.dropdown-toggle {:data-toggle "dropdown" :href "#"}
+       "Create "
+       [:span.caret]]
+      [:ul.dropdown-menu
+       [:li.menuitem
+        [:a {:href "#" :class "action create-experiment"}
+         "Experiment"]]
+       [:li.menuitem
+        [:a {:href "#" :class "action create-treatment"}
+         "Treatment"]]]]]]
+   [:div#pagination]
+   [:div.row
+    [:div#results.span8
+     [:p]]
+    [:div.span4
+     [:h2 "Popular Searches"]
+     [:ul
+      [:li [:a.popsearch {:href "#"} "show treatments"]]
+      [:li [:a.popsearch {:href "#"} "show experiments"]]
+      [:li [:a.popsearch {:href "#"} "show instruments"]]]
+     [:div#popular]]]])
+    
 ;;      [:li.menuitem
 ;;       [:a {:href "#" :class "action create-instrument"}
 ;;        "Instrument"]]]]]])

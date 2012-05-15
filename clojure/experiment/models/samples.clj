@@ -246,4 +246,4 @@
                   first
                   :updated)]
     (dt/from-date updated)))
-     
+
