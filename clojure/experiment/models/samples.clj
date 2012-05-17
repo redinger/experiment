@@ -36,7 +36,8 @@
        true))
 
 (defn valid-samples? [samples]
-  (every? valid-sample? samples))
+  (and (or (list? samples) (vector? samples))
+       (every? valid-sample? samples)))
 
 (defn- as-chunk-sample
   "Convert Joda Time objects to Java Date objects"
@@ -91,7 +92,9 @@
         update {:$set {:updated (dt/as-date (dt/now))
                        :samples samples
                        :stats.count (count samples)
-                       :stats.sum (apply + (map :v samples))}}]
+                       :stats.sum (when (number? (:v (first samples)))
+                                    (apply + (map :v samples)))
+                       }}]
     (mongo/update!
      :chunks
      (if old-chunk

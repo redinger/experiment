@@ -153,6 +153,13 @@ define ['jquery', 'use!Backbone', 'models/infra', 'models/user'],
     class Schedule extends Infra.Model
       serverType: 'schedule'
 
+# ## Event
+    class Event extends Infra.Model
+      serverType: 'event'
+      embedded:
+        instrument: ['reference', 'Instrument']
+        user: ['reference', 'User']
+
 # ## Trackers
 
     class Tracker extends Infra.Model
@@ -217,6 +224,7 @@ define ['jquery', 'use!Backbone', 'models/infra', 'models/user'],
       Experiment: Experiment
       Trial: Trial
       Schedule: Schedule
+      Event: Event
       Tracker: Tracker
       Suggestion: Suggestion
       UserPrefs: UserSub.UserPrefs

@@ -53,9 +53,9 @@
   (let [instrument (get-instrument (deserialize-id inst))]
     (response/json
      (tracker-chart instrument
-                    (or (dt/from-iso-8601 start)
+                    (or (dt/from-iso start)
                         (time/minus (dt/now) (time/months 1)))
-                    (or (dt/from-iso-8601 end)
+                    (or (dt/from-iso end)
                         (dt/now))))))
 
 

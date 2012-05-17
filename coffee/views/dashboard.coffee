@@ -1,4 +1,4 @@
-define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/journal', 'views/timeline', 'use!Handlebars', 'use!D3time', 'use!BackboneFormsBS', 'use!BackboneFormsEditors', 'use!jQueryDatePicker' ],
+define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/journal', 'views/timeline', 'use!Handlebars', 'use!D3time', 'use!BackboneFormsBS', 'use!BackboneFormsEditors', 'use!jQueryDatePicker', 'use!Moment' ],
   (Infra, Core, User, Widgets, Journal, Timeline) ->
 
 # Control Chart
@@ -38,20 +38,53 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
 
 # Event Log
 # ---------------------------------
-    class Event extends Backbone.View
+    class EventView extends Backbone.View
       attributes:
         class: "event"
 
       initialize: ->
         @template = Infra.templateLoader.getTemplate 'event-view'
+        @model.on 'change', @render
         @
 
-      render: ->
+      render: =>
         @$el.html @template @model.toTemplateJSON()
         @
 
+      events:
+        'click .edit-event': 'editEvent'
+        'click .submit-event': 'submitEvent'
+        'click .view-timeline': 'viewTimeline'
+
+      viewTimeline: =>
+        window.Dashboard.router.navigate '/timeline',
+          trigger: true
+
+      editEvent: =>
+        @$('.event-view').append "<div class='event-editor'><input type='text' class='event-data'></input> <button type='button' class='submit-event btn'>Submit</button><button type='button' class='submit-event btn'>Cancel</button></div>"
+
+      submitEvent: =>
+        entry = @$('.event-data').val()
+        $.ajax "/api/events/submit",
+           type: "POST"
+           data:
+             userid: @model.user.id
+             instid: @model.instrument.id
+             date: @model.get('start')
+             text: "#{ @model.get('sms-prefix') } #{ entry }"
+           context: @
+           success: (evt) ->
+             console.log evt
+             if evt
+               @model.set evt
+             else
+               @model.set
+                 editable: false
+                 error: "There was a problem recording your entry"
+
     periodHeader = (target, date) ->
-      $(target).append("<div class='dateheader'>" + date + "</div>")
+      date = moment(date).format('dddd, MMMM, Do YYYY')
+      $(target).append("<div class='dateheader'><h3>" + date + "</h3></div>")
 
     class EventLog extends Backbone.View
       initialize: (options) ->
@@ -83,8 +116,8 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
             # Create views for the events in each group
             @groups = _.map groups, (group) ->
               group.views = _.map group.events, (datum) ->
-                new Event
-                  model: new Infra.Model(datum)
+                new EventView
+                  model: new (Backbone.ReferenceCache.lookupConstructor(datum.type))(datum)
               , @
               group
             , @

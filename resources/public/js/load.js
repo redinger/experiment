@@ -27,6 +27,7 @@ require.config(
 				D3time: "libs/d3/d3.time.min",
 				QIchart: 'libs/qi-chart',
 				Common: 'views/common',
+                Moment: 'libs/misc/moment.min',
 			   },
 		use: { "Underscore": { attach: "_" },
 			   "Handlebars": { attach: "Handlebars" },
@@ -45,7 +46,8 @@ require.config(
 			   "D3": { deps: ["jquery"],
 					   attach: "d3"
 					 },
-			   "D3time": { deps: ["use!D3"] }
+			   "D3time": { deps: ["use!D3"] },
+               "Moment": { deps: ["libs/misc/jstz.min"], attach: 'moment' }
 			 },
 		deps: ['views/common'],
 		callback: function () {

@@ -96,6 +96,25 @@
      (.appendLiteral "-")
      (.appendDayOfMonth 2))))
 
+(def ^{:private true} iso-format
+  (.toFormatter
+   (doto (DateTimeFormatterBuilder.)
+     (.appendYear 4 4)
+     (.appendLiteral "-")
+     (.appendMonthOfYear 2)
+     (.appendLiteral "-")
+     (.appendDayOfMonth 2)
+     (.appendLiteral "T")
+     (.appendHourOfDay 2)
+     (.appendLiteral ":")
+     (.appendMinuteOfHour 2)
+     (.appendLiteral ":")
+     (.appendSecondOfMinute 2)
+     (.appendLiteral ".")
+     (.appendMillisOfSecond 3)
+     (.appendTimeZoneOffset "Z" true 2 2))))
+     
+
 (def ^{:private true} iso-8601
   (org.joda.time.format.ISODateTimeFormat/basicDateTime))
 
@@ -120,13 +139,19 @@
 (defn now
   "Returns a date-time"
   []
-  (time/to-time-zone (time/now) (mid/session-timezone)))
+  (time/to-time-zone (time/now) (mid/server-timezone)))
 
 (def ^{:private true} short-fmt-intervals
   [[(time/days 1) short-today-fmt]
    [(time/weeks 1) short-week-fmt]
    [(time/years 1) short-year-fmt]
    [(time/years 1000) short-fmt]])
+
+(defprotocol DateTime
+  (date? [dt])
+  (timezone [dt])
+  (as-joda [dt])
+  (as-java [dt]))
 
 (defn- within-period-ago? [dt current period]
   (time/within? (time/interval (time/minus current period) current) dt))
@@ -141,8 +166,6 @@
 
 (defn a-month-ago []
   (time/minus (time/now) (time/months 1)))
-
-;; Canonicalize
 
 (defmacro with-server-timezone
   [& body]
@@ -160,6 +183,16 @@
 (defn from-utc
   ([utc] (from-utc utc (mid/session-timezone)))
   ([utc tz] (when utc (time/to-time-zone (from-utc utc) tz))))
+
+(defn from-iso
+  "Simplified ISO formatted date/times"
+  ([string]
+     (from-iso string (mid/session-timezone)))
+  ([string tz]
+     (when (and string tz)
+       (time/from-time-zone
+        (.parseDateTime iso-format string)
+        tz))))
   
 (defn from-iso-8601
   ([string]
@@ -186,17 +219,19 @@
 ;; Export formats
 
 (defn as-utc [dt]
-  (condp = (type dt)
-      java.lang.Long dt
-      org.joda.time.DateTime (coerce/to-long dt)
-      java.util.Date (.getTime dt)))
+  (cond
+   (date? dt)
+   (coerce/to-long (as-joda dt))
+   (= (type dt) java.lang.Long)
+   dt
+   true nil))
 
 (defn as-date [dt]
-  (condp = (type dt)
-    java.lang.Long (java.util.Date. dt)
-    org.joda.time.DateTime (coerce/to-date dt)
-    java.util.Date dt
-    nil nil))
+  (cond
+   (date? dt)
+   (as-java dt)
+   (= (type dt) java.lang.Long)
+   (java.util.Date. dt)))
 
 (defn as-short-relative-string [dt]
   (.print (short-formatter dt) dt))
@@ -217,6 +252,10 @@
   (when dt
     (.print iso-8601 dt)))
 
+(defn as-iso [dt]
+  (when dt
+    (.print iso-format dt)))
+
 (defn as-blog-date [dt]
   (when dt
     (.print blog-fmt dt)))
@@ -228,8 +267,37 @@
   (in-server-tz dt))
 
 (defn in-session-tz [dt]
-  (println (mid/server-timezone))
   (time/to-time-zone dt (mid/session-timezone)))
 
 (defn to-session-tz [dt]
   (time/from-time-zone dt (mid/session-timezone)))
+
+(defn wall-time [dt]
+  (when dt (.toString (.toLocalTime dt) "KK:mm aa")))
+   
+;; Canonical Time Interface
+
+(extend-protocol DateTime 
+  java.util.Date
+  (:date? [dt] true)
+  (:as-joda [dt] (org.joda.time.DateTime. dt))
+  (:as-java [dt] dt)
+  (:timezone [dt] (timezone (as-joda dt)))
+  org.joda.time.DateTime
+  (:date? [dt] true)
+  (:as-joda [dt] dt)
+  (:as-java [dt] (.toDate dt))
+  (:timezone [dt] (.getZone (.getChronology dt)))
+  Object
+  (:date? [dt] false)
+  (:as-joda [dt] (throw (java.lang.UnsupportedOperationException. "Not a date object")))
+  (:as-java [dt] (throw (java.lang.UnsupportedOperationException. "Not a date object")))
+  (:timezone [dt] (throw (java.lang.UnsupportedOperationException. "Not a date object")))
+  nil
+  (:date? [dt] false)
+  (:as-joda [dt] (throw (java.lang.UnsupportedOperationException. "Not a date object")))
+  (:as-java [dt] (throw (java.lang.UnsupportedOperationException. "Not a date object")))
+  (:timezone [dt] (throw (java.lang.UnsupportedOperationException. "Not a date object"))))
+  
+          
+          

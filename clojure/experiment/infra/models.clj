@@ -6,8 +6,8 @@
    [clojure.string :as str]
    [clojure.walk :as walk]
    [clojure.tools.logging :as log]
+   [experiment.libs.datetime :as dt]
    [somnium.congomongo :as mongo]
-;;   [clucy.core :as clucy]
    [noir.response :as response]
    [noir.request :as request]
    [clodown.core :as md]
@@ -405,7 +405,25 @@
           (concat (list (:type lead) :where (dissoc lead :type))
                   (rest options)))))
 
-;; ### Main internal API for Client-Server transforms
+;; ### Handling conversions from canonical clojure form to/from mongo
+
+(defn mongo->canonical* [obj]
+  (cond (dt/date? obj)
+        (dt/as-joda obj)
+        true obj))
+
+(defn mongo->canonical [obj]
+  (walk/postwalk mongo->canonical* obj))
+
+(defn canonical->mongo* [obj]
+  (cond (dt/date? obj)
+        (dt/as-java obj)
+        true obj))
+
+(defn canonical->mongo [obj]
+  (walk/postwalk canonical->mongo* obj))
+  
+;; ### Handle canonical server form to client transforms
 
 (defn server->client* [node]
   (if (:type node)
@@ -489,7 +507,9 @@
   [model]
   (assert (not (model? model)))
   (if (valid-model? model)
-    (mongo/insert! (model-collection model) (create-model-hook model))
+    (mongo/insert! (model-collection model)
+                   (canonical->mongo
+                    (create-model-hook model)))
     "Invalid Model"))
 
 (defn update-model!
@@ -501,7 +521,9 @@
   (if (and (:_id model) (:type model))
     (let [result (mongo/update! (model-collection model)
                                 (select-keys model [:_id])
-                                (update-by-modifiers (update-model-hook model))
+                                (update-by-modifiers
+                                 (log/spy (canonical->mongo
+                                  (update-model-hook model))))
                                 :upsert false)]
       (if-let [err (.getError result)]
         "DB Error"
@@ -515,7 +537,7 @@
   (assert (map? modifier))
   (mongo/update! (model-collection model)
                  (select-keys model [:_id])
-                 modifier
+                 (canonical->mongo modifier)
                  :upsert false))
                  
 (defn fetch-model
@@ -523,13 +545,15 @@
   [& options]
   (nil-on-empty
    (let [[type & args] (translate-options options)]
-     (apply mongo/fetch-one (model-collection type) args))))
+     (mongo->canonical
+      (apply mongo/fetch-one (model-collection type) args)))))
 
 (defn fetch-models
   "Get a seq of models from the database"
   [& options]
   (let [[type & args] (translate-options options)]
-    (apply mongo/fetch (model-collection type) args)))
+    (mongo->canonical
+     (apply mongo/fetch (model-collection type) args))))
 
 (defn delete-model!
   "Delete a model from the database; must have a valid :_id"

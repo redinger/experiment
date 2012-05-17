@@ -63,9 +63,10 @@
 
 
 (defn report-scheduling-event [event]
-  (log/tracef "Scheduling tracker event (%s) for %s"
-              (:variable (event-inst event))
-              (:username (event-user event)))
+  (when event
+    (log/tracef "Scheduling tracker event (%s) for %s"
+                (:variable (event-inst event))
+                (:username (event-user event))))
   event)
 
 (defn schedule-event
@@ -75,11 +76,12 @@
    - :start - must contain a valid time reference (long, java, or Joda date)
   "
   [event]
-  (q/schedule-task [(str "EventAction-" (:_id event))
-                    "experiment-events"]
-                   EventActionJob
-                   :start (:start event)
-                   :datamap {"eid" (serialize-id (:_id event))}))
+  (when event
+    (q/schedule-task [(str "EventAction-" (:_id event))
+                      "experiment-events"]
+                     EventActionJob
+                     :start (:start event)
+                     :datamap {"eid" (serialize-id (:_id event))})))
 
 (defn schedule-tracker [tracker inter]
   (doseq [event (tracker-events tracker inter)]
@@ -123,23 +125,30 @@
 (defn get-expired-events []
   [])
 
+(defn schedule-pending-events
+  "Schedule any events pending within the provided interval"
+  [inter]
+  (doseq [user (fetch-models :user {:trackers {:$exists true}} :only user-fields*)]
+    (dt/with-user-timezone [user]
+      (doseq [trial (trials user)]
+        (doseq [tracker (:trackers trial)]
+          (schedule-tracker tracker inter)))
+      (doseq [tracker (trackers user)]
+        (schedule-tracker tracker inter))))
+  (doseq [expired (get-expired-events)]
+    (cancel-event expired)))
+
+
 (defn event-manager-task
   "Loop over all event generating objects and queue any events
    within the event manager horizon defined by next-interval"
   [context]
   (when (= (prop/get :mode) :dev)
     (when-let [inter (next-interval (:last (q/context-data context)))]
-      (log/info "Scheduling new events")
-      (doseq [user (fetch-models :user {:trackers {:$exists true}} :only user-fields*)]
-        (dt/with-user-timezone [user]
-          (doseq [trial (trials user)]
-            (doseq [tracker (:trackers trial)]
-              (schedule-tracker tracker inter)))
-          (doseq [tracker (trackers user)]
-            (schedule-tracker tracker inter))))
-      (doseq [expired (get-expired-events)]
-          (cancel-event expired))
-      (.put context :last inter))))
+      (log/info "Scheduling new events from " (.getStart inter) " to " (.getEnd inter))
+      (schedule-pending-events inter)
+      (.put context :last inter))
+    context))
 
 (q/defjob EventJob [context]
   (event-manager-task context))
@@ -199,7 +208,6 @@
 (q/defjob Test1 [context]
   (let [time (.getFireTime context)
 	key (.getKey (.getJobDetail context))]
-
     (println (format "Job [%s] fired at %s" key time))))
 
 (defn run-test [num seconds-interval]

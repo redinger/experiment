@@ -49,25 +49,13 @@
 ;; - :result - was the event satisfied (e.g. delivered, responded, etc)
 ;; - :timeout - how long to wait before failing when response is needed
 
-;; Event Model Protocol
-;; ----------------------------
-
-(defmethod public-keys :event [event]
-  [:status :start :instrument :user :message :sms-value-type])
-
-(defmethod import-keys :event [event]
-  [:status])
-
-(defmethod server->client-hook :event [event]
-  (update-in event [:start] dt/as-iso-8601))
-
 ;; Event primitives
 ;; ----------------------------
 
-(def required-event-keys [:type :etype :user :start])
+(def required-event-keys [:type :etype :user :instrument :start])
 
 (defn valid-event? [event]
-  (and (= (count (select-keys required-event-keys))
+  (and (= (count (select-keys event required-event-keys))
           (count required-event-keys))
        (#{"pending" "active" "done"} (:status event))))
 
@@ -75,37 +63,130 @@
   (or (nil? (:status event))
       (#{"pending" "active"} (:status event))))
 
+(defn success? [event]
+  (and (= (:status event) "done")
+       (= (:result event) "success")))
+
+(defn fail? [event]
+  (and (= (:status event) "done")
+       (not= (:result event) "success")))
+
+(defn editable? [event]
+  (when-let [start (:start event)]
+    (and (= (:status event) "active")
+         (:wait event)
+         (= (:etype event) "sms")
+         (within-24-hours-of? (dt/now) start))))
+
+(defn within-24-hours-of?
+  "If 't' is within 24 hours of 'ref'"
+  [t ref]
+  (time/within?
+   (time/interval
+    (time/minus ref (time/hours 24))
+    (time/plus ref (time/hours 24)))
+   t))
+  
 (defn requires-reply? [event]
   (:wait event))
 
-(defn- modify-if
+(defmacro modify-if
   ([map key value]
-     (if (contains? map key)
-       (assoc map key value)
-       map))
+     `(let [themap# ~map]
+        (assert (map? themap#))
+        (if (contains? themap# ~key)
+          (assoc themap# ~key ~value)
+          themap#)))
   ([map key new-key value]
-     (if (contains? map key)
-       (dissoc (assoc map new-key value) key)
-       map)))
+     `(let [themap# ~map
+            theval# ~value]
+        (assert (map? themap#))
+        (if (contains? themap# ~key)
+          (dissoc
+           (if (map? theval#)
+             (assoc themap# ~new-key (merge (themap# ~new-key) theval#))
+             (assoc themap# ~new-key theval#))
+             ~key)
+          themap#))))
+
+;; Event Model Protocol
+;; ----------------------------
+
+(defmethod public-keys :event [event]
+  [:status :start :local-time :instrument :user :message
+   :sms-prefix :sms-value-type :result-ts :result-val
+   :result-time :success :fail :editable])
+
+(defmethod import-keys :event [event]
+  [:status])
+
+;; Only convert instantiated events
+(defmethod server->client-hook :event [event]
+  (if (valid-event? event)
+    (let [start (dt/in-session-tz (:start event))
+          ltime (dt/wall-time start)
+          ts (when-let [res (:result-ts event)]
+               (dt/in-session-tz res))
+          tstime (dt/wall-time ts)]
+      (-> event
+          (update-in [:start] (fn [old] (dt/as-iso start)))
+          (update-in [:result-ts] (fn [old] (dt/as-iso ts)))
+          (assoc :success (success? event))
+          (assoc :fail (fail? event))
+          (assoc :editable (editable? event))
+          (assoc :local-time ltime)
+          (assoc :result-time tstime)))
+    event))
+             
+
 
 ;; Event storage and manipulation
 ;; ----------------------------
 
-(defn register-event [event]
-  (create-model!
-   (update-in event [:start] dt/as-date)))
 
 (defn- event-query [query]
-  (-> query
-      (modify-if :user (as-dbref (:user query)))
-      (modify-if :type :etype (:type query))
-      (modify-if :start {:$gte (dt/as-date (:start query))})
-      (modify-if :end {:$lte (dt/as-date (:end query))})))
+  (let [user (:user query)
+        inst (:instrument query)]
+    (-> query
+        (modify-if :user (if (dbref? user) user (as-dbref user)))
+        (modify-if :instrument (if (dbref? inst) inst (as-dbref inst)))
+        (modify-if :type :etype (:type query))
+        (modify-if :start {:$gte (dt/as-date (:start query))})
+        (modify-if :end :start {:$lte (dt/as-date (:end query))}))))
 
 (defn get-events 
   "Return the events for the user associated with this incoming message"
   [& {:keys [user status type start end] :as query}]
   (fetch-models :event (event-query query) :sort {:start 1}))
+
+(defn matching-events [event]
+  (println event)
+  (get-events :user (:user event)
+              :instrument (:instrument event)
+              :start (time/minus (:start event)
+                                 (time/minutes (or (:jitter event) 0)))
+              :end (time/plus (:start event)
+                              (time/minutes (or (:jitter event) 0)))))
+
+(defn event-scheduled? [event]
+  (not (empty? (matching-events event))))
+  
+(defn remove-scheduled
+  "Ensure that the list of events do not match
+   any scheduled ('active') events"
+  [events]
+  (assert (every? :start events))
+  (let [outer (time/plus (dt/now) (time/hours 30))
+        [near far] (split-with #(time/before? (:start %) outer) events)]
+    (concat (filter #(not (event-scheduled? %)) near) far)))
+    
+
+(defn register-event [event]
+  (when (empty? (matching-events event))
+    (create-model!
+     (assoc event
+       :type "event"
+       :status "active"))))
 
 (defn set-status [event status]
   (modify-model! event {:$set {:status status}}))
@@ -113,13 +194,13 @@
 (defn complete [event ts data]
   (modify-model! event {:$set {:status "done"
                                :result "success"
-                               :result-ts (dt/as-date ts)
+                               :result-ts ts
                                :result-val data}}))
 
 (defn cancel [event & [reason]]
   (modify-model! event {:$set {:status "done"
                                :result (or reason "fail")
-                               :result-ts (dt/as-date (dt/now))}}))
+                               :result-ts (dt/now)}}))
 
 (defn event-user [event]
   (assert (and (= (:type event) "event") (:user event)))

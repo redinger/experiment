@@ -170,7 +170,22 @@
 
 (deftemplate event-view
   [:div.event-view
-   [:p (% status) " " (% message)]])
+   (%if editable
+        [:div {:style "float: right;"}
+         [:a.edit-event {:href "#"}
+          [:i.icon-edit]]])
+   [:div
+    (%if success [:i.icon-ok])
+    (%if fail [:i.icon-remove])
+    (%with instrument
+           [:b (% variable) " (" (% service) ")"
+            [:a.view-timeline {:href "#"}
+             [:i.icon-eye-open]]])]
+   [:div (% local-time) ":&nbsp;" (% message)] ;; (% status) " " 
+   (%if result-val
+        [:div.response (% result-time) ":&nbsp;" [:b "Response: '"] (% result-val) "'"])
+   (%if error [:div.error (% error)])])
+
 
 (deftemplate event-log
   [:div

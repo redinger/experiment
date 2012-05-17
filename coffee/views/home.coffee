@@ -1,4 +1,4 @@
-define ['jquery', 'views/common', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEditors'],
+define ['jquery', 'views/common', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEditors', 'libs/misc/jstz.min'],
   ($, Common) ->
 
 

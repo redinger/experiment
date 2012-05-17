@@ -50,7 +50,7 @@
    to change the :start instant of the event to +/- (int (/ jitter 2))"
   ([event]
      (if-let [jitter (:jitter event)]
-       (assoc (dissoc event :jitter)
+       (assoc event
          :start (plus (:start event) (random-minutes jitter)))
        event)))
 
@@ -109,6 +109,7 @@
   (let [day-dt (dt/to-session-tz day-dt)]
     (for [{:keys [hour min] :or {min 0}} (:times schedule)]
       (assoc (:event schedule)
+        :status "pending"
         :start (dt/in-server-tz (plus day-dt (hours hour) (minutes min)))
         :jitter (:jitter schedule)))))
   
@@ -129,6 +130,7 @@
     (let [week-dt (dt/to-session-tz week-dt)
           day-dt (.withDayOfWeek (plus week-dt (hours hour) (minutes min)) day)]
       (assoc (:event schedule)
+        :status "pending"
         :start (dt/in-server-tz day-dt)
         :jitter (:jitter schedule)))))
 
@@ -144,19 +146,12 @@
 ;; :periods - list of intervals {:start dt :end dt}
 ;; :schedule - schedule to maintain during those intervals
 
-(defn- convert-date [node]
-  (if (= (type node) java.util.Date)
-    (dt/from-date node)
-    node))
-
-(defn- periodic-record-as-joda [rec]
-  (let [newrec (clojure.walk/postwalk convert-date rec)]
-    (assoc newrec
-      :periods (map #(assoc %1 :interval (interval (:start %1) (:end %1)))
-                    (:periods newrec)))))
+(defn- periodic-record-intervals [rec]
+  (update-in rec [:periods]
+             (fn [orig]
+               (map #(assoc %1 :interval (interval (:start %1) (:end %1))) orig))))
  
 (defn period-overlaps? [inter period]
-  (println period)
   (overlaps? inter (:interval period)))
   
 (defmethod events :periodic [schedule interval]

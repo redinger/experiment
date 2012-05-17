@@ -10,6 +10,7 @@
    [experiment.infra.session :as session]
    [experiment.models.user :as user]
    [experiment.models.events :as events]
+   [experiment.models.schedule :as schedule]
    [experiment.models.trackers :as trackers]
    [experiment.models.trial :as trial]
    [experiment.models.instruments :as inst]
@@ -21,32 +22,32 @@
 
 ;; ## Events
 
-(defn event-timeline [start end]
-  (println start end)
-  (let [user (session/current-user)
-        existing (events/get-events :user user :start start :end end)]
-    (if (time/after? end (dt/now))
-      (let [interval (if (time/before? start (dt/now))
-                       (time/interval (dt/now) end)
+(defn event-timeline [user start end]
+  (let [existing (events/get-events :user user :start start :end end)
+        last-dt (:start (last existing))]
+    (if (time/after? end last-dt)
+      (let [interval (if (time/before? start last-dt)
+                       (time/interval last-dt end)
                        (time/interval start end))]
-        (println interval)
         (concat existing
-                (trackers/all-tracker-events user interval)
+                (events/remove-scheduled
+                 (trackers/all-tracker-events user interval))
                 (trial/all-reminder-events user interval)))
       existing)))
 
 ;; Utilities
 
-(defn make-event-group [[start events]]
-  {:date start
-   :events (vec events)})
+(defn group-by-start-day [events]
+  (group-by (fn [event]
+              (schedule/decimate
+               :day
+               (:start event)))
+            events))
 
 (defn group-events-by-day [events]
   (->> events
-       (group-by :start)
-       (sort-by :first)
-       (map make-event-group)
-       vec))
+       group-by-start-day
+       (sort-by :first)))
 
 ;; REST API For Events
 ;; -------------------------------------
@@ -56,20 +57,36 @@
 ;; Returns: [ {events: [], date: "", period: ""}, ... ]
 ;; 
 
+(defn make-event-group [[start events]]
+  {:date (dt/as-iso start)
+   :events (vec (map server->client events))})
+
+;; TODO: User's trackers and trials -> track events & reminders
+;; (for future time horizons)
 (defapi fetch-events [:get "/api/events/fetch"]
   {:keys [start end] :as options}
-  (println start end)
-  (let [start (or (dt/from-iso-8601 start) (time/minus (dt/now) (time/days 7)))
-        end (or (time/plus (dt/from-iso-8601 end) (time/days 1))
+  (let [start (or (dt/from-iso start) (time/minus (dt/now) (time/days 7)))
+        end (or (time/plus (dt/from-iso end) (time/days 1))
                 (time/plus (dt/now) (time/days 6)))
         min (time/minus (dt/now) (time/days 90))
         max (time/plus (dt/now) (time/days 90))
         start (if (time/before? start min) min start)
-        end (if (time/after? end max) max end)]
-    (println start end)
-    (group-events-by-day
-     (map server->client
-          (event-timeline start end)))))
+        end (if (time/after? end max) max end)
+        user (session/current-user)]
+    (vec
+     (map make-event-group 
+          (group-events-by-day
+           (event-timeline user start end))))))
 
-  ;; Events within or before time horizon, include sample data?
-  ;; User's trackers and trials -> track events & reminders (for future time horizons)
+(defapi submit-event [:post "/api/events/submit"]
+  {:keys [userid instid date text] :as options}
+  (let [user (fetch-model :user {:_id (deserialize-id userid)})
+        inst (fetch-model :instance {:_id (deserialize-id instid)})
+        dt (dt/from-iso date)
+        events (events/get-events :user user :inst inst
+                                  :start dt :end dt)]
+    (if (not (empty? events))
+      (server->client
+       (trackers/associate-message-with-events user events (dt/now) text))
+      nil)))
+          
