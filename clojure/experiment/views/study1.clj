@@ -79,7 +79,8 @@
               (when consented?
                 [{:name "Introduction" :href "/study1/doc/study1-background"}
                  {:name "Examples" :href "/study1/doc/study1-example"}
-                 {:name "Author Study" :href "/study1/author"}]))
+                 {:name "Author Study" :href "/study1/author"}
+                 {:name "Review" :href "/study1/review"}]))
              :active current}})))
 
 ;; ## Study home page
@@ -214,7 +215,7 @@
    (study1-nav "Author")
    [:div.container
     [:h1 "My Submitted Experiments"]
-    [:p "It is perfectly acceptable during the duration of this experiment (through early March 2012) to revisit experiments you have submitted and make changes to them"]
+    [:p "It is perfectly acceptable during the duration of this experiment (through mid-June 2012) to revisit experiments you have submitted and make changes to them"]
     [:ul (map (fn [exp] [:li [:a {:href (format "/study1/author?id=%s" (:_id exp))}
                               (:name exp)]])
               (get-experiments (session/current-user)))]]))
@@ -278,8 +279,8 @@
      [:div.page-header
       [:h1 "Author an Experiment"]
       [:br]
-      [:p "Here we ask you to describe all the essential elements of an experiment designed to test a treatment, or a collection of simultaneous treatments.  You can read the introductory material, look at an example experiment, and review the questions on the Q&A page for more information.  The <a href=\"/study1/doc/study1-suggestions\">treatment suggestion page</a> gives you two specific treatments to choose from and ways to find information about them"]
-      [:p "There are no wrong answers here, if you aren't sure about something and can't get what you want from the Q&A section, then write down what is hard or confusing.  The goal is to learn how you react and think about experimentation so we can help make the process easier for non-experts."]]
+      [:p "Here we ask you to describe all the essential elements of an experiment designed to test one or more treatments.  Read the introductory material, look at an example experiment, and review the questions on the Q&A page for more information.  The <a href=\"/study1/doc/study1-suggestions\">treatment suggestion page</a> gives you two specific treatments to write about and how to find information about them"]
+      [:p "Please be as precise as you can, acting as if you were actually going to run this experiment.  There are no wrong answers.  If you aren't sure about something and can't get what you want from the Q&A section, then write down what is hard or confusing after making your best guess.  The goal is to learn how you react to the material and think about experimentation so we can make the process easier for non-experts."]]
      (experiment-form
       (if-let [id (:id options)]
         (get-experiment id)

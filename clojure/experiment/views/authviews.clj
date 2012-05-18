@@ -98,7 +98,7 @@
 
 (def reg-notice-body "User '%s' (%s) just registered on personalexperiments.org")
 (def reg-message-body "Your username is: %s
-We will contact you shortly when the site or the site's study is ready to launch")
+  Please return to the site at http://www.personalexperiments.org/study1, click Login in the upper right corner of the screen, enter your username and password, and proceed with the study instructions.")
 
 (defn register-new-user [{:keys [username password email name] :as user}]
   (user/create-user! username password email name)
