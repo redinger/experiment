@@ -90,9 +90,12 @@ define ['models/infra', 'views/common', 'use!Backbone'],
         event.preventDefault()
         tab = $(event.currentTarget)
         name = tab.children('a').attr('href')
-        @callback name, tab if @callback? and name?
-        @router.navigate name, {trigger: true} if @router? and name?
-        @selectTab tab if @select?
+        if tab.hasClass('abs') # Absolute link
+          window.location = name
+        else # In-application link
+          @callback name, tab if @callback? and name?
+          @router.navigate name, {trigger: true} if @router? and name?
+          @selectTab tab if @select?
 
     class AddTagDialog extends Common.ModalForm
       attributes:
@@ -173,8 +176,45 @@ define ['models/infra', 'views/common', 'use!Backbone'],
           else
             @trigger 'pagination:change', parseInt(newpage)
 
+# ## Calendar
+    class Calendar extends Backbone.View
+      initialize: (options) ->
+        @template = Infra.templateLoader.getTemplate 'small-calendar'
+        @url = options.url
+        @date = moment().date(1).sod()
+        @
+
+    # ## Events and Calendar
+      events:
+        'click .next': 'nextMonth'
+        'click .previous': 'prevMonth'
+
+      nextMonth: =>
+        @date = @date.add('months', 1)
+        @render()
+
+      prevMonth: =>
+        @date = @date.subtract('months', 1)
+        @render()
+
+      render: ->
+        @$el.html @template {date: @date.format("MMMM, YYYY")}
+        @$('.cal-body').hide()
+        $.ajax @url,
+          data:
+            year: @date.year()
+            month: @date.month() + 1
+          success: (data) =>
+            @$('.cal-body').html data
+            @$('.cal-body').fadeIn(300)
+            @$('.date_has_event').popover()
+          spinner: false
+        @
+
 # ## Return the widget library
     NavBar: NavBar
     TemplateView: TemplateView
     Pagination: Pagination
+    Calendar: Calendar
     AddTagDialog: AddTagDialog
+

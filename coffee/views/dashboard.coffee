@@ -1,5 +1,5 @@
-define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/journal', 'views/timeline', 'use!Handlebars', 'use!D3time', 'use!BackboneFormsBS', 'use!BackboneFormsEditors', 'use!jQueryDatePicker', 'use!Moment' ],
-  (Infra, Core, User, Widgets, Journal, Timeline) ->
+define ['jquery', 'models/infra', 'models/core', 'models/user', 'views/widgets', 'views/journal', 'views/timeline', 'use!Handlebars', 'use!D3time', 'use!BackboneFormsBS', 'use!BackboneFormsEditors', 'use!jQueryDatePicker', 'use!Moment', 'views/events' ],
+  ($, Infra, Core, User, Widgets, Journal, Timeline) ->
 
 # Control Chart
 # ------------------------------------------
@@ -24,16 +24,17 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
          msgs.push("<p>You are a member of the <a href='/study1'>Self-Experiment Study</a></p>")
       msgs
 
-
 # Summary View
 # ---------------------------------
     class Overview extends Backbone.View
       initialize: ->
+        @page = Infra.templateLoader.getTemplate 'overview-page'
+        @calendar = new Widgets.Calendar
+          url: "/api/calendar/user"
 
       render: ->
-        msgs = studyLinks().join()
-        @$el.html msgs
-        @$el.append "<h1>Overview</h1>"
+        @$el.html @page {}
+        @$('#calendar').append @calendar.render().el
         @
 
 # Event Log
@@ -169,6 +170,15 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
 # Dashboard Application
 # --------------------------------------------
 #
+    getStudies = () ->
+      prefs = Core.theUser.get('prefs')
+      studies = []
+      if prefs['study2-consented']
+        studies.push $("<li class='abs pull-right'><a href='/study2'>Self-Experiment Study</a></li>")
+      if prefs['study1-consented']
+        studies.push $("<li class='abs pull-right'><a href='/study1'>Authoring Study</a></li>")
+      studies
+
     class Dashboard extends Backbone.View
       initialize: (options) ->
           # Navigation
@@ -178,6 +188,9 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
           @navbar = new Widgets.NavBar
               el: $('.subnav-fixed-top')
               router: @router
+
+          studies = getStudies()
+          $('.nav-inner ul').append study for study in studies
 
           # Dashboard Tabs
           @tabs = {}

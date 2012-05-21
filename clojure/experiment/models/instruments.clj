@@ -99,6 +99,12 @@
                 :start (or start (dt/a-month-ago))
                 :end (or end (dt/now)))))
 
+(defmethod time-series :categorical [inst user & [start end convert?]]
+  [])
+  
+(defmethod time-series :opentext [inst user & [start end convert?]]
+  [])
+
 (defmethod refresh :default [inst user & [force?]]
   nil)
 

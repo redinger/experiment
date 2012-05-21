@@ -78,6 +78,9 @@
 (defn trials [user]
   (vals (:trials user)))
 
+(defn get-trial [user id]
+  ((trials user) (keyword id)))
+
 (defn has-trials? [user]
   (if (not (empty? (:trials user))) true false))
 

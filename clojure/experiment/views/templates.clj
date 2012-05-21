@@ -138,7 +138,18 @@
               [:button.btn.btn-mini.btn-danger.del
                [:i.icon-remove.icon-white]]]
              ])]]])
-            
+
+;; Dashboard Overview Page
+
+(deftemplate overview-page
+  [:div
+   [:div.row
+    [:div#summary]]
+   [:div.row
+    [:div#calendar.span4]
+    [:div#feeds.span4]
+    [:div#misc.span4]]])
+
 ;; Related Objects List
 
 (deftemplate related-objects
@@ -158,15 +169,32 @@
 
 (deftemplate timeline-header
   [:div#timeline-header {:style "height: 60px;"}
-   [:div.daterange.pull-left
-    [:input {:type "text" :name "timelinerange" :value (% range) :id "timelinerange"}]]
-   [:div.pull-right
-    [:div.btn-group
-     [:a.btn.dropdown-toggle {:data-toggle "dropdown" :href "#"}
-      "Visibility "
-      [:span.caret]]
-     [:ul.dropdown-menu]]]])
+   [:div.page-header
+    [:span {:style "display: inline;"}
+     [:h1.pull-left "Timeline"]
+     [:div.pull-right.btn-group
+       [:a.btn.dropdown-toggle {:data-toggle "dropdown" :href "#"}
+        "Show/Hide "
+        [:span.caret]]
+      [:ul.dropdown-menu]]
+     [:div.pull-right {:style "padding-left: 10px;"} [:p] ]
+     [:div.pull-right 
+      [:input {:type "text" :name "timelinerange" :value (% range) :id "timelinerange"}]]]
+    [:div {:style "clear:both;"}]]])
     
+;; EVENT LOG
+
+(deftemplate event-log
+  [:div
+   [:div.page-header
+    [:div
+     [:h1.pull-left "Event Log"]
+     [:span.pull-right {:style "display: inline;"}
+      [:input {:type "text" :name "eventrange" :value (% range) :id "eventrange"}]]
+     [:div {:style "clear: both;"}]]]
+   [:div.row
+    [:div#eventlist.span7]
+    [:div#eventother.span5 [:p]]]])
 
 (deftemplate event-view
   [:div.event-view
@@ -186,18 +214,6 @@
         [:div.response (% result-time) ":&nbsp;" [:b "Response: '"] (% result-val) "'"])
    (%if error [:div.error (% error)])])
 
-
-(deftemplate event-log
-  [:div
-   [:div.page-header
-    [:div
-     [:h1.pull-left "Event Log"]
-     [:span.pull-right {:style "display: inline;"}
-      [:input {:type "text" :name "eventrange" :value (% range) :id "eventrange"}]]
-     [:div {:style "clear: both;"}]]]
-   [:div.row
-    [:div#eventlist.span6]
-    [:div.span6 [:p]]]])
 
 ;; TRIAL
 

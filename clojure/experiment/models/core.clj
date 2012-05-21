@@ -52,10 +52,13 @@
 ;; INSTRUMENT [type ref]
 ;; -----------------------------------------------------------
 ;;
-;; -  has name
-;; -  has type
+;; -  has type = 'instrument'
 ;; -  has variable
-;; -  has implementedp -- new instrument objects are requests
+;; -  has service ('device/vendor name')
+;; -  has src ('channel name')
+;; -  has update-interval [optional] (polling frequency for service/device)
+;; -  has min-domain, max-domain (for fixed axis time series)
+;; -  has numeric? (determines whether values are numeric)
 ;; -  contains Comments
 
 (defmethod public-keys :instrument [treat]
