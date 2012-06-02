@@ -59,7 +59,7 @@ define ['models/infra', 'views/common', 'use!Backbone'],
         @callback = options.callback
         @router = options.router
         if @router
-           @router.on 'route:selectTab', (tabname) ->
+           @router.on 'route:selectTab', (tabname, args) ->
               @switchTo tabname
            , @
         throw new Error('NavTab has no element to attach to') if not options.el
@@ -188,27 +188,39 @@ define ['models/infra', 'views/common', 'use!Backbone'],
       events:
         'click .next': 'nextMonth'
         'click .previous': 'prevMonth'
+        'click .day': 'gotoDay'
 
       nextMonth: =>
         @date = @date.add('months', 1)
-        @render()
+        @update()
 
       prevMonth: =>
         @date = @date.subtract('months', 1)
-        @render()
+        @update()
 
-      render: ->
-        @$el.html @template {date: @date.format("MMMM, YYYY")}
-        @$('.cal-body').hide()
+      gotoDay: (event) =>
+        date = $(event.currentTarget).attr 'data-date'
+        @trigger 'view', 'eventlog', date
+
+      update: ->
         $.ajax @url,
           data:
             year: @date.year()
             month: @date.month() + 1
           success: (data) =>
+            @$('li.now a').html @date.format("MMM, YYYY")
+            @$('.cal-body').fadeOut(100)
             @$('.cal-body').html data
-            @$('.cal-body').fadeIn(300)
+            @$('.cal-body').fadeIn(200)
             @$('.date_has_event').popover()
           spinner: false
+
+      render: ->
+        @$el.append @template
+          date: @date.format("MMM, YYYY")
+          title: "Trial Calendar"
+        @$('.cal-body').hide()
+        @update()
         @
 
 # ## Return the widget library

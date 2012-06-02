@@ -295,6 +295,8 @@ define ['jquery', 'use!Backbone', 'use!Handlebars'],
                  [exporter] = record
                  if exporter is 'reference' and @[attr]
                     json[attr] = @[attr].asReference()
+                 else if exporter is 'references' and @[attr]
+                    json[attr] = @[attr].toJSON()
                  else if exporter is 'submodel' and @[attr]
                     json[attr] = @[attr].toJSON()
                  else if exporter is 'submodels' and @[attr]
@@ -303,7 +305,9 @@ define ['jquery', 'use!Backbone', 'use!Handlebars'],
           json
 
       toTemplateJSON: (options) ->
+          console.log 'In Model'
           if options? and options.depth?
+            console.log options.depth
             if options.depth is 0
               return
             else
@@ -314,9 +318,11 @@ define ['jquery', 'use!Backbone', 'use!Handlebars'],
           json = _toJSONModel.call(@, options)
           _.each @embedded, (record, attr) ->
                  [exporter] = record
-                 if exporter is 'reference' and @[attr]
+                 if exporter is 'reference' and @[attr]?
                     json[attr] = @[attr].toTemplateJSON(options)
-                 else if exporter is 'submodel' and @[attr]
+                 else if exporter is 'references' and @[attr]?
+                    json[attr] = @[attr].toTemplateJSON(options)
+                 else if exporter is 'submodel' and @[attr]?
                     json[attr] = @[attr].toTemplateJSON(options)
                  else if exporter is 'submodels' and @[attr]
                     json[attr] = _.map @[attr], (mod) ->
@@ -343,6 +349,18 @@ define ['jquery', 'use!Backbone', 'use!Handlebars'],
                 model.asReference()
           else
              _toJSONColl.call(@, options)
+
+      toTemplateJSON: (options) ->
+          console.log 'In Collection'
+          if options? and options.depth?
+            console.log options.depth
+            if options.depth is 0
+              return null
+          else
+            options = _.extend(options or {}, {depth: 2})
+
+          @models.map (model) ->
+             model.toTemplateJSON(_.clone(options))
 
       # When adding a model, maintain the parent reference
       # if we're an embedded collection

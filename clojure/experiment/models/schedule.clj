@@ -14,7 +14,8 @@
 ;; into a set of events dictated by the schedule's event template
 ;; 
 ;; Exports: (events <schedule> <interval>)
-;;
+;;          (periods <schedule>)
+;; 
 ;; Schedule Object:
 ;; {
 ;;  :type "schedule"
@@ -22,6 +23,16 @@
 ;;  :times <seconds>
 ;;  :event {...}
 ;; }
+
+(defn- valid-type? [type]
+  (#{"daily", "weekly", "periodic"} type))
+
+(defn make-schedule [type event & {:as options}]
+  (assert (valid-type? type))
+  (merge {:type "schedule"
+          :stype type
+          :event event}
+         options))
 
 
 ;; Scheduler utilities
@@ -146,20 +157,52 @@
 ;; :periods - list of intervals {:start dt :end dt}
 ;; :schedule - schedule to maintain during those intervals
 
-(defn- periodic-record-intervals [rec]
-  (update-in rec [:periods]
-             (fn [orig]
-               (map #(assoc %1 :interval (interval (:start %1) (:end %1))) orig))))
+(defn- periodic-interval [label start duration]
+  (let [end (time/plus start (time/days duration))
+        interval (interval start end)]
+    {:label label :interval interval}))
+
+(defn- periodic-record-intervals
+  ([rec]
+     (periodic-record-intervals (or (:start rec) (dt/now)) rec))
+  ([start rec]
+     (update-in rec [:periods]
+                (fn [orig]
+                  (-> (reduce (fn [[accum st] [label duration]]
+                                (let [rec (periodic-interval label st duration)]
+                                  [(cons rec accum) (.getEnd (:interval rec))]))
+                              ['() start]
+                              orig)
+                      first
+                      reverse)))))
  
-(defn period-overlaps? [inter period]
+(defn- period-overlaps? [inter period]
   (overlaps? inter (:interval period)))
-  
+
+(defn- select-subevent-periods [schedule periods]
+  (if-let [types (set (:event-periods schedule))]
+    (filter (comp types :label) periods)
+    periods))
+
+(defn periods-overlapping [schedule interval periods]
+  (filter (partial period-overlaps? interval)
+          (if schedule
+            (select-subevent-periods schedule periods)
+            periods)))
+
 (defmethod events :periodic [schedule interval]
   (assert (:periods schedule))
-  (->> (:periods (periodic-record-as-joda schedule))
-       (filter (partial period-overlaps? interval))
-       (mapcat (fn [period] (events (:schedule schedule)
-                                    (.overlap interval (:interval period)))))))
+  (->> (:periods (periodic-record-intervals schedule))
+       (periods-overlapping schedule interval)
+       (mapcat (fn [period]
+                 (println period)
+                 (events (:event-schedule schedule)
+                         (.overlap interval (:interval period)))))))
                
-       
+;;
+;; Period scheduler
+;;
+
+(defn periods [schedule]
+  (:periods (periodic-record-intervals schedule)))
 

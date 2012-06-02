@@ -70,7 +70,6 @@
     (event/cancel event ts)))
 
 (defn associate-message-with-events [user events ts text]
-  (println events)
   (let [samples (keep (partial sms/parse-sms text ts) events)]
     (cond (empty? samples)
           (do (log/info

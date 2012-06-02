@@ -374,20 +374,10 @@
 (defn null-value-keys [model]
   (map first (filter #(nil? (second %)) model)))
 
-(defn update-by-modifiers
-  ([model]
-     (let [bare (dissoc model :_id :id :type)]
-       {:$set bare}))
-  ([submodel path]
-     {:$set (clojure.set/rename-keys
-             submodel
-             (serialize-slot-paths submodel path))}))
-
 (defmacro nil-on-empty [body]
   `(let [result# ~body]
      (when (not (empty? result#))
        result#)))
-
 
 (defn translate-options
   "Convert our options to an mongo argument list"
@@ -416,8 +406,7 @@
   (walk/postwalk mongo->canonical* obj))
 
 (defn canonical->mongo* [obj]
-  (cond (dt/date? obj)
-        (dt/as-java obj)
+  (cond (dt/date? obj) (dt/as-java obj)
         true obj))
 
 (defn canonical->mongo [obj]
@@ -468,6 +457,17 @@
       filter-public-keys
       deserialize-model-refs
       client->server-hook))
+
+;; ### Merge over updates for API
+
+(defn update-by-modifiers
+  ([model]
+     (let [bare (dissoc model :_id :id :type)]
+       {:$set (canonical->mongo bare)}))
+  ([submodel path]
+     {:$set (clojure.set/rename-keys
+             (canonical->mongo submodel)
+             (serialize-slot-paths submodel path))}))
 
 ;; ------------------------------------------
 ;; Client-Server Models API
@@ -522,8 +522,7 @@
     (let [result (mongo/update! (model-collection model)
                                 (select-keys model [:_id])
                                 (update-by-modifiers
-                                 (log/spy (canonical->mongo
-                                  (update-model-hook model))))
+                                 (update-model-hook model))
                                 :upsert false)]
       (if-let [err (.getError result)]
         "DB Error"
@@ -572,6 +571,10 @@
 ;; database as the primary CRUD API, but allows the addition of
 ;; a location specifier which operates on embedded objects.
 ;;
+;; Writes to mongo go through create-model-hook or update-model-hook
+;;   then canonical->mongo
+;; Reads from mongo go through mongo->canonical
+;;
 ;; (set-submodel! parent "profile.addresses.id"
 ;;                {:type "address" :name "Joe User"})
 ;; =>
@@ -585,7 +588,7 @@
 (defn create-submodel!
   [parent location submodel]
   (assert (and (model? parent) (:type submodel)))
-  (let [new (or (:id submodel) (assign-uid submodel))
+  (let [new (create-model-hook (assign-uid submodel))
         pcoll (model-collection parent)
         pref (select-keys parent [:_id :type])
         path (serialize-path location (:id new))]
@@ -602,8 +605,8 @@
      (let [parent (mongo/fetch-one (model-collection parent)
                                 :where (select-keys parent [:_id])
                                 :only [(serialize-path location)])]
-       (lookup-location parent location))))
-                        
+       (mongo->canonical
+        (lookup-location parent location)))))
 
 ;;(defn get-submodels
 ;;  [model type]
@@ -615,14 +618,19 @@
   [model location submodel]
   (mongo/update! (model-collection model)
                  (select-keys model [:_id])
-                 (update-by-modifiers submodel location)
+                 (update-by-modifiers
+                  (update-model-hook submodel)
+                  location)
                  :upsert false))
 
 (defn delete-submodel!
   [model location]
-  (mongo/update! (model-collection model)
+  (delete-model-hook
+   (get-submodel model location))
+  (log/spy (mongo/update! (model-collection model)
                  (select-keys model [:_id])
-                 {:$unset {(serialize-path location) 1}}))
+                 {:$unset {(serialize-path location) 1}}
+                 :upsert false)))
 
 ;; ## Misc Store Utilities
 

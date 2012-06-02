@@ -4,6 +4,7 @@
   (:require
    [clojure.data :as data]
    [clojure.string :as str]
+   [clojure.tools.logging :as log]
    [cheshire.core :as json]
    [noir.response :as response]
    [noir.request :as request]
@@ -151,7 +152,8 @@
 ;; ### UPDATE Submodel 
 (defapi backbone-sub-api-update [:put "/api/embed/:mtype/:mid/*"]
   {:keys [mtype mid * id json-payload] :as args}
-  (let [location (submodel-location *)]
+  (let [location (submodel-location *)
+        submod (client->server (assoc json-payload :submodel true))]
     (set-submodel! (root-signature mtype mid) location
                    (client->server (assoc json-payload :submodel true)))
     (server->client

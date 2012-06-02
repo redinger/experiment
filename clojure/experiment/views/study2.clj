@@ -91,9 +91,14 @@
    [:div.container
     [:div.span8
      [:div.page-header
-      [:h1 "Welcome to the Self-Experiment study"]
+      [:h1 "Self-Experiments for Psoriasis"]
       [:br]
-      [:p "This is the home page for a one-time research study about authoring experiments.  We are running this study to better understand how patients think about self-experimentation and figuring out how making changes impacts them.  If you would like to help, we will ask you to read some introductory material, research a specific treatment, and write down your " [:b "best guess"] " as to how an experiment should be constructed so you would have confidence if you ran the experiment you would be confident that it worked."]
+      [:p "This page introduces and guides you through one of two different studies
+           that will help you determine whether a specific treatment is helpful for you.
+           Participating in this study will help us understand more about these treatments,
+           and more about how this site can be improved to support more studies like these."]
+      [:p "If you would like to participate, we will ask you to read some introductory material,
+           consent to the study"]
       [:p "We are not asking you to engage in any experimentation, but simply to write down how you think it should be done.  The best result for us is that you don't get everyong wrong nor everything right, but are somewhere in the middle. We're looking to understand what is easy and what is hard so we can build the best tools for non-specialists."]
       [:p (when (not (session/logged-in?))
             "To participate, please " [:a.register-button {:href "#"} "register"] " for an account, login and then follow the procedures below.  ") "As you proceed through consenting to the study, the procedure list will be updated." ]
@@ -173,14 +178,24 @@
      
 (defpage "/study2/consent" {}
   (common/layout
-   ["Aggregating Self-Experiments Consent"
+   ["Self-Experiments Consent"
     (study2-nav "Consent")]
    (render-consent)))
 
 (defpage [:post "/study2/consent"] {}
   (let [req req/*request*]
     (consent-patient!)
-    (resp/redirect "/study2")))
+    (resp/redirect "/study2/select")))
+
+(defpartial render-select-page []
+  [:div.container
+   [:h1 "Select Page"]])
+
+(defpage [:get "/study2/select"] {}
+  (common/layout
+   ["Select your Experiment"
+    (study2-nav "Consent")]
+   (render-select-page)))
 
 ;; Discussion page
 

@@ -2,7 +2,6 @@
   (:use experiment.infra.models
         experiment.models.user)
   (:require
-   [experiment.models.trial :as trial]
    [experiment.libs.datetime :as dt]
    [experiment.infra.session :as session]))
 
@@ -100,10 +99,21 @@
 ;; -  submodels Comments[]
 
 (defmethod db-reference-params :experiment [model]
-  [:treatment :instruments])
+  [:treatment :outcome :covariates])
 
 (defmethod index-keys :experiment [treat]
   [:title :instructions :tags])
+
+(defmethod public-keys :experiment [treat]
+  [:title :schedule 
+   :treatment :outcome :covariates 
+   :comments :editors])
+   
+(defn instruments
+  "Returns a list of dbrefs to instruments used in this experiment"
+  [experiment]
+  (vec (concat (:outcome experiment) (:covariates experiment))))
+
 
 ;; TRACKER
 ;; -----------------------------------------------------------
@@ -120,7 +130,6 @@
 
 (defmethod import-keys :tracker [model]
   [:user :instrument :schedule :state])
-
 
 
 ;; JOURNAL (embedded)

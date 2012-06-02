@@ -4,6 +4,7 @@
    experiment.infra.models)
   (:require
    [experiment.infra.session :as session]
+   [experiment.infra.middleware :as mid]
    [experiment.infra.auth :as auth]))
 
 ;; USER
@@ -61,6 +62,12 @@
 	true
 	(resolve-dbref reference)))
 
+(mid/set-user-fetcher
+ (fn [& {:keys [id username email]}]
+   (cond id (fetch-model :user {:_id id})
+         username (get-user username)
+         email (get-user email))))
+
 (defn get-user-dbref [reference]
   (cond (and (map? reference) (= (name (:type reference)) "user"))
 	(as-dbref reference)
@@ -75,11 +82,14 @@
 
 ;; ## Trials
 
+(defn attach-user [user submodel]
+  (assoc submodel :user (as-dbref user)))
+
 (defn trials [user]
-  (vals (:trials user)))
+  (map (partial attach-user user) (vals (:trials user))))
 
 (defn get-trial [user id]
-  ((trials user) (keyword id)))
+  (attach-user user ((:trials user) (keyword id))))
 
 (defn has-trials? [user]
   (if (not (empty? (:trials user))) true false))

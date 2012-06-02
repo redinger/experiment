@@ -10,7 +10,7 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
         @$el.attr('clear', 'both')
 
         # Default configuration
-        width = options.width or 900
+        width = options.width or 850
         height = options.height or 100
         @cfg =
           w: width
@@ -29,7 +29,6 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
           margin: 20
 
         # Render default
-        @fetchData Date.parse('2 months ago'), Date.parse('1 month ago')
         @
 
       # Configure view
@@ -42,8 +41,8 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
       fetchData: (start, end) ->
         $.ajax '/api/charts/tracker',
           data:
-            start: start.toISOString()
-            end: end.toISOString()
+            start: moment(start).format('YYYYMMDDTHHmmss.000Z')
+            end: moment(end).format('YYYYMMDDTHHmmss.000Z')
             inst: @model.instrument.id
           context: @
           success: (data) =>
@@ -54,7 +53,7 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
       render: () ->
         @$el.empty()
         if @data? and @data.series?
-          QIChart.runChart '#' + @id, @data, @cfg
+          QIChart.renderChart '#' + @id, @data, _.extend(@cfg, {title: @model.instrument.get('variable')})
         @
 
 
@@ -64,7 +63,7 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
       initialize: ->
         # Header template and state
         @template = Infra.templateLoader.getTemplate 'timeline-header'
-        @dates = "2 months ago" + " - " + "1 month ago"
+        @dates = "1 month ago - today"
 
         # Create tracker views
         @collection = Core.theUser.trackers
@@ -75,11 +74,13 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
               title: model.instrument.get('variable')
             view
         , @
+        _.first(@views).setXaxisView 'top'
         _.last(@views).setXaxisView true
         @
 
       updateTimeline: =>
-        @dates = $('#timelinerange').val()
+        dates = $('#timelinerange').val()
+        @dates = dates if dates
         [start, end] = _.map @dates.split(" - "), Date.parse
         _.each @views, (view) ->
           view.fetchData start, end
@@ -101,6 +102,7 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
         _.map @views, (view) ->
             @$el.append view.render().el
         , @
+        @updateTimeline()
 
         # Tooltip support
         $('svg circle.glyph').tooltip

@@ -2,6 +2,7 @@
   (:use
    experiment.infra.models
    experiment.models.user
+   experiment.models.trial
    experiment.models.events
    experiment.models.trackers)
   (:require
@@ -90,6 +91,13 @@
         report-scheduling-event
         schedule-event)))
 
+(defn schedule-reminder [trial inter]
+  (doseq [event (reminder-events trial inter)]
+    (-> event
+        register-event
+        report-scheduling-event
+        schedule-event)))
+
 ;;
 ;; ## Site Job: Event Manager
 ;;
@@ -120,7 +128,7 @@
       (time/interval (.getEnd last)
                      (time/plus (.getEnd last) (time/hours scheduling-quantum))))))
 
-(def user-fields* [:trials :trackers :services :preferences])
+(def user-fields* [:trials :trackers :services :preferences :type :_id])
 
 (defn get-expired-events []
   [])
@@ -131,6 +139,7 @@
   (doseq [user (fetch-models :user {:trackers {:$exists true}} :only user-fields*)]
     (dt/with-user-timezone [user]
       (doseq [trial (trials user)]
+        (schedule-reminder trial inter)
         (doseq [tracker (:trackers trial)]
           (schedule-tracker tracker inter)))
       (doseq [tracker (trackers user)]

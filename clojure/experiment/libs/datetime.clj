@@ -79,6 +79,8 @@
 (def ^{:private true} short-date
   (.toFormatter
    (doto (DateTimeFormatterBuilder.)
+     (.appendDayOfWeekShortText)
+     (.appendLiteral " ")
      (.appendMonthOfYearShortText)
      (.appendLiteral " ")
      (.appendDayOfMonth 1)

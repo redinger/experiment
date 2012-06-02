@@ -35,22 +35,24 @@
   (*events* day))
 
 (defn treatment? [event]
-  (:treatment event))
+  (nil? (:instrument event)))
 
 (defn convert-event [event]
   (assoc (server->client event)
     :instrument (:instrument event)))
 
 (defn render-event [event]
-  (let [instrument (resolve-dbref (:instrument event))]
+  (if (:instrument event)
+    (let [instrument (resolve-dbref (:instrument event))]
+      [:div.event-view
+       [:a.view-timeline {:href "#"}
+        [:i.icon-eye-open]] "&nbsp;Track&nbsp;"
+       (:variable instrument) " -- " (:service instrument) " at " (:local-time event)])
     [:div.event-view
-     [:a.view-timeline {:href "#"}
-      [:i.icon-eye-open]] "&nbsp;Track&nbsp;"
-     (:variable instrument) " -- " (:service instrument) " at " (:local-time event)]))
-;;  ((get-template "event-view") {})) ;;event))))
+     [:i.icon-comment] "&nbsp;Treament Reminder&nbsp; at " (:local-time event)]))
 
 (defn- events-daily-map [events-map]
-  (if (nil? events-map)
+  (if (nil? events-map))
     (zipmap (range 1 25 3)
             (repeat [{:title "Record fatigue"
                       :spec "Respond to SMS fatigue question"}
@@ -69,11 +71,10 @@
     "padding"
     (clojure.string/join
      " "
-     [(when (today? day) "today")
-      (when events
-        (if (some treatment? events)
-          "treat"
-          "date_has_event"))])))
+     [(when day "day")
+      (when (today? day) "today")
+      (when events "date_has_event")
+      (when (and events (some treatment? events)) "treat")])))
 
 (defn day-popover-content [day events]
   (when events
@@ -87,13 +88,19 @@
          (dt/as-short-date
           (.withDayOfMonth *month-dt* day)))))
 
+(defn day-date [day]
+  (when day
+    (dt/as-iso-8601-date (time/plus *month-dt* (time/days (- day 1))))))
+
 (defpartial render-day [day]
   (let [events (events-for-day day)
         class (day-class day events)
         content (day-popover-content day events)
         table *events*]
-    [:td {:class class :data-content content
-          :data-original-title (day-title day)}
+    [:td {:class class
+          :data-content content
+          :data-original-title (day-title day)
+          :data-date (day-date day)}
      (or day "")]))
   
 ;; Compute Week
@@ -121,14 +128,14 @@
       offset)))
 
 (defn- month-end-day [month-interval]
-  (.getDayOfMonth (make-month (.getEnd month-interval))))
+  (+ 1 (.getDayOfMonth (make-month (.getEnd month-interval)))))
 
 (defn- compute-weeks [interval]
   (let [start-pad (month-padding interval)
         last-day (month-end-day interval)]
     (letfn [(week [start]
               (let [next (+ start 7)]
-                (cond (< last-day start)
+                (cond (<= last-day start)
                       nil
                       (< last-day next)
                       (cons [(- next last-day) (range start last-day)] (week next))
@@ -162,6 +169,7 @@
 (deftemplate small-calendar
   [:div.small-calendar
    [:div.cal-header
+    (%if title [:h3 {:style "text-align: center;"} (% title)])
     [:ul.pager
      [:li.previous [:a {:href "#"} "&larr; Previous"]]
      [:li.now [:a {:href "#"} (% date)]]

@@ -104,8 +104,8 @@
      (boot/input {:id "journal-short" :maxlength "40"} "text" "short" (% short)))
     (boot/ctrl-group
      ["Long Entry" "content"]
-     (boot/textarea {:rows "15"
-                     :cols "80"
+     (boot/textarea {:rows "10"
+                     (%if cols :cols (% cols)) (%unless cols :cols "80")
                      :class "input-xlarge"
                      :id "journal-content"
                      :style "resize: none;"}
@@ -142,13 +142,25 @@
 ;; Dashboard Overview Page
 
 (deftemplate overview-page
-  [:div
+  [:div 
    [:div.row
-    [:div#summary]]
+    [:div#summary-pane.span12]]
    [:div.row
-    [:div#calendar.span4]
-    [:div#feeds.span4]
-    [:div#misc.span4]]])
+    [:div#calendar-pane.span4]
+    [:div#feeds-pane.span4 [:p " "]]
+    [:div#journal-pane.span4]]])
+
+(deftemplate dashboard-help
+  [:div.help-pane
+;;   [:h3 {:style "text-align: center;"} "Help"]
+   [:p "This page contains a summary of your activity.  What can you do?"]
+   [:dl
+    [:dt "Select a trial"]
+    [:dd "You can select between more than one trial by clicking on the arrows in the upper right corner under 'Select Trial'."]
+    [:dt "Pause a trial"]
+    [:dd "If you are busy, you can pause the trial
+        temporarily which will stop all data collection and pause the analysis.
+        If you pause for more than a few days, you may have to repeat."]]])
 
 ;; Related Objects List
 
@@ -205,10 +217,13 @@
    [:div
     (%if success [:i.icon-ok])
     (%if fail [:i.icon-remove])
-    (%with instrument
-           [:b (% variable) " (" (% service) ")"
-            [:a.view-timeline {:href "#"}
-             [:i.icon-eye-open]]])]
+    (%if instrument
+         (%with instrument
+                [:b (% variable) " (" (% service) ")"
+                 [:a.view-timeline {:href "#"}
+                  [:i.icon-eye-open]]]))
+    (%unless instrument
+             [:b "Treatment Reminder" [:i.icon-comment]])]
    [:div (% local-time) ":&nbsp;" (% message)] ;; (% status) " " 
    (%if result-val
         [:div.response (% result-time) ":&nbsp;" [:b "Response: '"] (% result-val) "'"])
@@ -217,25 +232,53 @@
 
 ;; TRIAL
 
-(deftemplate trial-list-view
-  [:div {:class "result trial-list-view"}
-   [:h3 (%with experiment (% title))]
-   [:p (%with stats
-	 (%str "Run for " (% elapsed) " days with " (% remaining) " days remaining"))]])
+(deftemplate trial-view-frame
+  [:div.well
+   [:div#trial-pane-wrapper
+    (%if empty
+         [:h1.centered "No Active Trials"])]
+   [:p]])
+
+(defelem render-decorated-button [name & [icon-class]]
+  [:a {:href "#"}
+   [:button.btn.btn-small 
+    [:i {:class (or icon-class "")}] name]])
 
 (deftemplate trial-view-header
   [:div.trial-header
-   [:h1 (%strcat "Trial of '" (% experiment.title) "'")]
-   [:div.trial-stats
-    [:p "Started: " (% start-str)]
-    (%unless donep
-	 [:p "Current status: " (% status)])
-    (%if donep
-	 [:p "Ended: " (% end-str)])]
-   [:div.trial-actions
-    [:button.pause {:type "button"} "Pause"] " | "
-    [:button.stop  {:type "button"} "Stop"] " | "
-    [:button.complete {:type "button"} "Complete"]]])
+   [:div.trial-title-bar 
+    [:div.pull-left {:style "padding-bottom: 12px;"}
+     [:h3 " Trial: " (% experiment.title)]]
+    [:div.pull-right {:style "padding-bottom: 12px;"}
+     [:div.trial-nav-note {:style "margin-top: -10px; font-size: tiny; text-align: center;"}
+      "Select Trial"]
+     [:div.btn-group
+      [:button.btn.btn-mini.prev [:i.icon-chevron-left]]
+      [:button.btn.btn-mini.next [:i.icon-chevron-right]]]]]
+   [:div.trial-info-bar.clear-both 
+    [:div.pull-left.trial-stats
+     [:p [:b "Started: "]
+      [:span.label.label-info (% start_str)]]
+     (%unless donep
+              [:p [:b "Current status: "]
+               [:span.label.label-success (% status_str)]])
+     (%if donep
+          [:p [:b "Ended: "]
+           [:span.label.label-fail (% end_str)]])]
+    [:div.pull-right.trial-actions.btn-group
+     (render-decorated-button
+      {:class "pause" :rel "tooltip" :title "Temporarily pause the trial"}
+      "Pause" "icon-pause")
+     (%unless donep
+              (render-decorated-button
+               {:class "cancel" :rel "tooltip" :title "Terminate the trial"}
+               "Cancel" "icon-stop"))
+     (%if donep
+          (render-decorated-button
+           {:class "archive" :rel "tooltip" :title "Pause the trial"}
+           "Archive" "icon-eject"))]]
+    [:hr.clear-both]])
+    
     
 (deftemplate trial-table
   [:div.trial-table
@@ -421,7 +464,7 @@
        (% title)]]
      [:div.span3
       [:span.pull-right
-       [:button.btn.btn-primary.btn-large.run {:type "button"} "Run"]
+       [:button.btn.btn-primary.btn-large.run {:type "button"} "Start Trial"]
        (%if owner [:button.btn.btn-large.edit {:type "button"} "Edit"])
        [:button.btn.btn-large.clone {:type "button"} "Clone"]]]
      [:div {:style "clear:both;"}]]]
@@ -429,19 +472,30 @@
     [:div.span5
      (%with treatment
             [:h3 "Protocol"]
-            [:p "&nbsp; from: " [:a {:href "#" :data-id (% id)} (% name)]]
+            [:p "&nbsp; from: " [:a.view {:href "#" :data-id (% id)} (% name)]]
             [:p (%code description-html)])
-     (%with outcome
-            [:p [:b "Outcome"]]
-            [:p [:b "Other Measures"]])
+     [:p [:b "Outcome Measure"]]
+     (%each outcome
+            [:p [:a.view {:href "#" :data-id (% id)} (% variable) " -- " (% service)]
+             "&nbsp;"
+             [:a.timeline {:href "/dashboard/timeline" :data-id (% id)}
+              [:i.icon-eye-open]]])
+     [:p [:b "Other Measures"]]
+     (%each covariates 
+            [:p [:a.view {:href "#" :data-id (% id)} (% variable) " -- " (% service)]
+             "&nbsp;"
+             [:a.timeline {:href "/dashboard/timeline" :data-id (% id)}
+              [:i.icon-eye-open]]])
      [:p [:b "Tags: "] [:a.add-tag {:href "#"} [:i.icon-plus-sign]]]
      [:p.tags
       (%each tags
              [:span.label.label-info (% this)] "&nbsp;")]]
     [:div.span1 [:p]]
     [:div.span6
-     [:div#related]]
-    ]])
+     [:div#related]
+     [:div#trials]]]
+   [:div.row
+    [:div#discuss.span12]]])
 ;;   [:h2 "Schedule"]
 ;;   [:div.schedule "Schedule view TBD"]])
 

@@ -274,7 +274,7 @@
   (common/layout
    ["Author an Experiment"
     (study1-nav "Author")
-    :deps []
+    :deps []]
    [:div.container
     [:div.study1-author
      [:div.page-header

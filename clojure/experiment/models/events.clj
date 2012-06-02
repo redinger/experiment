@@ -54,6 +54,27 @@
 
 (def required-event-keys [:type :etype :user :instrument :start])
 
+(defn make-event [type user instrument & {:as options}]
+  (merge {:type "event"
+          :etype type
+          :user (as-dbref user)
+          :instrument (when instrument (as-dbref instrument))}
+         options))
+   
+(defn make-sms-tracker-event [u i message value-type prefix]
+  (make-event
+   "sms" u i
+   :sms-value-type value-type
+   :sms-prefix prefix
+   :message message
+   :wait true))
+
+(defn make-sms-reminder-event [u message]                              
+  (make-event
+   "sms" u nil
+   :message message
+   :wait false))
+  
 (defn valid-event? [event]
   (and (= (count (select-keys event required-event-keys))
           (count required-event-keys))
@@ -71,13 +92,6 @@
   (and (= (:status event) "done")
        (not= (:result event) "success")))
 
-(defn editable? [event]
-  (when-let [start (:start event)]
-    (and (= (:status event) "active")
-         (:wait event)
-         (= (:etype event) "sms")
-         (within-24-hours-of? (dt/now) start))))
-
 (defn within-24-hours-of?
   "If 't' is within 24 hours of 'ref'"
   [t ref]
@@ -87,6 +101,13 @@
     (time/plus ref (time/hours 24)))
    t))
   
+(defn editable? [event]
+  (when-let [start (:start event)]
+    (and (= (:status event) "active")
+         (:wait event)
+         (= (:etype event) "sms")
+         (within-24-hours-of? (dt/now) start))))
+
 (defn requires-reply? [event]
   (:wait event))
 
@@ -160,7 +181,6 @@
   (fetch-models :event (event-query query) :sort {:start 1}))
 
 (defn matching-events [event]
-  (println event)
   (get-events :user (:user event)
               :instrument (:instrument event)
               :start (time/minus (:start event)

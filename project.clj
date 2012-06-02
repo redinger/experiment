@@ -24,6 +24,7 @@
    [clj-oauth "1.3.1-SNAPSHOT"]
    [clodown "1.0.2"]
    [com.draines/postal "1.7-SNAPSHOT"]
+   [incanter "1.3.0"]
    ;; Java libs
    [log4j "1.2.16"]
    [org.slf4j/slf4j-log4j12 "1.6.1"]]

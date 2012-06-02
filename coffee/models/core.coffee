@@ -132,7 +132,8 @@ define ['jquery', 'use!Backbone', 'models/infra', 'models/user'],
       serverType: 'experiment'
       embedded:
         treatment: ['reference', 'Treatment']
-        instruments: ['references', 'Instruments']
+        outcome: ['references', 'Instruments']
+        covariates: ['references', 'Instruments']
 
       name: ->
         @treatment.get('name') if @treatment?

@@ -1,124 +1,172 @@
-    # ---------------------------------
-    #   Trial Viewer
-    # ---------------------------------
-    class TrialSummaryView extends Backbone.View
-      @implements TemplateView
-      initialize: (exp) ->
-            @initTemplate '#trial-list-view'
+define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time', 'use!BackboneFormsBS', 'use!BackboneFormsEditors', 'use!jQueryDatePicker' ],
+  (Infra, Core, Widgets, QIChart) ->
 
-      render: =>
-            @renderTemplate()
+    # Control chart with dynamic loading
+
+    class ControlChart extends Backbone.View
+      attributes:
+        id: 'control1'
+
+      initialize: (options) ->
+        if @model.get('type') is not 'trial'
+          alert 'Control chart init error'
+        start = moment().subtract('days', 30)
+        end = moment().add('days', 30)
+        @fetchData start, end
+        @cfg =
+          w: 800
+          h: 200
+          render:
+            xaxis: true
+            yaxis: true
+            series: true
+            path: true
+            meanOffsets: false
+          defaults:
+            glyph: "glyph"
+            pointClass: "point"
+            timeaxis: "rule"
+          title: @model.experiment.get('title')
+          margin: 20
+        @
+
+      fetchData: (start, end) ->
+        $.ajax '/api/charts/trial',
+          data:
+            id: @model.id
+            start: start.format('YYYYMMDDTHHmmss.000Z')
+            end: end.format('YYYYMMDDTHHmmss.000Z')
+          context: @
+          success: (data) =>
+            if data? and data.series?
+               @renderChart data
+          spinner: false
+
+      renderChart: (data) =>
+           ready = $('#control1')
+           if data and _.isEmpty(ready)
+              _.delay @renderChart, 1000, data
+           else
+              console.log data
+              QIChart.renderChart '#control1', data, @cfg
+
+      render: ->
+        @
+
+    # ---------------------------------
+    # Trial Summary Pane
+    # ---------------------------------
+    class TrialPane extends Backbone.View
+      attributes:
+        class: 'trial-pane'
+
+      initialize: (options) ->
+          @template = Infra.templateLoader.getTemplate 'trial-view-header'
+          @chart = new ControlChart
+            model: @model
+          @model.on 'change', @render, @
+          @model.experiment.on 'change', @render, @
+          @
+
+      render: ->
+          @chart.remove()
+          @$el.html @template @model.toTemplateJSON()
+          @$el.append @chart.render().el
+          @trigger 'update'
+          @
+
+      events: ->
+          'click .pause': 'pause'
+          'click .cancel': 'cancel'
+          'click .archive': 'archive'
+
+      pause: =>
+          status = @model.get('status')
+          if status is 'active'
+             @model.save
+                status: 'paused'
+          else if status is 'paused'
+             @model.save
+                status: 'active'
+          else
+             alert 'Error in trial handling, contact administrator'
+
+
+      cancel: =>
+          # start abandoned flow
+
+      archive: =>
+          # If not completed, complete
+
+      complete: =>
+          # Completion flow
+
+    # ----------------------------------
+    # Trial Wrapper Frame
+    # ----------------------------------
+
+    class TrialFrame extends Backbone.View
+      attributes:
+        class: 'trial-frame'
+
+      initialize: (options) ->
+        @template = Infra.templateLoader.getTemplate 'trial-view-frame'
+        @collection.on 'reset change', @configureViews, @
+        @configureViews()
+        @
+
+      configureViews: ->
+        if @views
+          _.each @views, (view) -> view.remove()
+        @views = _.toArray @collection.map @newTrial, @
+        @currentTrial = 0
+        @
+
+      newTrial: (trial) ->
+        trial = new TrialPane
+          model: trial
+        trial.on 'update', @updateTrialHeader, @
+        trial
 
       events:
-            'click': 'viewModel'
+        'click button.next': 'nextTrial'
+        'click button.prev': 'prevTrial'
 
-      finalize: ->
-            @delegateEvents()
+      nextTrial: =>
+        @currentTrial = @currentTrial + 1
+        @renderTrial()
 
-      viewModel: =>
-            App.socialView.setContext model.get 'experiment'
-            App.socialView.setEdit true
-            id = @model.get('id')
-            App.router.navigate "trials/#{id}", true
+      prevTrial: =>
+        @currentTrial = @currentTrial - 1
+        @renderTrial()
 
-    class TrialPane extends Backbone.View
-      @implements TemplateView, SwitchPane
-      id: 'trial'
-      newTrial: (trial) ->
-            new TrialSummaryView
-                    model: trial
+      render: ->
+        @$el.html @template
+           empty: _.isEmpty @views
+        @renderTrial()
 
-      initialize: (exp) ->
-            @views = App.MyTrials.map @newTrial
-            @initTemplate '#trial-view-header'
-            @chartTemplate = @getTemplate '#highchart-div'
-            @calendarTemplate = @getTemplate '#small-calendar'
-            @instTableTemplate = @getTemplate '#instrument-short-table'
-            @
+      renderTrial: =>
+        if not _.isEmpty @views
+          @$('#trial-pane-wrapper').html @views[@currentTrial].render().el
+        @
 
-      dispatch: (path) ->
-            if path
-               @model = findModel App.MyTrials, path
-               alert "no model found for #{ path }" unless @model
-               @journal = new JournalView
-                    className: 'trial-journal'
-                    type: 'Trial'
-                    model: @model
-                    paging: true
-                    editable: true
-                    page: 1
-                    pagesize: 1
-               @viewModel @model
-            else
-               App.socialView.setEdit false
-               @model = null
-            @render()
-
-      render: =>
-            if @model
-               @renderModel()
-            else
-               @renderList()
-            @
-
-      viewModel: (model) =>
-            App.socialView.setContext model.get 'experiment'
-            App.socialView.setEdit true
-
-      renderModel: ->
-            experiment = @model.get 'experiment'
-            treatment = experiment.get 'treatment'
-            outcome = experiment.get 'outcome'
-            @$el.empty()
-            @inlineTemplate()
-            @renderCalendar(experiment)
-            @renderInstruments(experiment)
-            @$el.append "<div class='clear'/>"
-            @renderOutcome(experiment) # TODO: outcome)
-            @$el.append @journal.render().el
-            @journal.finalize()
-            @
-
-      renderOutcome: (outcome) ->
-            # TODO
-            # Get instrument reference from trial
-            # Make sure template renders correctly
-            # Ensure that javascript renders in place
-            outcome = outcome.get('instruments')[0]
-            @$el.append '<h1>Results</h1>'
-            @inlineTemplate
-                    cssid: 'chart1'
-                    height: '150px'
-                    width: '500px',
-                    @chartTemplate
-            renderTrackerChart 'chart1', outcome, 0
-
-      renderCalendar: (experiment) ->
-            mydiv = $("<div class='trial-calendar-wrap'/>")
-            @$el.append mydiv
-            mydiv.append '<h2>Schedule</h2>'
-            id = experiment.get 'id'
-            month = "now"
-            mydiv.append @calendarTemplate {id: 'trial-cal'}
-            initCalendar("/api/calendar/experiment/#{ id }", '#trial-cal', month)
+      updateTrialHeader: =>
+        @$('.trial-title-bar .button').removeClass 'disabled'
+        if (@currentTrial + 1) is @views.length
+          @$('.trial-title-bar .next').addClass 'disabled'
+        if @currentTrial is 0
+          @$('.trial-title-bar .prev').addClass 'disabled'
 
       renderInstruments: (experiment) ->
             mydiv = $("<div class='trial-measures'/>")
             @$el.append mydiv
             mydiv.append '<h2>Tracking Instruments</h2>'
             instruments = experiment.get('instruments')
-            data = {instruments: _.map(instruments, (x) -> x.toJSON())}
+            data = {instruments: _.map(instruments, (x) -> x.toTemplateJSON())}
             mydiv.append @instTableTemplate data
 
-      renderTrials: (trialViews) ->
-            mydiv = $("<div class='trial-views'/>")
-            mydiv.append '<h1>My Trials</h1>'
-            mydiv.append view.render().el for view in @views
-            view.finalize() for view in @views
-            @$el.append mydiv
-            @
+    # NAMESPACE
 
-      renderList: =>
-            @$el.empty()
-            @renderTrials()
-            @
+    Pane: TrialPane
+    Frame: TrialFrame
+    ControlChart: ControlChart

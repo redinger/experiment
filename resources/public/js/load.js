@@ -23,7 +23,7 @@ require.config(
 				BackboneForms: 'libs/backbone/backbone-forms',
 				BackboneFormsBS: 'libs/backbone/backbone-forms-bootstrap',
 				BackboneFormsEditors: 'libs/backbone/jquery-ui-editors',
-				D3: "libs/d3/d3.min",
+				D3: "libs/d3/d3", // d3.min
 				D3time: "libs/d3/d3.time.min",
 				QIchart: 'libs/qi-chart',
 				Common: 'views/common',

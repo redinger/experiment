@@ -33,8 +33,19 @@
    [:p "PersonalExperiments.org is dedicated to help individuals discover effective ways to improve their health and wellbeing.  Join our first MIT-run " [:a {:href "/study1"} "authoring study"] " today to help us create better tools for you."]
    [:small [:em "March 15th, 2012"]]])
 
+(defn study2-announce []
+  [:div#study2.hero-unit
+   [:div.pull-right
+    [:img {:style "height: 200px; margin-top: -40px; margin-right: 40px;"
+           :src "img/academy-health.jpg"}]]
+   [:h1 "Self-Experiments"]
+   [:p "We are inviting patients to participate in a formal study of two
+        treatments that patient anecdote indicates may help some people with psoriasis."]
+   [:small [:em "June 1st, 2012"]]])
+
 (defn home-carousel [id]
-  (carousel id (list (study1-announce)
+  (carousel id (list (study2-announce)
+                     (study1-announce)
                      (academy-health))))
          
 

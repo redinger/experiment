@@ -62,7 +62,7 @@
     [:div.discussion-body {:id (comment/comment-id comment)}
      [:span.discussion-byline
       "Posted by " [:b owner] " at " (dt/as-short-string
-                                      (dt/to-default-tz
+                                      (dt/in-default-tz
                                        (dt/from-utc date)))]
      html]))
 

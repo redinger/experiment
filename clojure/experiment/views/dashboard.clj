@@ -81,7 +81,7 @@
     :deps ["views/common", "views/dashboard"]]
    (nav-fixed (:nav (default-nav "dashboard")))
    (subnav-fixed (dashboard-subnav (:subnav options)))
-   [:div.container {:style "min-height: 400px"}
+   [:div#container 
     [:div.tab-content 
      [:div#overview.tab-pane]
      [:div#timeline.tab-pane]
@@ -91,6 +91,9 @@
    (render-all-templates))) ;; views
 
 (defpage dashboard-dispatch "/dashboard/:subnav" {:as options}
+  (dashboard-layout options))
+
+(defpage dashboard-dispatch-args "/dashboard/:subnav/:args*" {:as options}
   (dashboard-layout options))
 
 (defpage dashboard-redir "/dashboard" {:as options}

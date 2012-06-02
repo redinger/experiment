@@ -55,10 +55,8 @@
 (def flash-get session/flash-get)
 
 ;;
-;; The session user and logged-in status
+;; The session user and logged-in status for page logic
 ;;
-;; NOTE: A hack to get around the fact that models aren't defined
-;; yet in the infra directory
 
 (defn active? []
   (not (= (type (noir.request/ring-request)) clojure.lang.Var$Unbound)))
@@ -67,8 +65,8 @@
   (try 
     (if (active?)
       (and (get :logged-in?)
-	   mid/*current-user*)
-      (fetch-one :user :where {:username "eslick"}))
+           mid/*current-user*)
+      (when mid/user-fetcher (mid/user-fetcher :username "eslick")))
     (catch java.lang.Throwable e
       (clojure.tools.logging/error "Get User from Session Error: " e)
       nil)))

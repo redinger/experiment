@@ -1,8 +1,11 @@
 @import "functions"
 
-.calendar 
-  margin-top 10px
+#calendar-pane
 
+  .cal-header
+    margin-bottom -16px
+
+.calendar 
   table
     border-collapse separate
     border 1px solid #9DABCE
@@ -28,18 +31,25 @@
     color #222
 
   td.date_has_event
-    background-position 162px 0px
+    background-position 243px 0px
 
   td.date_has_event:hover
-    background-position 162px -81px
-
-  td.padding
-    background url(/img/calpad.jpg)
+    background-position 243px -81px
 
   td.today
-    background-position 81px 0px
+    background-position 163px 0px
     color white
 
   td.today:hover
+    background-position 163px -81px
+
+  td.treat
+    background-position 81px 0px
+    color white
+
+  td.treat:hover
     background-position 81px -81px
+
+  td.padding
+    background url(/img/calpad.jpg)
 

@@ -2,8 +2,8 @@
   (:require
    [clojure.tools.logging :as log]
    [somnium.congomongo :as mongo]
-   [experiment.infra.session :as session2]
-;;   [noir.session :as session]
+;;   [experiment.infra.session :as session2]
+   [noir.session :as session]
    [noir.request :as req]
    [noir.response :as resp]
    [cheshire.core :as json]
@@ -28,6 +28,14 @@
 ;; # Middleware: Bind the current user
 ;;
 
+;; # User fetcher: (fn & {:keys [id username]}) => canonical user object
+;;   defined by downstream dependencies to set the current user
+(def user-fetcher nil)
+
+(defn set-user-fetcher [ffn]
+  (assert (fn? ffn))
+  (alter-var-root #'user-fetcher (fn [old] ffn)))
+
 (def ^{:dynamic true} *current-user* nil)
 
 (defn session-user
@@ -36,10 +44,10 @@
    users"
   [handler]
   (fn [req]
-    (let [userid (session2/get :userid)]
+    (let [userid (session/get :userid)]
       (binding [*current-user*
-                (and userid
-                     (mongo/fetch-one :user :where {:_id userid}))]
+                (and userid user-fetcher
+                     (user-fetcher :id userid))]
         (handler req)))))
 
 
@@ -65,10 +73,10 @@
                                 :upsert false)))
 
 (defn request-timezone [req]
-  (let [stz (session2/get :timezone)
+  (let [stz (session/get :timezone)
         rtz (get-in req [:params :_timezone])]
     (when (and (not stz) rtz)
-      (session2/put! :timezone rtz))
+      (session/put! :timezone rtz))
     (org.joda.time.DateTimeZone/forID (or stz rtz nil))))
 
 (defn compute-timezone [req]

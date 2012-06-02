@@ -37,12 +37,14 @@
 
 ;; Utilities
 
+(defn sort-events [[date events]]
+  [date (sort-by (comp dt/as-utc :start) events)])
+
 (defn group-by-start-day [events]
-  (group-by (fn [event]
-              (schedule/decimate
-               :day
-               (:start event)))
-            events))
+  (->> events
+       (group-by (fn [event]
+                   (schedule/decimate :day (:start event))))
+       (map sort-events)))
 
 (defn group-events-by-day [events]
   (->> events

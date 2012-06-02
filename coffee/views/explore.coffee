@@ -31,6 +31,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
                 attrs: result
               model.on 'change', @render, @
               model
+            , @
             @render()
 
       render: ->
@@ -48,31 +49,54 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
         id = $(event.target).attr('data-id')
         type = $(event.target).attr('data-type')
         model = Backbone.ReferenceCache.resolve type, id
-        @trigger 'nav:view', model
+        @trigger 'nav:view', model if model?
 
+# ### Protocol for adding/removing an explorer view from the main DOM
+    class ExplorerSubview extends Backbone.View
+      attach: (fn, parent) ->
+        @on 'all', fn, parent
+        @delegateEvents()
+
+      detach: (fn) ->
+        @undelegateEvents()
+        @off 'all', fn
+        @remove()
 
 # Item Views
 # --------------------------------------------
 
-    class ItemView extends Backbone.View
+# Base class provides common init, handlers and rendering
+# Subclasses customize the template, listening, etc.
+# Subclasses must also specify all events that need to be
+# handled.
+#
+# The ItemView triggers inter-view actions via the 'nav:...'
+# event namespace
+#
+    class ItemView extends ExplorerSubview
       initialize: ->
-        @model.on 'change', @render, @
+        @model.on 'change', @update, @
         @related = new RelatedObjects
             model: @model
-        @related.on 'all', (action, arg1, arg2) ->
-          @trigger action, arg1, arg2
-        , @
+        @related.on 'all', @forwardEvents, @
+#        @discuss = new Discussion
+#            model: @model
         @
 
-      # Common Handlers
-      addTags: (event) =>
-        event.preventDefault()
-        if not @tagDialog?
-          @tagDialog = new Widgets.AddTagDialog()
-          @tagDialog.on 'form:accept', (result) ->
-             @model.addTagString result.tags
-          , @
-        @tagDialog.show()
+      forwardEvents: (action, arg1, arg2) ->
+          @trigger action, arg1, arg2
+
+      attach: (fn, parent) ->
+          super fn, parent
+          @related.delegateEvents()
+
+      detach: (fn) ->
+          super fn
+          @related.undelegateEvents()
+          @related.remove()
+
+      update: ->
+        @render()
 
       render: ->
         if @model.isLoaded()
@@ -82,6 +106,23 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
         else if not @model._loading
            @model.fetch()
         @
+
+      # Common Event Handlers
+      addTags: (event) =>
+        event.preventDefault()
+        if not @tagDialog?
+          @tagDialog = new Widgets.AddTagDialog()
+          @tagDialog.on 'form:accept', (result) ->
+             @model.addTagString result.tags
+          , @
+        @tagDialog.show()
+
+      view: =>
+        event.preventDefault()
+        id = $(event.target).attr('data-id')
+        type = $(event.target).attr('data-type')
+        model = Backbone.ReferenceCache.resolve type, id
+        @trigger 'nav:view', model
 
       edit: =>
         @trigger 'nav:edit', @model
@@ -99,15 +140,24 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
       initialize: (options) ->
         super(options)
         @template = Infra.templateLoader.getTemplate 'experiment-view'
+        console.log @
+        console.log @model
         @
 
       events:
+        'click a.view': 'view'
         'click .add-tag': 'addTags'
         'click .edit': 'edit'
 
-      run: ->
+      update: ->
+        @model.treatment.on 'change', @render, @ if @model.treatment?
+        @model.outcome.first().on 'change', @render, @ if @model.outcome?
+        console.log @model.toJSON()
+        console.log @model.toTemplateJSON()
+        @render()
 
-      clone: ->
+      run: ->
+        alert 'Run Trial coming this week'
 
 #
 # Treatments
@@ -177,7 +227,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
     ]
 
     # ## Treatment
-    class TreatmentEdit extends Backbone.View
+    class TreatmentEdit extends ExplorerSubview
       initialize: (options) ->
         alert('Treatment editor requires treatment object, got ' + @model.get('type')) if @model.get('type') is not 'treatment'
         @model.on 'change', @render, @
@@ -210,7 +260,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
 
 
     # ## Instrument
-    class InstrumentEdit extends Backbone.View
+    class InstrumentEdit extends ExplorerSubview
       initialize: (options) ->
         alert('Treatment editor requires treatment object, got ' + @model.get('type')) if @model.get('type') is not 'treatment'
         @model.on 'change', @render, @
@@ -242,7 +292,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
 
 
     # ## EXPERIMENT
-    class ExperimentEdit extends Backbone.View
+    class ExperimentEdit extends ExplorerSubview
       initialize: (options) ->
         @template = Infra.templateLoader.getTemplate 'experiment-editor'
         @
@@ -334,7 +384,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
         @trigger 'nav:view', @model
 
     # Result page and handlers
-    class SearchPage extends Backbone.View
+    class SearchPage extends ExplorerSubview
       # STATE
       initialize: (options) ->
         # View maintenance and rendering
@@ -592,8 +642,8 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
         @router.on 'route:searchTag', @doTagSearch
         @
 
-      render: ->
-        @$el.children().detach()
+      render: () ->
+#        @$el.children().detach()
         @$el.append @currentView.render().el if @currentView
         @
 
@@ -617,9 +667,9 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
 
       # Managing view and view navigation actions
       changeView: (view) ->
-        @currentView.off 'all', @viewAction if @currentView
+        @currentView.detach(@viewAction) if @currentView?
         @currentView = view
-        @currentView.on 'all', @viewAction, @
+        @currentView.attach(@viewAction, @)
         @render()
 
       viewAction: (action, object, arg) ->
@@ -648,7 +698,9 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
                 model: model
              else alert('Error: type ' + type + ' not recognized')
            @views[id] = view
-        @changeView @views[id]
+           @changeView @views[id]
+        else
+           @changeView @views[id]
 
       editObject: (type, id) =>
         if _.isObject type
@@ -671,9 +723,10 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
                 model: model
              else alert('Error: type ' + model.get('type') + ' not recognized')
            @editors[type] = view
+           @changeView view
         else
            view.model = model
-        @changeView view
+           @changeView view
 
       startTrial: (id) =>
         alert('not implemented')
