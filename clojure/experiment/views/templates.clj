@@ -499,6 +499,12 @@
 ;;   [:h2 "Schedule"]
 ;;   [:div.schedule "Schedule view TBD"]])
 
+(deftemplate experiment-editor
+  )
+
+(deftemplate trial-creation
+  )
+
 
 ;; COMMENT
 

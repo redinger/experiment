@@ -33,6 +33,10 @@
       (markdown-convert :description)
       (owner-as-bool :owner :admins (site-admins))))
 
+(defmethod client->server-hook :treatment [treat]
+  (assoc treat
+    :owner (as-dbref (session/current-user))))
+
 (defmethod public-keys :treatment [treat]
   [:name :description :description-html :owner
    :help :reminder

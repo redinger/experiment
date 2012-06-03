@@ -27,9 +27,9 @@
       nil)))
                                    
   
-(defn index [model]
+(defn index [model & {:as extras}]
   (assert (and db (map? model) (:type model)))
-  (let [mod (index-model model)]
+  (let [mod (merge (index-model model) extras)]
     (if (not (empty? mod))
       (do
         (clucy/search-and-delete db (str "_id:" (:_id mod)))
@@ -44,13 +44,18 @@
              :type {:tokenized false}))))
       (log/warnf "Cannot index model type: %s" (:type model)))))
 
+(defn delete [model]
+  (clucy/search-and-delete db (str "_id:" (:_id model))))
+
 (defn index-all [& [collections]]
   (let [colls (or collections ["instrument" "treatment" "experiment"])]
     (doseq [coll colls]
       (doall (map index (fetch-models coll))))))
 
-(defn delete [model]
-  (clucy/search-and-delete db (str "_id:" (:_id model))))
+(defn reindex-all [collections]
+  (doseq [coll collections]
+    (clucy/search-and-delete db (str "type:" (name coll))))
+  (index-all collections))
 
 ;; # Query for Models
 

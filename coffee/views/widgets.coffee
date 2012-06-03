@@ -136,7 +136,7 @@ define ['models/infra', 'views/common', 'use!Backbone'],
         @page = page
         if _.isString @page
           @page = parseInt @page
-        @pages = total if total?
+        @pages = if total? then total else 1
         @render()
 
       render: ->

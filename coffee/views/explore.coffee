@@ -29,7 +29,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
             @results = _.map results.models, (result) ->
               model = Backbone.ReferenceCache.resolve null, null,
                 attrs: result
-              model.on 'change', @render, @
+              model.watch 'change', @render, @
               model
             , @
             @render()
@@ -57,9 +57,9 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
         @on 'all', fn, parent
         @delegateEvents()
 
-      detach: (fn) ->
+      detach: (fn, parent) ->
         @undelegateEvents()
-        @off 'all', fn
+        @off 'all', fn, parent
         @remove()
 
 # Item Views
@@ -75,7 +75,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
 #
     class ItemView extends ExplorerSubview
       initialize: ->
-        @model.on 'change', @update, @
+        @model.watch 'change', @render, @
         @related = new RelatedObjects
             model: @model
         @related.on 'all', @forwardEvents, @
@@ -90,13 +90,10 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
           super fn, parent
           @related.delegateEvents()
 
-      detach: (fn) ->
-          super fn
+      detach: (fn, parent) ->
+          super fn, parent
           @related.undelegateEvents()
           @related.remove()
-
-      update: ->
-        @render()
 
       render: ->
         if @model.isLoaded()
@@ -128,9 +125,8 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
         @trigger 'nav:edit', @model
 
       clone: =>
-        clone = null # TODO: Create new model, populate from toJSON?
-        # TODO: Change title/name of clone to add '(clone)'
-        @trigger 'nav:edit', clone
+        clone = @model.cloneModel()
+        @trigger 'nav:create', clone, true
 
 
 #
@@ -146,18 +142,13 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
 
       events:
         'click a.view': 'view'
-        'click .add-tag': 'addTags'
         'click .edit': 'edit'
+        'click .clone': 'clone'
+        'click .add-tag': 'addTags'
+        'click .run': 'startTrial'
 
-      update: ->
-        @model.treatment.on 'change', @render, @ if @model.treatment?
-        @model.outcome.first().on 'change', @render, @ if @model.outcome?
-        console.log @model.toJSON()
-        console.log @model.toTemplateJSON()
-        @render()
-
-      run: ->
-        alert 'Run Trial coming this week'
+      startTrial: ->
+        trial = new (Backbone.ReferenceCache.lookupConstructor('trial'))
 
 #
 # Treatments
@@ -179,8 +170,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
       events:
         'click .add-tag': 'addTags'
         'click .edit': 'edit'
-
-      clone: ->
+        'click .clone': 'clone'
 
 #
 # Instruments
@@ -194,10 +184,10 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
         @
 
       events:
-        'click .track': 'track'
-        'click .untrack': 'untrack'
         'click .edit': 'edit'
         'click .add-tag': 'addTags'
+        'click .track': 'track'
+        'click .untrack': 'untrack'
 
       track: (event) =>
         Scheduling.configureTrackerSchedule @, @model, @trackSchedule
@@ -230,7 +220,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
     class TreatmentEdit extends ExplorerSubview
       initialize: (options) ->
         alert('Treatment editor requires treatment object, got ' + @model.get('type')) if @model.get('type') is not 'treatment'
-        @model.on 'change', @render, @
+        @model.watch 'change', @render, @
         @template = Infra.templateLoader.getTemplate 'treatment-editor'
         @form = new Backbone.Form
             model: @model
@@ -243,27 +233,31 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
         @
 
       events:
-        'click .cancel': 'cancel'
         'click .accept': 'accept'
-
-      cancel: =>
-        if @model.name()?
-          @trigger 'nav:view', @model
-        else
-          @trigger 'nav:search'
+        'click .cancel': 'cancel'
 
       accept: =>
         errors = @form.commit();
         if not errors
-           @model.save()
-           @trigger 'nav:action', 'view', @model
+           @model.save {},
+             wait: true
+             success: (model, resp) =>
+               @trigger 'nav:view', model
+             failure: (model, resp) =>
+               alert 'Server Error Saving Model'
+
+      cancel: =>
+        if @model.name()? and @model.id?
+          @trigger 'nav:view', @model
+        else
+          @trigger 'nav:search'
 
 
     # ## Instrument
     class InstrumentEdit extends ExplorerSubview
       initialize: (options) ->
         alert('Treatment editor requires treatment object, got ' + @model.get('type')) if @model.get('type') is not 'treatment'
-        @model.on 'change', @render, @
+        @model.watch 'change', @render, @
         @template = Infra.templateLoader.getTemplate 'instrument-editor'
         @form = new Backbone.Form
             model: @model
@@ -287,9 +281,12 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
       accept: =>
         errors = @form.commit();
         if not errors
-           @model.save()
-           @trigger 'nav:view', @model
-
+           @model.save {},
+             wait: true
+             success: (model, resp) =>
+               @trigger 'nav:view', model
+             failure: (model, resp) =>
+               alert 'Server Error Saving Model'
 
     # ## EXPERIMENT
     class ExperimentEdit extends ExplorerSubview
@@ -367,7 +364,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
               when "instrument" then 'instrument-list-view'
               when "treatment" then 'treatment-list-view'
         @model = Backbone.ReferenceCache.resolve options.type, options.mid if not @model?
-        @model.on 'change', @render, @
+        @model.watch 'change', @render, @
         @
 
       render: ->
@@ -402,6 +399,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
         @render()
         @
 
+
       # MODEL EVENTS
       updateViews: () =>
         # Update header views
@@ -417,6 +415,16 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
            @$el.append @template @query
            @$('#pagination').append @pagination.render().el
         @
+
+      attach: (fn, parent) ->
+          super fn, parent
+          @pagination.delegateEvents()
+          _.each @views, (view) ->
+            view.delegateEvents()
+
+      detach: (fn) ->
+          super fn
+          @pagination.undelegateEvents()
 
       renderResults: ->
         # Remove if exist
@@ -491,20 +499,24 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
           @navigate @default, {trigger: true, replace: true} if @default?
 
       navQuery: (query, page) ->
-          @navigate "/search/query/#{query}/p#{page}",
-            trigger: true
+          if query
+            @navigate "/search/query/#{query}/p#{page}",
+              trigger: true
+          else
+            @navigate "/search/query",
+              trigger: true
 
       navTag: (tag, page) ->
           @navigate "/search/tag/#{tag}/p#{page}",
             trigger: true
 
-      navEditModel: (model) ->
+      navEditModel: (model, trigger) ->
           @navigate "/edit/#{model.get('type')}/#{model.id}",
-            trigger: true
+            trigger: if trigger? then trigger else true
 
-      navCreateModel: (type) ->
-          @navigate "/edit/#{type}"
-            trigger: true
+      navCreateModel: (type, trigger) ->
+          @navigate "/edit/#{type}",
+            trigger: if trigger? then trigger else true
 
       navViewModel: (model) ->
           @navigate "/view/#{model.get('type')}/#{model.id}",
@@ -643,7 +655,6 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
         @
 
       render: () ->
-#        @$el.children().detach()
         @$el.append @currentView.render().el if @currentView
         @
 
@@ -667,28 +678,44 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
 
       # Managing view and view navigation actions
       changeView: (view) ->
-        @currentView.detach(@viewAction) if @currentView?
+        @currentView.detach(@viewAction, @) if @currentView?
         @currentView = view
         @currentView.attach(@viewAction, @)
         @render()
 
       viewAction: (action, object, arg) ->
         if action is 'nav:edit'
-           @router.navEditModel object
+            if arg # arg == direct; if true implies direct view (no URL change)
+               editor = @createEditView object
+               @changeView editor
+               @router.navEditModel object, false
+            else
+               @router.navEditModel object
+        else if action is 'nav:create'
+            if arg
+               editor = @createEditView object
+               @changeView editor
+               @router.navCreateModel object.type(), false
+            else
+               @router.navCreateModel object
         else if action is 'nav:view'
-           @router.navViewModel object
+            @router.navViewModel object
         else if action is 'nav:doView'
-           @changeView object
+            @changeView object
         else if action is 'nav:search'
-           @router.navQuery object or "", arg or 1
+            if object? and object.length > 0
+               @router.navQuery(object, arg or 1)
+            else
+               @router.navQuery(null)
 
       changeSearchPage: (page) ->
         @viewAction 'nav:search', @results.query, page
 
-      # Route Event handlers
+      # Router View Object Handler
       viewObject: (type,id) =>
         if not @views[id]?
            model = Backbone.ReferenceCache.resolve type, id
+           console.log model
            switch type
              when "experiment" then view = new ExperimentView
                 model: model
@@ -702,6 +729,18 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
         else
            @changeView @views[id]
 
+      # Direct and Router-based Editing Views
+      createEditView: (model) ->
+        switch model.get('type')
+           when "experiment" then view = new ExperimentEdit
+              model: model
+           when "instrument" then view = new InstrumentEdit
+              model: model
+           when "treatment" then view = new TreatmentEdit
+              model: model
+           else alert('Error: type ' + model.get('type') + ' not recognized')
+        view
+
       editObject: (type, id) =>
         if _.isObject type
            model = type
@@ -714,14 +753,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
            alert 'Error, cannot edit unless type is provided'
         view = @editors[type]
         if not view?
-           switch model.get('type')
-             when "experiment" then view = new ExperimentEdit
-                model: model
-             when "instrument" then view = new InstrumentEdit
-                model: model
-             when "treatment" then view = new TreatmentEdit
-                model: model
-             else alert('Error: type ' + model.get('type') + ' not recognized')
+           view = @createEditView(model)
            @editors[type] = view
            @changeView view
         else

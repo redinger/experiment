@@ -305,9 +305,7 @@ define ['jquery', 'use!Backbone', 'use!Handlebars'],
           json
 
       toTemplateJSON: (options) ->
-          console.log 'In Model'
           if options? and options.depth?
-            console.log options.depth
             if options.depth is 0
               return
             else
@@ -333,6 +331,26 @@ define ['jquery', 'use!Backbone', 'use!Handlebars'],
       type: ->
         @get('type')
 
+      # Handle watching event on main object and any sub-objects
+      _watchEmbedded: (event, fn, ctx) ->
+        _.each @embedded, (record, attr) ->
+           @[attr].on event, fn, ctx if @[attr]?
+        , @
+
+      watch: (event, fn, ctx) ->
+        @on event, fn, ctx
+        if @_loading
+          @_loading.done () =>
+            @_watchEmbedded event, fn, ctx
+        else
+          @_watchEmbedded event, fn, ctx
+
+      unwatch: (event, fn, ctx) ->
+        @off event, fn, ctx
+        _.each @embedded, (record, attr) ->
+           @[attr].off event, fn, ctx if @[attr]?
+        , @
+
     # Extensions to Backbone.Collection for Embedded Models
     __prepareModel = Backbone.Collection.prototype._prepareModel
     _toJSONColl = Backbone.Collection.prototype.toJSON
@@ -351,9 +369,7 @@ define ['jquery', 'use!Backbone', 'use!Handlebars'],
              _toJSONColl.call(@, options)
 
       toTemplateJSON: (options) ->
-          console.log 'In Collection'
           if options? and options.depth?
-            console.log options.depth
             if options.depth is 0
               return null
           else
@@ -444,7 +460,10 @@ define ['jquery', 'use!Backbone', 'use!Handlebars'],
             else
               "/api/embed/#{ root.getServerType() }/#{ root.id }/#{ locations.join('/') }"
           else
-            "/api/root/#{ @getServerType() }/#{ @id }"
+            if @isNew()
+               "/api/root/#{ @getServerType() }"
+            else
+               "/api/root/#{ @getServerType() }/#{ @id }"
 
       # Make sure we always serialize our model type, particularly for new
       toJSON: (options) ->

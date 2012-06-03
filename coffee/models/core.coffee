@@ -26,6 +26,13 @@ define ['jquery', 'use!Backbone', 'models/infra', 'models/user'],
       name: ->
         @get('name')
 
+      cloneModel: ->
+        clone = @clone()
+        _.map ['id', 'help', 'comments', 'votes', 'warnings', 'tags'], (slot) ->
+          clone.unset slot
+        clone.set('name', clone.get('name') + ' (clone)')
+        clone
+
       schema:
         name:
           type: 'Text'
