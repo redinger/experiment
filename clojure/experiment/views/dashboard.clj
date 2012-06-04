@@ -81,7 +81,7 @@
     :deps ["views/common", "views/dashboard"]]
    (nav-fixed (:nav (default-nav "dashboard")))
    (subnav-fixed (dashboard-subnav (:subnav options)))
-   [:div#container 
+   [:div.container {:style "min-height: 400px;"}
     [:div.tab-content 
      [:div#overview.tab-pane]
      [:div#timeline.tab-pane]
