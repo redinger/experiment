@@ -19,14 +19,19 @@
 ;; NOTE: Models are not defined yet, so we'll special case
 ;; support for the current-user
 
+(defn valid-password? [user plaintext]
+  (crypt/compare plaintext (:password user)))
+
+(defn lookup-user-for-auth [id]
+  (or (fetch-one :user :where {:username id})
+      (fetch-one :user :where {:email id})))
+
 (defn login
   "Due to the use of middleware to track the user, we need to
    ensure that any handler redirects after log-ins"
   [auth]
-  (let [user (or (fetch-one :user :where {:username (:username auth)})
-		 (fetch-one :user :where {:email (:username auth)}))
-	encrypted (and user (:password user))]
-    (if (and encrypted (crypt/compare (:password auth) (:password user)))
+  (let [user (lookup-user-for-auth (:username auth))]
+    (if (valid-password? user (:password auth))
       (do (session/clear!)
 	  (session/put! :logged-in? true)
 	  (session/put! :userid (:_id user))

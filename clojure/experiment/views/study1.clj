@@ -9,7 +9,6 @@
         experiment.views.discuss)
   (:require
    [clojure.tools.logging :as log]
-   [clojure.data.json :as json]
    [clojure.string :as str]
    [somnium.congomongo :as mongo]
    [clodown.core :as markdown]
@@ -68,7 +67,7 @@
 (defn study1-nav [current]
   (let [user (session/current-user)
         consented? (get-pref :study1-consented)]
-    (merge (common/default-nav "Research")
+    (merge (common/default-nav "research")
            {:subnav
             {:menu
              (concat
@@ -87,8 +86,9 @@
 
 (defpartial render-study-page []
   (common/layout
-   "Authoring Research Study"
-   (study1-nav "Overview")
+   ["Authoring Research Study"
+    (study1-nav "Overview")
+    :deps ["views/home"]]
    [:div.container
     [:div.span8
      [:div.page-header
@@ -132,13 +132,13 @@
 (defpage "/study1/doc/:name" {name :name}
   (let [article (get-article name)]
     (common/layout
-     (str "Reading: " (:title article))
-     (study1-nav (case name
-                   "study1-protocol" "Study Protocol"
-                   "study1-background" "Introduction"
-                   "study1-example" "Examples"
-                   "study1-suggestions" "Suggestions"
-                   true "Author"))
+     [(str "Reading: " (:title article))
+      (study1-nav (case name
+                    "study1-protocol" "Study Protocol"
+                    "study1-background" "Introduction"
+                    "study1-example" "Examples"
+                    "study1-suggestions" "Suggestions"
+                    true "Author"))]
      [:div.container
       [:div.span8
        (if article
@@ -170,12 +170,13 @@
         (if (patient-consented?)
           [:h2 "You have consented to this study"]
           (render-consent-form))
-        [:h2 "You must register and login to consent to this study"])]]))
+        [:h2
+         "You must click on register (top right of page) and then return and login to consent to this study"])]]))
      
 (defpage "/study1/consent" {}
   (common/layout
-   "Authoring Study Consent"
-   (study1-nav "Consent")
+   ["Authoring Study Consent"
+    (study1-nav "Consent")]
    (render-consent)))
 
 (defpage [:post "/study1/consent"] {}
@@ -187,8 +188,8 @@
 
 (defpage "/study1/discuss" {}
   (common/layout
-   "Authoring Study Discussion"
-   (study1-nav "Online Q&A")
+   ["Authoring Study Discussion"
+    (study1-nav "Online Q&A")]
    [:div.container
     [:div.page-header
      [:h1 "Authoring Study Q&A"]]
@@ -211,8 +212,8 @@
 
 (defpage "/study1/review" {}
   (common/layout
-   "Authored Experiments"
-   (study1-nav "Author")
+   ["Authored Experiments"
+    (study1-nav "Author")]
    [:div.container
     [:h1 "My Submitted Experiments"]
     [:p "It is perfectly acceptable during the duration of this experiment (through mid-June 2012) to revisit experiments you have submitted and make changes to them"]
@@ -272,8 +273,9 @@
 
 (defpage "/study1/author" {:as options}
   (common/layout
-   "Author an Experiment"
-   (study1-nav "Author")
+   ["Author an Experiment"
+    (study1-nav "Author")
+    :deps []]
    [:div.container
     [:div.study1-author
      [:div.page-header
@@ -289,8 +291,8 @@
 (defpage author-view [:get "/study1/author-view"] {:as options}
   (let [exp (get-experiment (:id options))]
     (common/layout
-     "View a Study"
-     (study1-nav "")
+     ["View a Study"
+      (study1-nav "")]
      [:div.span8
       [:div.study1-author
        (if (not exp)
@@ -315,8 +317,8 @@
 
 (defpage [:post "/study1/author"] {:as spec}
   (common/layout
-   "Thank you"
-   (study1-nav "Author")
+   ["Thank you"
+    (study1-nav "Author")]
    [:div.container
     (if (and (:submit spec) (experiment-valid? spec))
       (do

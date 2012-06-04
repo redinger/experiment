@@ -10,10 +10,10 @@
              :name (str name)
              :title title
              :body body
-             :html (md/md body)}]
+             :html (md/mdp body)}]
     (if-let [old (fetch-model :article {:name name})]
       (update-model! (merge old new))
       (create-model! (assoc new :type "article")))))
 
 (defmethod update-model-hook :article [model]
-  (assoc model :html (md/md (:body model))))
+  (assoc model :html (md/mdp (:body model))))

@@ -1,5 +1,25 @@
 @import "functions"
 
+/* Infrastructure */
+
+.clear-both
+  clear both
+
+.spinner
+  position fixed
+  top 50%
+  left 50%
+  margin-left -50px
+  margin-top -50px
+  text-align center
+  z-index 1234
+  overflow auto
+  width 100px
+  height 102px
+
+h1, h2, h3, h4, h5, h6
+  font-family Helvetica Neue, Helvetica, Arial
+
 /* Main Page Frame */
 
 .subnav
@@ -103,8 +123,8 @@
 .footer
   background-color #F6F6F6 
   clear both
-  margin 30px 0px 40px 0px
-  padding 15px 0px 15px 0px
+  margin 30px 0px 10px 0px
+  padding 8px 0px 4px 0px
   border 1px solid #DDD
 
 .footer-bar
@@ -115,10 +135,33 @@
     font-size small
     padding 0px 8px 0px 8px
     text-decoration none
+ 
+  p
+    margin: 0 0 4px
 
 .nav-fixed-top
   .dropdown-menu:before
     display: none;
+
+/*********************************/
+/* Settings                      */
+/*********************************/
+
+#services
+  min-height 200px
+  .dropdown-menu
+    z-index 100
+
+/*********************************/
+/* Explore Pages                 */
+/*********************************/
+
+.tags
+  span.label
+    cursor: pointer
+
+#container
+  min-height 500px
 
 /********************************/
 /* HOME PAGE AND STATIC CONTENT */
@@ -207,6 +250,14 @@
   dd
    margin-bottom 20px
 
+.form-horizontal
+  li 
+    list-style none
+
+    label 
+      display inline-block
+      margin-left 10px
+
 /*********************/
 /* DISCUSSION WIDGET */
 /*********************/
@@ -246,29 +297,91 @@ div.discussion-1 p
     font-size x-small
 
 
-.chart2
-  font 10px sans-serif
-  color black
-  fill none
-  padding 5px
-
-  .glyph
-    fill none
-    stroke steelblue
-
-  rect
-    fill steelblue
-
-  text
-    fill white
-    stroke none
-
-  path
-    fill none
-    stroke #c0d
-    stroke-width 2px
-    stroke-opacity 0.5
-    
 .rule
   stroke grey
   fill grey
+
+
+
+/********************************/
+/* Journal Widgets              */
+/********************************/
+
+.journal-view 
+  .journal-header
+    margin-bottom 20px
+  textarea, input, .journal-header
+    width 95%
+  a.btn-mini
+    width 55px
+  thead td
+    font-weight bold
+
+.discuss-view
+  .discuss-header    
+    h1 
+      width 20px
+
+/********************************/
+/* Explorer Views               */
+/********************************/
+
+.object-editor
+  textarea
+    resize none
+
+.ScheduleView 
+  ul.bbf-checkbox
+    display inline
+    li
+      list-style none
+      display inline
+    input
+      display inline
+    label 
+      display inline
+      
+  div.bbf-list
+    li
+      list-style none
+    .bbf-list-actions
+      display inline
+
+#eventlist
+
+  i
+    margin-right 10px
+
+  b
+    i
+      margin-left 10px
+
+  .dateheader
+    background-color #08C8
+    margin-top 20px
+    padding-left 10px
+
+  .event-view
+    background-color #EEE
+    padding 5px 5px 5px 5px
+    border 1px solid 
+    margin 10px 0px 10px 0px
+
+  .error
+    color red
+
+#summary-pane
+  .well
+    height 400px
+
+  hr 
+   margin-top 40px
+   border-top: 1px solid #DDD
+
+  .trial-header h3
+    font-style italics
+
+  .trial-stats p
+    display inline-block
+    margin-right 20px
+

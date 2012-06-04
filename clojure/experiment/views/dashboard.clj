@@ -1,21 +1,23 @@
 (ns experiment.views.dashboard
+  (:use
+   noir.core
+   hiccup.core
+   hiccup.page-helpers
+   hiccup.form-helpers
+   experiment.models.suggestions
+   experiment.views.common
+   experiment.views.menu
+   handlebars.templates)
   (:require
-   [clojure.data.json :as json]
+   [cheshire.core :as json]
    [noir.response :as resp]
-   [experiment.infra.models :as models]
    [experiment.infra.session :as session]
+   [experiment.infra.models :as models]
    [experiment.models.user :as user]
    [experiment.models.profile]
    [experiment.models.events :as events]
-   [experiment.views.google :as google])
-  (:use noir.core
-        hiccup.core
-        hiccup.page-helpers
-	hiccup.form-helpers
-	experiment.models.suggestions
-        experiment.views.common
-        experiment.views.menu
-	handlebars.templates))
+   [experiment.views.trials :as trials]))
+
 
 ;; ---------------------------------
 ;; Dashboard 
@@ -28,15 +30,12 @@
 ;; See views/common.clj for the static page template and menu
 ;; rendering
 
-(defn current-trials []
-  (:trials (session/current-user)))
-
 (defn menu-content []
   [["dashboard" "Dashboard"]
    (concat ["trials" "Trials"]
            (map (fn [model num]
                   [(:_id model) (str "Trial " num)])
-                (current-trials)
+                (user/trials)
                 (range 1 10)))
    ["search" "Search"]
    (when (user/is-admin?)
@@ -57,49 +56,45 @@
      "&nbsp;"]]])
 
 (defpartial bootstrap-data []
-  (let [user (session/current-user)
-	username (:username user)]
-    [:script {:type "text/javascript"}
-     (map #(apply bootstrap-collection-expr %)
-	  [["window.ExApp.Instruments" (models/fetch-models :instrument)]
-	   ["window.ExApp.Experiments" (models/fetch-models :experiment)]
-	   ["window.ExApp.MyTrials"
-	    (models/fetch-models :trial {:user username})]
-	   ["window.ExApp.Treatments" (models/fetch-models :treatment)]
-	   ["window.ExApp.MyTrackers"
-	    (models/fetch-models :tracker {:user.$id (:_id user)}
-				 :only [:user :instrument :type :state])]
-           ["window.ExApp.Users"
-            (models/fetch-models :user :only [:username :type])]])
-     (str "window.ExApp.Suggestions.reset("
-	  (json/json-str (compute-suggestions))
-	  ");")]))
+;;  (bootstrap-models-json
+;;   (concat
+;;    (models/fetch-models :treatment)
+;;    (models/fetch-models :instrument)
+;;    (models/fetch-models :experiment)))
+  (bootstrap-user-json)
+  )
 
-(defpartial dashboard-layout []
+(defn dashboard-subnav [current]
+  {:menu
+   [{:tag "overview" :name "Overview" :href "overview"}
+;;    {:name "Trials" :href "#"}
+    {:tag "timeline" :name "Timeline" :href "timeline"}
+    {:tag "events" :name "Events" :href "eventlog"}
+;;    {:name "Activity" :href "#"}
+    {:tag "journal" :name "Journal" :href "journal"}]
+   :active current})
+
+(defpartial dashboard-layout [options]
   (page-frame
-   ["Personal Experiments Dashboard" 80]
-   (nav-fixed (:nav (default-nav "Dashboard")))
-   (subnav-fixed (:subnav (default-nav "Dashboard")))
-   [:div.container
-;;     (app-pane)
-;;     (nav-layout)
-    [:div.page-header
-     [:h1 "Your Personal Experiment Dashboard (COMING SOON)"]]
-    [:div.hidden
-      (render-all-templates)
-      (include-js "/js/app.js")
-      (send-user)
-      (bootstrap-data)]]))
+   ["Personal Experiments Dashboard"
+    :fixed-size 100
+    :deps ["views/common", "views/dashboard"]]
+   (nav-fixed (:nav (default-nav "dashboard")))
+   (subnav-fixed (dashboard-subnav (:subnav options)))
+   [:div#container 
+    [:div.tab-content 
+     [:div#overview.tab-pane]
+     [:div#timeline.tab-pane]
+     [:div#eventlog.tab-pane]
+     [:div#journal.tab-pane]]]
+   (bootstrap-data)        ;; models
+   (render-all-templates))) ;; views
 
-(defpage "/dashboard*" {}
-  (dashboard-layout))
+(defpage dashboard-dispatch "/dashboard/:subnav" {:as options}
+  (dashboard-layout options))
 
+(defpage dashboard-dispatch-args "/dashboard/:subnav/:args*" {:as options}
+  (dashboard-layout options))
 
-(defpage "/explore*" {}
-  (page-frame
-   ["Explore Experiments"]
-   (nav-fixed (:nav (default-nav "Explore")))
-   [:div.container
-    [:div.page-header
-     [:h1 "Browse and Search Experiments (COMING SOON)"]]]))
-  
+(defpage dashboard-redir "/dashboard" {:as options}
+  (resp/redirect "/dashboard/overview"))

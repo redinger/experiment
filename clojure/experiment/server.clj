@@ -9,9 +9,9 @@
    [experiment.infra.session :as session]
    [experiment.libs.sms :as sms]
    [experiment.libs.properties :as props]
+   [experiment.libs.fulltext :as ft]
    [experiment.models.events :as events]
    [experiment.models.trackers :as track]
-   [clojure.data.json :as json]
    [somnium.congomongo :as mongo]
    [experiment.infra.api]))
 
@@ -27,14 +27,18 @@
      [:ie6 "/not-supported"]
      [:ie7 "/not-supported"]]}))
 
+;; Redirection rules
 (server/add-middleware redirect-url-for-user-agent
-		       agent-redirect-rules)
+                       agent-redirect-rules)
 
 ;; Make body available as parsed JSON when mime type is json
 (server/add-middleware extract-json-payload)
 
 ;; Always track the current user when logged in
 (server/add-middleware session-user)
+
+;; Track the current timezone
+(server/add-middleware session-timezone-handler)
 
 ;; Load all the site views
 (server/load-views "clojure/experiment/views/")
@@ -71,19 +75,23 @@
    (mongo/make-connection
     (props/get :db.name) {} mongo-options))
 
+  ;; Indexing setup
+  (ft/start)
+  
   ;; Setup logging
   (let [mode (keyword (or mode (props/get :mode) :dev))]
     (if (= mode :dev)
-      (set-loggers! "default"
-                    {:level :warn
-                     :pattern "%d - %m%n"}
-                    "experiment"
-                    {:level :debug
-                     :pattern "%d - %m%n"}
-                    "org.mortbay.log"
-                    {:level :debug}
-                    "org.quartz.core.QuartzSchedulerThread"
-                    {:level :error})
+      (do (server/add-middleware swank-connection)
+          (set-loggers! "default"
+                        {:level :warn
+                         :pattern "%d - %m%n"}
+                        "experiment"
+                        {:level :debug
+                         :pattern "%d - %m%n"}
+                        "org.mortbay.log"
+                        {:level :error}
+                        "org.quartz.core.QuartzSchedulerThread"
+                        {:level :error}))
       (set-logger! "default"
 		   :level :warn
 		   :pattern "%d - %m%n"
@@ -115,5 +123,3 @@
   "The default project entry points starts the server in production mode"
   []
   (start :prod))
-
-

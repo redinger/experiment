@@ -2,8 +2,11 @@
   (:use experiment.infra.models)
   (:require
    [clojure.tools.logging :as log]
+   [noir.response :as resp]
+   [clj-time.core :as time]
    [experiment.libs.datetime :as dt]
    [experiment.infra.session :as session]
+   [experiment.infra.api :as api]
    [experiment.libs.sms :as sms]
    [experiment.models.user :as user]
    [experiment.models.instruments :as inst]
@@ -18,33 +21,62 @@
   (>= (:date reminder) start))
 
 
-;; Event Model
+;; Event Handling
 ;; --------------------------
 ;;
-;; Status:
+;; Events are intended to support actions to be taken (automatically, or via
+;; reminders over some channel) and are stores persistently in a database.
+;;
+;; ## EVENT MODEL
+;; 
+;; ### Status
 ;;
 ;; - pending :: schedule but not fired
 ;; - active :: fired but not done (e.g. sms sent)
 ;; - done :: event is fully satisfied
 ;;
-;; Required keys
+;; ### Required keys
 ;; 
 ;; - :type "event"
 ;; - :etype <event type>
 ;; - :user (user ref associated with the event)
 ;; - :inst (instrument ref associated with the event)
 ;;
-;; Other keys:
-;; 
+;; ### Other keys
+;;
 ;; - :start - target start of event
 ;; - :wait - whether to remain active waiting for a response
 ;; - :result - was the event satisfied (e.g. delivered, responded, etc)
 ;; - :timeout - how long to wait before failing when response is needed
 
-(def required-event-keys [:type :etype :user :start])
+;; Event primitives
+;; ----------------------------
 
+(def required-event-keys [:type :etype :user :instrument :start])
+
+(defn make-event [type user instrument & {:as options}]
+  (merge {:type "event"
+          :etype type
+          :user (as-dbref user)
+          :instrument (when instrument (as-dbref instrument))}
+         options))
+   
+(defn make-sms-tracker-event [u i message value-type prefix]
+  (make-event
+   "sms" u i
+   :sms-value-type value-type
+   :sms-prefix prefix
+   :message message
+   :wait true))
+
+(defn make-sms-reminder-event [u message]                              
+  (make-event
+   "sms" u nil
+   :message message
+   :wait false))
+  
 (defn valid-event? [event]
-  (and (= (count (select-keys required-event-keys))
+  (and (= (count (select-keys event required-event-keys))
           (count required-event-keys))
        (#{"pending" "active" "done"} (:status event))))
 
@@ -52,31 +84,129 @@
   (or (nil? (:status event))
       (#{"pending" "active"} (:status event))))
 
+(defn success? [event]
+  (and (= (:status event) "done")
+       (= (:result event) "success")))
+
+(defn fail? [event]
+  (and (= (:status event) "done")
+       (not= (:result event) "success")))
+
+(defn within-24-hours-of?
+  "If 't' is within 24 hours of 'ref'"
+  [t ref]
+  (time/within?
+   (time/interval
+    (time/minus ref (time/hours 24))
+    (time/plus ref (time/hours 24)))
+   t))
+  
+(defn editable? [event]
+  (when-let [start (:start event)]
+    (and (= (:status event) "active")
+         (:wait event)
+         (= (:etype event) "sms")
+         (within-24-hours-of? (dt/now) start))))
+
 (defn requires-reply? [event]
   (:wait event))
 
-(defn event-user [event]
-  (resolve-dbref (:user event)))
-  
-(defn- modify-if
+(defmacro modify-if
   ([map key value]
-     (if (contains? map key)
-       (assoc map key value)
-       map))
+     `(let [themap# ~map]
+        (assert (map? themap#))
+        (if (contains? themap# ~key)
+          (assoc themap# ~key ~value)
+          themap#)))
   ([map key new-key value]
-     (if (contains? map key)
-       (dissoc (assoc map new-key value) key)
-       map)))
+     `(let [themap# ~map
+            theval# ~value]
+        (assert (map? themap#))
+        (if (contains? themap# ~key)
+          (dissoc
+           (if (map? theval#)
+             (assoc themap# ~new-key (merge (themap# ~new-key) theval#))
+             (assoc themap# ~new-key theval#))
+             ~key)
+          themap#))))
+
+;; Event Model Protocol
+;; ----------------------------
+
+(defmethod public-keys :event [event]
+  [:status :start :local-time :instrument :user :message
+   :sms-prefix :sms-value-type :result-ts :result-val
+   :result-time :success :fail :editable])
+
+(defmethod import-keys :event [event]
+  [:status])
+
+;; Only convert instantiated events
+(defmethod server->client-hook :event [event]
+  (if (valid-event? event)
+    (let [start (dt/in-session-tz (:start event))
+          ltime (dt/wall-time start)
+          ts (when-let [res (:result-ts event)]
+               (dt/in-session-tz res))
+          tstime (dt/wall-time ts)]
+      (-> event
+          (update-in [:start] (fn [old] (dt/as-iso start)))
+          (update-in [:result-ts] (fn [old] (dt/as-iso ts)))
+          (assoc :success (success? event))
+          (assoc :fail (fail? event))
+          (assoc :editable (editable? event))
+          (assoc :local-time ltime)
+          (assoc :result-time tstime)))
+    (log/spy event)))
+             
+
+
+;; Event storage and manipulation
+;; ----------------------------
+
 
 (defn- event-query [query]
-  (-> query
-      (modify-if :user (as-dbref (:user query)))
-      (modify-if :type :etype (:type query))))
+  (let [user (:user query)
+        inst (:instrument query)]
+    (-> query
+        (modify-if :user (if (dbref? user) user (as-dbref user)))
+        (modify-if :instrument (if (dbref? inst) inst (as-dbref inst)))
+        (modify-if :type :etype (:type query))
+        (modify-if :start {:$gte (dt/as-date (:start query))})
+        (modify-if :end :start {:$lte (dt/as-date (:end query))}))))
 
 (defn get-events 
   "Return the events for the user associated with this incoming message"
-  [{:keys [user status type] :as query}]
+  [& {:keys [user status type start end] :as query}]
   (fetch-models :event (event-query query) :sort {:start 1}))
+
+(defn matching-events [event]
+  (get-events :user (:user event)
+              :instrument (:instrument event)
+              :start (time/minus (:start event)
+                                 (time/minutes (or (:jitter event) 0)))
+              :end (time/plus (:start event)
+                              (time/minutes (or (:jitter event) 0)))))
+
+(defn event-scheduled? [event]
+  (not (empty? (matching-events event))))
+  
+(defn remove-scheduled
+  "Ensure that the list of events do not match
+   any scheduled ('active') events"
+  [events]
+  (assert (every? :start events))
+  (let [outer (time/plus (dt/now) (time/hours 30))
+        [near far] (split-with #(time/before? (:start %) outer) events)]
+    (concat (filter #(not (event-scheduled? %)) near) far)))
+    
+
+(defn register-event [event]
+  (when (empty? (matching-events event))
+    (create-model!
+     (assoc event
+       :type "event"
+       :status "active"))))
 
 (defn set-status [event status]
   (modify-model! event {:$set {:status status}}))
@@ -84,16 +214,29 @@
 (defn complete [event ts data]
   (modify-model! event {:$set {:status "done"
                                :result "success"
-                               :result-ts (dt/as-date ts)
+                               :result-ts ts
                                :result-val data}}))
 
 (defn cancel [event & [reason]]
   (modify-model! event {:$set {:status "done"
                                :result (or reason "fail")
-                               :result-ts (dt/as-date (dt/now))}}))
+                               :result-ts (dt/now)}}))
+
+(defn event-user [event]
+  (assert (and (= (:type event) "event") (:user event)))
+  (resolve-dbref (:user event)))
+  
+(defn event-inst [event]
+  (assert (and (= (:type event) "event") (:inst event)))
+  (resolve-dbref (:inst event)))
+
+(defn link-event [user inst event]
+  (-> event
+      (assoc :user (as-dbref user))
+      (assoc :inst (as-dbref inst))))
 
 
-;; Event Actions
+;; Event Action Protocol
 ;; ---------------------------------------
 
 (defmulti fire-event (comp keyword :etype))
@@ -106,5 +249,4 @@
 (defmethod fire-event :log [event]
   (println "Log event firing")
   (log/spy event))
-
 

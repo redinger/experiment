@@ -3,6 +3,7 @@
         hiccup.core
         experiment.infra.models)
   (:require [oauth.client :as oauth]
+            [experiment.infra.services :as services]
             [clojure.math.numeric-tower :as math]
             [experiment.libs.datetime :as dt]
             [clj-time.core :as time]
@@ -10,7 +11,7 @@
             [experiment.infra.session :as session]
             [experiment.libs.properties :as props]
             [oauth.signature :as sig]
-            [clj-json.core :as json]
+            [cheshire.core :as json]
             [clj-http.client :as http]))
 
 (def consumer
@@ -20,6 +21,11 @@
                        "https://oauth.withings.com/account/access_token"
                        "https://oauth.withings.com/account/authorize"
                        :hmac-sha1))
+
+(services/register-oauth :rt ["Withings"]
+    :title "Fitbit Oauth"
+    :img nil
+    :url "http://personalexperiments.org/api/withings/authorize")
 
 ;; Book keeping across phases
 
@@ -36,22 +42,21 @@
 
 
 (defn save-access-tokens [userid response]
-  (modify-model!
+  (services/set-model!
    (session/current-user)
-   {:$set
-    {:services
-     {:wi {:userid userid
-           :token (:oauth_token response)
-           :secret (:oauth_secret response)}}}}))
+   :wi
+   {:userid userid
+    :token (:oauth_token response)
+    :secret (:oauth_secret response)}))
   
 (defn get-userid [user]
-  (get-in user [:services :wi :userid]))
+  (services/get user :wi :userid))
 
 (defn get-access-token [user]
-  (get-in user [:services :wi :token]))
+  (services/get user :wi :token))
 
 (defn get-access-secret [user]
-  (get-in user [:services :wi :secret]))
+  (services/get user :wi :secret))
 
 
 ;;

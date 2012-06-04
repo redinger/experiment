@@ -16,154 +16,201 @@ A mobile app client can use the APIs directly and bypass the /app
 namespace.
 
 A client app consists of:
-   - HTML skeleton for site frame and place holder divs for app modules
-   - Application javascript files
-   - Model templates for dynamic rendering
-   - Boostrap data for the specific sub-view being requested [This means the server needs to have a way of determining what data is being rendered and some duplication of URL parsing between server and client]
+
+- HTML skeleton for site frame and place holder divs for app modules
+- Application javascript files
+- Model templates for dynamic rendering
+- Boostrap data for the specific sub-view being requested [This means the server needs to have a way of determining what data is being rendered and some duplication of URL parsing between server and client]
 
 The server exposes various APIs to clients:
-   - /api/bone/...  - A backbone API to enable fetching and updating of models
-   - /api/suggest/... - A set of autoSuggest AJAX APIs for helping the UI
-   - /api/chart/... - Renders chart content for various model / data types
-   - /api/events/calendar - Renders a calendar of reminders or past events
 
-### Models
+- /api/root/...  - A backbone API to enable fetching and updating of models
+- /api/embed/...  - A submodel backbone extension API for embedded models
+- /api/suggest/... - A set of autoSuggest AJAX APIs for helping the UI
+- /api/chart/... - Renders chart content for various model / data types
+- /api/events/calendar - Renders a calendar of reminders or past events
+- /api/events/upcoming - Renders a calendar of reminders or past events
 
-The server manages the logic and integrity of a set of models that the
-UI shows to the user.  
-   - User
-   - Treatment
-   - Instrument
-   - Experiment
-      - Schedule
-   - Trial
-   - Reminder
-   - Embedded Objects for various objects
-      - Journals
-      - Comments
+## Technical Architecture
 
-### Tracking Workflow
+- Clojure+Noir Server Side Logic
+  - Uses MongoDB Document Store for Persistence
+  - Exports a Backbone.js compatible REST API (+ Backbone.Embedded extension)
+  - Exports higher-level API for autocomplete, suggests, search, etc.
+  - Internal Client-Server model architecture (experiment.infra.models)
+  - Supports server-generated pages for parts of the application
+  - Uses handlebars-clj to define templates in server-side code that
+    can be used by the server or sent to the client
+- Coffeescript+Backbone Rich-Client Front-end
+  - Uses d3.js for data visualizations (see QIchart.js library)
+- Leverages Twitter Bootstrap for UI Elements
+
+## Data Model
+
+The server manages and provides core and function-specific APIs for a rich-client
+model and some of the supplemental page logic.  
+
+- User
+- Embedded Objects for various objects
+   - Journals
+   - Comments
+
+### Schematic layer 
+
+- Experiment
+  - Treatment
+  - Instrument[]
+  - Schedule (schema)
+
+### Operative Layer
+
+- Trial
+  - Treatment
+  - Trackers[]
+  - Reminder
+  - Schedule (realized)
+
+
+## Tracking Workflow
 
 A study has a schedule (one of a number of templates). A dispatch
 function against the schedule type can transform a schedule into
 reminders or serve as the backdrop for user-generated events.
-   - Generates reminders
-       - Reminders can be put on a calendar
-   - User PROs are stored as time series in 'trackers'
-       - Background API dumps generated events (dep on instrument)
-       - Tracker objects record a series of data points from an instrument
-       - Trackers can also be extracted to show recording events on a calendar
+
+- Generates reminders
+   - Reminders can be put on a calendar
+
+- User PROs are stored as time series in 'trackers'
+   - Background API dumps generated events (dep on instrument)
+   - Tracker objects record a series of data points from an instrument
+   - Trackers can also be extracted to show recording events on a calendar
    - Trackers are processed to create canned reports or charts for a time period
 
      
+
 # Releases
 
-### Tasks for v0.1 - Demo Release
+## v0.1 - Academy Health Prototype Release (November 15th, 2011)
+
+- Basic show and tell: http://youtu.be/_OLqJtqzvK4
+
+## v0.2 - Authoring Study Prototype Release (March 16th, 2012)
+
+- Switched to use Twitter Bootstrap UI
+- Dropped demo Dashboard and navigation features
+- Added Authoring Study under Research Tab
+
+## v0.3 - Beta Release (April 10th, 2012)
 
 Architectural design tasks
 
    - X Model abstraction on server
      - X Backbone-based abstraction layer (base classes, protocols) for the 'model model'
      - X Handle references
-     - X Bootstrapping data into views (transmit entire DB for phase I)
      - X Nested object REST API support for Backbone
+     - - Bootstrapping data into views (transmit entire DB for phase I)
    - X Auto-complete for tags, model names, etc.
    - X Structured treatment descriptions using auto-complete
    - X Site navigation model using dispatch
+   - X Proper support for dev/prod mode and versioning
+   - X Break coffeescript into multiple independent UI modules
+   - X Support proper logging through server and client side
+   - X Google analytics integration
+
+   - Error handling across server & client
+   - Implement server-side filtering of data and actions, how to
+     communicate ACLs to client?
+   - Dump and reload database
+   - Database and server backup
+   - NO IE popup on login
 
 Feature tasks
-
-   - Style search object views
-   - Date range selection for tracker page / trial view
-   - X Tracker backend services
-   - X Dashboard main page
-   - Start trial from experiment view
-   - Illustrate missing data chart
-   - Trial View needs treatment description
-     - I want to click on tracking to change data
-     - If click on calendar, show me data points for the day
-
-   - Trial schedule and view
-     - Handle schedule and reminders 
-   - Profile editing / forms
-     - X Pretty forms CSS or JS
-   - Generate content
-
-   - NO IE popup on login
-   - Outcome control chart
 
    - X Study registration
-   - Object create / edit screens
+   - X Editorial content
+   - X Refactor Trial UI into components
+   - X Tracker backend services
+   - X Profile editing / forms
+     - X Pretty forms CSS or JS
+   - X Dashboard main page
+     - X Outcome control chart
+     - Illustrate missing data chart
+     - Trial schedule and view
+     - Date range selection for tracker page / trial view
+     - Calendar click support
+     - I want to click on tracking to change data
+   - Explore Page
+     - Style search object views
+     - Start trial from experiment view
+       - Handle schedule and reminders 
+     - Object create / edit screens
    - Social components
-   - Site auxilary content
-   - Styling interior pages
 
-### Tasks for v0.2 - Stability Release
+## Tasks for v0.3 - Stability Release
 
 Architecture design tasks
 
-   - Google analytics integration
-   - Proper support for dev/prod mode and versioning
-   - Break coffeescript into multiple independent UI modules
-   - Support proper logging through server and client side
-   - Cache model templates in external files for release
-   - Release model for aggregated/versioned javascript files
-   - Error handling across server & client
-   - Pallet distribution model
-      - X pallet, git, keys
-      ~ Mongo installation, nginx as proxy and static files
-      - X TODO: Leinengin
-      - TODO: Site upgrade scripts
-   - Database and server backup
-   - Sensible dump and reload database
-
-Feature tasks
-
-   - Refactor Trial UI into components
-   - Full UX and UI review   
-
-### Tasks for v0.3 - Tuning Release
-
-Architecture design tasks
-
-   - Incremental bootstrapping of models to the server (how to diff?)
+   - ~ Release model for aggregated/versioned javascript files
+   - Dynamic loading, caching, and pre-rendering Templates, etc.
    - Model abstraction on server
       - Handle synchronization conflicts for models
       - Define important properties like type checks, etc
-   - Caching layer for static content or snippets?
-   - General error handling and form updating
+   - Site is down page on restarts, etc.
 
 Feature tasks
 
-   - Failed login messages
+   - Full UX and UI review   
 
-### Tasks for v0.4 - Public Release
 
-   - X Pick a name
-   - Logo
-   - Final CSS design tune
+
 
 # Open Platform Issues
+# ----------------------------------------------------------
 
-### Longer term architectural issues
+## Longer term architectural issues
 
+   - X Server-side dispatch to client 'views' based on user-agent.  E.g. iphone
+     sends mobile client-app, search engine gets simple HTML view, web clients
+     get web app and older browsers get 'install new browser' page.
    - Support search indexibility and SEO by rendering sub-views with
      proper links on the server side for search crawlers or
      accessibility.  The server-side of a given application will have
      to handle this.  (For example, we want nice SEO URLs for all
      browseable objects such as treatments, experiments, and public
      discussions.
-   - X Server-side dispatch to client 'views' based on user-agent.  E.g. iphone
-     sends mobile client-app, search engine gets simple HTML view, web clients
-     get web app and older browsers get 'install new browser' page.
-     
-### Wishlist / Notes
-
-   - Site introduction similar to Coda's: http://www.panic.com/coda/
-   - I like github's look at feel!  (as you can tell)
+   - ? Pallet platform distribution model
+      - pallet, git, keys
+      ~ Mongo installation, nginx as proxy and static files
+      - TODO: Leinengin
+      - TODO: Site upgrade scripts
 
 
 # Design Notes
+# --------------------------------------------------------------
+
+## Subsystems
+
+### Implicit Infrastructure
+
+ -  Site-Properties - Configuration file for sensitive configuration data
+ -  Middleware 
+    -  Session user - Establishes (session/current-user) from DB for each request
+ -  Models - Generic way of dealing with client/server models
+ -  Data API - Support Backbone + Backbone.Embedded
+ -  Services - Generic way to define, configure and support connecting to 3rd party services
+ -  Dynamic Handlebar Templates - Generate server-side templates using Hiccup, dynamic loader
+ -  Scheduler Controller - Schedule and manage events
+
+### Application Infrastructure
+
+ -  QI Charts - Library for charting
+ -  Schedule and Events - Data model for defining and managing events
+ -  SMS Subsystem - Support SMS gateway connectivity and result sorting/parsing
+ -  E-mail Subsystem (Partial) - Support user communications
+    - as instrument?
+ -  Social Integration - Integrate with social networks (TBD) 
+ -  Twitter - TW connect, Post updates, parse health updates?, as instrument?
+ -  Facebook - FB connect, Post updates, as instrument?
 
 ## Schedules and events
 
@@ -177,7 +224,7 @@ TimeOfDay
 Schedule Protocol
 (events schedule interval)
 
-### Event
+### Events
 
 Events have types w/ parameters that determine how the action plays out
 

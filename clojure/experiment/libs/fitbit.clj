@@ -3,7 +3,7 @@
         hiccup.core
         experiment.infra.models)
   (:require [clojure.math.numeric-tower :as math]
-            [clj-json.core :as json]
+            [cheshire.core :as json]
             [clj-http.client :as http]
             [clj-time.core :as time]
             [oauth.client :as oauth]
@@ -12,8 +12,18 @@
             [noir.response :as resp]
             [experiment.libs.properties :as props]
             [experiment.infra.session :as session]
+            [experiment.infra.services :as services]
             [experiment.models.user :as user]
             ))
+
+;; Service configuration
+(services/register-oauth
+ :fitbit 
+ ["Fitbit"
+  :description "Connect to your FitBit tracking data"]
+ :title "Fitbit"
+ :url "http://personalexperiments.org/api/svc/fitbit/authorize")
+
 
 (def fitbit :fit)
 
@@ -88,11 +98,11 @@
        :href (build-authorize-uri target)}
    name])
 
-(defpage [:get "/api/fitbit/oauth"] {:as request}
+;; Manual Oauth Link
+(defpage [:get "/api/svc/fitbit/oauth"] {:as request}
   (html
    (oauth-link "Oauth Fitbit"
-               "http://personalexperiments.org/api/fitbit/authorize")))
-
+               "http://personalexperiments.org/api/svc/fitbit/authorize")))
 
 ;;
 ;; AFTER AUTHORIZATION, USE REQUEST TOKENS TO GET ACCESS TOKENS
@@ -110,7 +120,6 @@
                                  (signing-uri params)
                                  (get-req-secret)))))
 
-
 (defn- fetch-access-token [verifier]
   (let [params (access-params verifier)]
     (oauth/form-decode
@@ -121,11 +130,11 @@
 
 (declare subscribe)
 
-(defpage [:get "/api/fitbit/authorize"] {:keys [oauth_token oauth_verifier] :as request}
+(defpage [:get "/api/svc/fitbit/authorize"] {:keys [oauth_token oauth_verifier] :as request}
   (assert (= (get-req-token) oauth_token))
   (save-access-tokens (fetch-access-token oauth_verifier))
   (subscribe (experiment.models.user/get-user {:username (session/current-user)}))
-  (resp/redirect "/app/profile"))
+  (resp/redirect "/account/services"))
 
 ;;
 ;; Make Fitbit Requests
@@ -177,7 +186,7 @@
 (defn list-subscriptions [user]
   (request :get user "apiSubscriptions.json"))
 
-(defpage fitbit-updates [:post "/api/fitbit/updates"] {:as params}
+(defpage fitbit-updates [:post "/api/svc/fitbit/updates"] {:as params}
   (clojure.tools.logging/spy noir.request/*request*)
   (clojure.tools.logging/spy params)
   (try

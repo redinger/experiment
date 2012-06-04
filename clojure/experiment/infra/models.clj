@@ -1,14 +1,19 @@
 (ns experiment.infra.models
-  (:use noir.core)
+  (:use
+   noir.core)
   (:require
+   clojure.set
+   [clojure.string :as str]
+   [clojure.walk :as walk]
+   [clojure.tools.logging :as log]
+   [experiment.libs.datetime :as dt]
+   [somnium.congomongo :as mongo]
    [noir.response :as response]
    [noir.request :as request]
-   [somnium.congomongo :as mongo]
-   [clojure.walk :as walk]
-   [clojure.string :as str]
-   [clojure.tools.logging :as log])
+   [clodown.core :as md]
+   [experiment.infra.session :as session])
   (:import [org.bson.types ObjectId]
-	   [com.mongodb DBRef]))
+           [com.mongodb DBRef]))
 
 ;; ------------------------------------------
 ;; Server-Client Model Framework
@@ -24,13 +29,23 @@
 ;; behavior and valid slots in the server or client context.
 
 (defn model?
-  "A predicate to test that we have a valid model:
+  "A predicate to test that we have a valid parent model:
    :_id field ala mongo with valid ObjectID
    :type field indicating type of the model"
   [model]
   (and (:type model)
        (:_id model)
        (instance? ObjectId (:_id model))))
+
+(declare embedded-objectid?)
+
+(defn submodel? 
+  "A predict to test that we have a valid submodel"
+  [submodel]
+  (and (:type submodel)
+       (or (:submodel submodel)
+           (and (:id submodel)
+                (re-find #"SM" (:id submodel))))))
 
 (defmulti valid-model? 
   "Enforces invariant properties of a specific model.  Model
@@ -53,10 +68,22 @@
   (fn [model] (when-let [type (:type model)]
                 (keyword type))))
 
-(defmulti public-keys 
+(defmulti public-keys
+  "Which server-side raw or derived (via hook) keys 
+   to send to the client.  Default is to be permissive."
+  (fn [model] (when-let [type (:type model)]
+                (keyword type))))
+  
+
+(defmulti import-keys 
   "Performs a select-keys on client data so we don't store
-   illegal client-side slots on the server or send server-side
-   slots to the client.  Default is to be permissive."
+   illegal client-side slots on the server."
+  (fn [model] (when-let [type (:type model)]
+                (keyword type))))
+
+(defmulti index-keys 
+  "Performs a select-keys on client data so we don't store
+   illegal client-side slots on the server."
   (fn [model] (when-let [type (:type model)]
                 (keyword type))))
 
@@ -65,13 +92,13 @@
    takes the server model and transforms it to a public/client
    view before serialization"
   (fn [model]
-    (name (:type model))))
+    (keyword (:type model))))
 
 (defmulti client->server-hook
   "The import hook runs on the internal representation of the model
    after import but before the object is saved to the underlying store"
   (fn [model]
-    (name (:type model))))
+    (keyword (:type model))))
 
 (defmulti make-annotation
   "For embedded objects we expose a generic API for creating objects
@@ -94,7 +121,7 @@
     (do (assert (:type model))
         (name (:type model)))
     (do (assert (or (string? model) (keyword? model)))
-        (model-collection {:type type}))))
+        (name model))))
 
 (defmethod db-reference-params :default
   [model]
@@ -102,7 +129,15 @@
 
 (defmethod public-keys :default
   [model]
-  (keys model))
+  nil)
+
+(defmethod import-keys :default
+  [model]
+  nil)
+
+(defmethod index-keys :default
+  [model]
+  nil)
 
 (defmethod server->client-hook :default
   [model]
@@ -119,9 +154,13 @@
 (defn objectid? [id]
   (= (type id) ObjectId))
 
+(defn dbref? [ref]
+  (= (type ref) DBRef))
+
 (defn embedded-objectid? [id]
-  (and (= (count id) 25)
-       (= (first id) \*)))
+  (and (string? id)
+       (= (first id) \S)
+       (= (second id) \M)))
 
 (defn serialize-id
   "Convert a MongoDB ID for client use"
@@ -161,14 +200,17 @@
 (defn serialize-model-id
   "Export a local model-id as a foreign ID"
   [smodel]
-  (dissoc (assoc smodel :id (serialize-id (:_id smodel))) :_id))
+  (if (:_id smodel) ;; primary model
+    (dissoc (assoc smodel :id (serialize-id (:_id smodel))) :_id)
+    smodel ;; submodel is already serialized
+    ))
 
 (defn deserialize-model-id
   "Import a foregin model-id as a local ID"
   [cmodel]
-  (if (:id cmodel)
-    (dissoc (assoc cmodel :_id (deserialize-id (:id cmodel))) :id)
-    cmodel))
+  (if (:submodel cmodel)
+    cmodel
+    (dissoc (assoc cmodel :_id (deserialize-id (:id cmodel))) :id)))
 
 ;; ### Handle embedded DBRefs
 
@@ -182,24 +224,68 @@
 (defn serialize-model-refs [smodel]
   (walk/postwalk serialize-ref smodel))
 
+
 (defn- deserialize-model-ref [model key]
   (if-let [[ns id] (model key)]
-    (assoc model key (deserialize-dbref ns id))
+    (if (and ns id)
+      (assoc model key (deserialize-dbref [ns id]))
+      model)
     model))
 
 (defn deserialize-model-refs [cmodel]
   "Import model references from the client"
   (reduce deserialize-model-ref cmodel (db-reference-params cmodel)))
 
+;; ### Utilities for augmenting fields
+
+(defn markdown-convert* [model k]
+  (let [new-key (keyword (str (name k) "-html"))
+        orig (model k)]
+    (if (> (count orig) 1)
+      (assoc model new-key (md/mdp orig))
+      (assoc model new-key "<p><p/>"))))
+
+(defn markdown-convert [model k & ks]
+  (reduce markdown-convert* model (cons k ks)))
+
+(defn ref-oid [ref]
+  (when ref
+    (cond (dbref? ref) (.getId ref)
+          (model? ref) (:_id ref))))
+
+(defn owner-as-bool
+  "Converts a user reference field to a boolean
+   if field reference(s) matches user or current-user"
+  [model field & {:keys [user admins] :or {admins [] user (session/current-user)}}]
+  (let [uid (:_id user)
+        value (model field)
+        users (concat (cond (nil? value)
+                            (list)
+                            (dbref? value)
+                            (list value)
+                            true
+                            value)
+                      admins)]
+    (if (> (count (filter #(= uid (ref-oid %)) users)) 0)
+      (assoc model field true)
+      (assoc model field false))))
+
 ;; ### Filter public-keys on import/export for safety
 
 (defn filter-public-keys
   "Must define public-keys for safety purposes"
   [cmodel]
-  (if-let [keys (public-keys (conj cmodel [:id :type]))]
-    (select-keys cmodel keys)
-    cmodel))
-	
+  (if-let [keys (public-keys cmodel)]
+    (select-keys cmodel (conj keys :_id :id :type))
+    (throw (java.lang.Error. (str "public-keys not defined for " (:type cmodel))))))
+
+(defn filter-import-keys
+  "Must define import-keys for safety purposes"
+  [cmodel]
+  (if-let [keys (import-keys cmodel)]
+    (select-keys cmodel (conj keys :_id :id :type :submodel))
+    (throw (java.lang.Error. (str "import-keys not defined for " (:type cmodel))))))
+
 (defn as-dbref
   "Return a Mongo DBRef for a model object"
   ([model]
@@ -221,8 +307,9 @@
 
 (defn resolve-dbref
   ([ref]
-     (assert (mongo/db-ref? ref))
-     (somnium.congomongo.coerce/coerce (.fetch ^DBRef ref) [:mongo :clojure]))
+     (if (mongo/db-ref? ref)
+       (somnium.congomongo.coerce/coerce (.fetch ^DBRef ref) [:mongo :clojure])
+       ref))
   ([coll id]
      (assert (or (keyword? coll) (string? coll)))
      (mongo/fetch-one coll :where {:_id (as-oid id)})))
@@ -233,9 +320,17 @@
     (catch java.lang.Throwable e nil)))
 
 (defn assign-uid [model]
-  (if (not (:_id model))
-    (assoc model :_id (str "*" (ObjectId/get)))))
-  
+  (if (not (:id model))
+    (assoc model :id (str "SM" (ObjectId/get)))))
+
+(defn embed-dbrefs [model]
+  (clojure.walk/prewalk
+   (fn [node]
+     (if (dbref? node)
+       (resolve-dbref node)
+       node))
+   model))
+
 
 ;; Extend DBRef with IDeref protocol for dereferencing?
 ;;
@@ -254,67 +349,104 @@
         (let [fields (str/split location #"\.")]
           (get-in model (map keyword fields)))
         (keyword? location)
-        (model location)))
+        (model location)
+        (sequential? location)
+        (get-in model location)))
+        
 
-(defn submodel-path
+(defn serialize-path
   "Make a mongo-friendly sub-object path from a dotted location
    string, an array of keys"
-  [location leaf]
-  (if (sequential? location)
-    (str/join \. (conj (map name location) (name leaf)))
-    (str/join \. (list (name location) (name leaf)))))
+  ([location leaf]
+     (if (sequential? location)
+       (serialize-path (concat location (list leaf)))
+       (serialize-path (list (name location) (name leaf)))))
+  ([location]
+     (if (sequential? location)
+       (str/join \. (map name location))
+       location)))
 
-(defn submodel-slot-paths
+(defn- serialize-slot-paths
   "Return a map from model keys to keys that are paths
    to the keys of an embedded model"
   [model path]
   (zipmap (keys model)
-          (map (comp (partial submodel-path path) name)
+          (map (comp (partial serialize-path path) name)
                (keys model))))
 
-(defn- update-by-modifiers
-  ([model]
-     (let [bare (dissoc model :_id :id :type)]
-       {:$set bare}))
-  ([submodel path]
-     {:$set (clojure.set/rename-keys
-             (dissoc submodel :_id :id :type)
-             (submodel-slot-paths submodel path))}))
+(defn null-value-keys [model]
+  (map first (filter #(nil? (second %)) model)))
 
 (defmacro nil-on-empty [body]
   `(let [result# ~body]
      (when (not (empty? result#))
        result#)))
 
-
 (defn translate-options
   "Convert our options to an mongo argument list"
   [options]
-  (cond (empty? options) '()
-        (keyword? (first options)) options
-        true (cons :where options)))
+  (let [lead (first options)]
+    (assert lead)
+    (cond (or (keyword? lead) (string? lead))
+          (cond (empty? (rest options))
+                (list lead)
+                (map? (second options))
+                (concat (list lead :where)
+                        (rest options))
+                true options)
+          (map? lead)
+          (concat (list (:type lead) :where (dissoc lead :type))
+                  (rest options)))))
 
-;; ### Main internal API for Client-Server transforms
+;; ### Handling conversions from canonical clojure form to/from mongo
+
+(defn mongo->canonical* [obj]
+  (cond (dt/date? obj)
+        (dt/as-joda obj)
+        true obj))
+
+(defn mongo->canonical [obj]
+  (walk/postwalk mongo->canonical* obj))
+
+(defn canonical->mongo* [obj]
+  (cond (dt/date? obj) (dt/as-java obj)
+        true obj))
+
+(defn canonical->mongo [obj]
+  (walk/postwalk canonical->mongo* obj))
+  
+;; ### Handle canonical server form to client transforms
+
+(defn server->client*
+  ([node]
+     (server->client* node false))
+  ([node force]
+     (if (or (model? node) (submodel? node) force)
+       (-> node
+           server->client-hook
+           filter-public-keys)
+       node)))
 
 (defn server->client
   "Convert a server-side object into a map that is ready
    for JSON encoding and use by a client of the system"
-  [smodel]
-  (cond (empty? smodel)
-	nil
-	(map? smodel)
-	(do ;; (log/spy smodel)
-	    (-> smodel
-		server->client-hook
-		filter-public-keys
-		serialize-model-id
-		serialize-model-refs))
-	(sequential? smodel)
-	(vec (doall (map server->client smodel)))
-	true
-	(response/status
-         500
-         (format "Cannot export model %s" smodel))))
+  ([smodel]
+     (server->client smodel false))
+  ([smodel force]
+     (cond (empty? smodel)
+           nil
+           (map? smodel)
+           (-> (if force
+                 (server->client* smodel true)
+                 (walk/postwalk server->client* smodel))
+               serialize-model-id
+               serialize-model-refs)
+           (sequential? smodel)
+           (vec (doall (map server->client smodel)))
+           true
+           (response/status
+            500
+            (format "Cannot export model %s" smodel)))))
 
 (defn client->server
   "Take a map transmitted from a client and convert it
@@ -322,7 +454,7 @@
    manipulated"
   [cmodel]
   (-> cmodel
-      filter-public-keys
+      filter-import-keys
       deserialize-model-id 
       deserialize-model-refs
       client->server-hook))
@@ -332,10 +464,20 @@
    don't transform the :id field"
   [cmodel]
   (-> cmodel
-      filter-public-keys
+      filter-import-keys
       deserialize-model-refs
       client->server-hook))
 
+;; ### Merge over updates for API
+
+(defn update-by-modifiers
+  ([model]
+     (let [bare (dissoc model :_id :id :type)]
+       {:$set (canonical->mongo bare)}))
+  ([submodel path]
+     {:$set (clojure.set/rename-keys
+             (canonical->mongo submodel)
+             (serialize-slot-paths submodel path))}))
 
 ;; ------------------------------------------
 ;; Client-Server Models API
@@ -366,51 +508,68 @@
   [model]
   model)
 
+
 ;; Model CRUD API implementation
 
 (defn create-model!
+  "Create a new model in the database using all the model hooks defined
+   above"
   [model]
   (assert (not (model? model)))
   (if (valid-model? model)
-    (mongo/insert! (model-collection model) (create-model-hook model))
-    (noir.response/status 500 "Invalid Model")))
+    (mongo/insert! (model-collection model)
+                   (canonical->mongo
+                    (create-model-hook model)))
+    "Invalid Model"))
 
 (defn update-model!
+  "Update model merges the provided key-value pairs with the
+   database key-value pair set.  Setting any key-value pair
+   with embedded objects will overwrite the entire set (i.e.
+   no merging or appending of elements in a value"
   [model]
-  (if (valid-model? model)
-    (mongo/update! (model-collection model)
-                   (select-keys model [:_id])
-                   (update-by-modifiers (update-model-hook model))
-                   :upsert false)
-    (noir.response/status 500 "Invalid Model")))
+  (if (and (:_id model) (:type model))
+    (let [result (mongo/update! (model-collection model)
+                                (select-keys model [:_id])
+                                (update-by-modifiers
+                                 (update-model-hook model))
+                                :upsert false)]
+      (if-let [err (.getError result)]
+        "DB Error"
+        true))
+    "Invalid Model"))
 
 (defn modify-model!
+  "A cheap hack to open up the use of raw Mongo APIs for modifying
+   a document."
   [model modifier]
   (assert (map? modifier))
   (mongo/update! (model-collection model)
                  (select-keys model [:_id])
-                 modifier
+                 (canonical->mongo modifier)
                  :upsert false))
                  
 (defn fetch-model
-  [type & options]
+  "Get a model from the database"
+  [& options]
   (nil-on-empty
-   (apply mongo/fetch-one
-          (model-collection {:type type})
-          (translate-options options))))
+   (let [[type & args] (translate-options options)]
+     (mongo->canonical
+      (apply mongo/fetch-one (model-collection type) args)))))
 
 (defn fetch-models
-  [type & options]
-  (apply mongo/fetch
-	 (model-collection {:type type})
-	 (translate-options options)))
+  "Get a seq of models from the database"
+  [& options]
+  (let [[type & args] (translate-options options)]
+    (mongo->canonical
+     (apply mongo/fetch (model-collection type) args))))
 
 (defn delete-model!
+  "Delete a model from the database; must have a valid :_id"
   [model]
-  (assert (:type model) (:_id model))
   (delete-model-hook model)
-  (mongo/destroy! (model-collection {:type (:type model)})
-		  (select-keys model [:_id])))
+  (mongo/destroy! (model-collection model) (select-keys model [:_id]))
+  true)
 
 
 ;; ------------------------------------------
@@ -420,6 +579,10 @@
 ;; The Submodel API provides the same abstraction over a document
 ;; database as the primary CRUD API, but allows the addition of
 ;; a location specifier which operates on embedded objects.
+;;
+;; Writes to mongo go through create-model-hook or update-model-hook
+;;   then canonical->mongo
+;; Reads from mongo go through mongo->canonical
 ;;
 ;; (set-submodel! parent "profile.addresses.id"
 ;;                {:type "address" :name "Joe User"})
@@ -432,46 +595,52 @@
          delete-submodel!)
 
 (defn create-submodel!
-  [model location submodel]
-  (let [new (assign-uid submodel)]
-    (mongo/update! (model-collection model)
-                   (select-keys model [:_id])
-                   (update-by-modifiers
-                    new
-                    (submodel-path location new)))))
+  [parent location submodel]
+  (assert (and (model? parent) (:type submodel)))
+  (let [new (create-model-hook (assign-uid submodel))
+        pcoll (model-collection parent)
+        pref (select-keys parent [:_id :type])
+        path (serialize-path location (:id new))]
+    ;; Ensure we have a fresh target to insert into
+    (mongo/update! pcoll pref {:$set {path {}}})
+    ;; Insert all the slots
+    (mongo/update! pcoll pref (update-by-modifiers new path))
+    ;; Return the new model
+    new))
 
-(defn get-submodel [model location]
-  (lookup-location
-   (mongo/fetch-one (model-collection model)
-                    :where (select-keys model [:_id])
-                    :only [location])
-   location))
+(defn get-submodel
+  ([parent location]
+     (assert (and (:type parent) (:_id parent)))
+     (let [parent (mongo/fetch-one (model-collection parent)
+                                :where (select-keys parent [:_id])
+                                :only [(serialize-path location)])]
+       (mongo->canonical
+        (lookup-location parent location)))))
 
-(defn get-submodels
-  [model location]
-  (get-submodel model location))
+;;(defn get-submodels
+;;  [model type]
+;;  (mongo/fetch (model-collection model)
+;;               :where (select-keys model [:_id])
+;;               :only (serialize-path (submodel-path model {:type type}))))
 
 (defn set-submodel!
   [model location submodel]
-  (mongo/update! (model-collection model)
-                 (select-keys model [:_id])
-                 (update-by-modifiers (client->server submodel)
-                                      location)
-                 :upsert false))
+  (let [updates (update-by-modifiers
+                 (update-model-hook submodel)
+                 location)]
+    (mongo/update! (model-collection model)
+                   (select-keys model [:_id])
+                   updates                 
+                   :upsert false)))
 
 (defn delete-submodel!
   [model location]
+  (delete-model-hook
+   (get-submodel model location))
   (mongo/update! (model-collection model)
                  (select-keys model [:_id])
-                 {:$unset {location 1}}))
-  
-;; Legacy
-(defmethod annotate-model! :default
-  [model location annotation]
-  (mongo/update! (model-collection model)
-                  (select-keys model [:_id])
-                  {:$push { location annotation }}
-                  :upsert false))
+                 {:$unset {(serialize-path location) 1}}
+                 :upsert false))
 
 ;; ## Misc Store Utilities
 

@@ -6,7 +6,7 @@
    [clojure.contrib.string :as string]
    [clojure.tools.logging :as log]
    [clj-http.client :as http]
-   [clojure.data.json :as json]
+   [cheshire.core :as json]
    [clj-time.core :as time]
    [experiment.libs.datetime :as dt]
    [somnium.congomongo :as mongo]
@@ -20,7 +20,8 @@
 
 ;; ## Manage GroupTexting Credentials
 
-(defonce ^:dynamic *credentials* nil)
+(defonce ^{:dynamic true}
+  *credentials* nil)
 
 (defn set-credentials [credentials]
   (assert (and (:user credentials) (:pw credentials)))
@@ -76,24 +77,28 @@
 
 ;; ## Send an SMS
 
+(defn- clean-phone-number [number]
+  (string/replace-re #"-" "" number))
+
 (defn send-sms [number message & [credentials]]
   (assert (< (count message) 160))
   (assert (not (re-find #"[']" message)))
   (with-credentials [credentials]
     (http/get (compose-request-url
 	       "https://app.grouptexting.com/api/sending"
-	       {:phonenumber number
-		:message message}))))
+	       {:phonenumber (clean-phone-number number)
+            :message message}))))
 
 ;; ## Account mgmt
 
 (defn account-balance [& [credentials]]
   (with-credentials [credentials]
-    (json/read-json
+    (json/parse-string
      (:body
       (http/get (compose-request-url
                  "https://app.grouptexting.com/api/credits/check/"
-                 {}))))))
+                 {})))
+     true)))
 
 ;;
 ;; SMS Inbox Handler
@@ -102,7 +107,7 @@
 (defn default-handler [from message]
   (log/spy [from message]))
 
-(defonce ^:dynamic *handler* 'default-handler)
+(defonce ^{:dynamic true} *handler* 'default-handler)
 
 (defn set-reply-handler [handler]
   (alter-var-root #'*handler* (fn [a b] b) handler))
@@ -154,11 +159,11 @@
     (or (find @patterns lookup)
         (swap! patterns assoc lookup
                (re-pattern
-                (str (or (:sms-prefix event) "")
+                (str (or (str "(?i:" (:sms-prefix event) ")") "")
                      (case (:sms-value-type event)
-                       nil "\\s*(\\d*)"
                        "string" "\\s*([^\\s]+)"
-                       "float" "\\s*([\\d\\.]+)")))))))
+                       "float" "\\s*([\\d\\.]+)"
+                       "\\s*(\\d*)")))))))
 
 (defn default-sms-parser
   "This is the default SMS parser, it supports simple
@@ -169,11 +174,11 @@
    - :sms-value-type '<type of value after prefix>' | nil <int by default>
   "  
   [message event]
-  (when-let [value (second (re-matches (default-sms-parser-re event) message))]
+  (when-let [value (second (re-matches (second (default-sms-parser-re event)) message))]
     (case (:sms-value-type event)
-      nil (Integer/parseInt value)
       "string" value
-      "float" (Float/parseFloat value))))
+      "float" (Float/parseFloat value)
+      (Integer/parseInt value))))
     
 (defmethod parse-sms :default [message ts event]
   (when-let [val (and (:sms-prefix event)

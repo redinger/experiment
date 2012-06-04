@@ -3,7 +3,6 @@
    [experiment.views.common :as common]
    [experiment.infra.session :as session]
    [clojure.tools.logging :as log]
-   [clojure.data.json :as json]
    [clojure.string :as str]
    [somnium.congomongo :as mongo]
    [noir.response :as resp]
@@ -25,8 +24,8 @@
   (println name)
   (let [article (get-article name)]
     (common/layout
-     (:title article)
-     (common/default-nav (if (= name "about") "About" ""))
+     [(:title article)
+      (common/default-nav name)]
      [:div.container
       (if article
         [:div.article.span8
@@ -41,8 +40,9 @@
 (defpage "/article/edit/:name" {:keys [name] :as options}
   (let [article (or (get-article name) {:name "" :title "" :body ""})]
     (common/layout
-     (str "Editing: " (:title article))
-     (common/default-nav (if (= name "about") "About" ""))
+     [(str "Editing: " (:title article))
+      (common/default-nav (if (= name "about") "About" ""))
+      :deps ["views/home"]]
      [:div.container
       (form-to [:post "/article/edit"]
                [:fieldset

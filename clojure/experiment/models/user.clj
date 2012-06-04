@@ -1,8 +1,11 @@
 (ns experiment.models.user
-  (:use noir.core
-	experiment.infra.models)
-  (:require [experiment.infra.session :as session]
-	    [experiment.infra.auth :as auth]))
+  (:use
+   noir.core
+   experiment.infra.models)
+  (:require
+   [experiment.infra.session :as session]
+   [experiment.infra.middleware :as mid]
+   [experiment.infra.auth :as auth]))
 
 ;; USER
 ;; ---------------------------------
@@ -30,18 +33,22 @@
 ;;    ...
 ;;
 ;;  :trackers []
-;;  :active_trials []
+;;  :trials []
+;;  :past_trials []
 
 ;; ## Convenience methods
 
 (defmethod valid-model? :user [user]
-  (and (:username user) (:password user)))
+  (and (:username user)
+       (:email user)
+       (:type user)))
 
 (defn create-user! [username password email name]
   (create-model!
    (auth/set-user-password
     {:type :user
      :username username
+     :uname (.toLowerCase username)
      :name name
      :email email}
     password)))
@@ -50,9 +57,16 @@
   "Model for reference"
   [reference]
   (cond (string? reference)
-	(fetch-model :user {:username reference})
+	(or (fetch-model :user {:uname (.toLowerCase reference)})
+        (fetch-model :user {:email reference}))
 	true
 	(resolve-dbref reference)))
+
+(mid/set-user-fetcher
+ (fn [& {:keys [id username email]}]
+   (cond id (fetch-model :user {:_id id})
+         username (get-user username)
+         email (get-user email))))
 
 (defn get-user-dbref [reference]
   (cond (and (map? reference) (= (name (:type reference)) "user"))
@@ -61,8 +75,46 @@
 	(as-dbref (get-user reference))))
 
 (defmethod public-keys :user [user]
-  (keys (apply dissoc user
-               [:updates :permissions :password :salt :dataid :state])))
+  (if (= (:_id user) (:_id (session/current-user)))
+    (keys (apply dissoc user
+                 [:updates :permissions :password :salt :dataid :state]))
+    [:username :bio :name]))
+
+;; ## Trials
+
+(defn attach-user [user submodel]
+  (assoc submodel :user (as-dbref user)))
+
+(defn trials [user]
+  (map (partial attach-user user) (vals (:trials user))))
+
+(defn get-trial [user id]
+  (attach-user user ((:trials user) (keyword id))))
+
+(defn has-trials? [user]
+  (if (not (empty? (:trials user))) true false))
+
+;; ## Trackers
+
+(defn add-tracker! [user instrument schedule]
+  (let [inst (if (model? instrument)
+               instrument
+               (fetch-model :instrument {:src instrument}))
+        submod {:type "tracker"
+                :state "active"
+                :user (as-dbref user)
+                :instrument (as-dbref inst)
+                :schedule schedule}]
+    (create-submodel! user "trackers" submod)))
+
+(defn trackers [user]
+  (vals (:trackers user)))
+
+(defn has-trackers? [user]
+  (if (not (empty? (trackers user))) true false))
+
+(defn remove-tracker! [user tracker]
+  (delete-submodel! user [:trackers (:id tracker)]))
 
 ;; ## Services
 
@@ -83,13 +135,13 @@
 
 (defn get-pref
   ([user property]
-     (get-in user [:prefs property]))
+     (get-in user [:preferences property]))
   ([property]
      (get-pref (session/current-user) property)))
   
 (defn set-pref!
   ([user property value]
-     (modify-model! user {:$set {:prefs {property value}}}))
+     (modify-model! user {:$set {:preferences {property value}}}))
   ([property value]
      (set-pref! (session/current-user) property value)))
 
@@ -101,8 +153,12 @@
 (defn is-admin? []
   (has-permission? "admin"))
   
+(defn site-admins []
+  (list (get-user "eslick")))
 
-
+(defn site-admin-refs []
+  (map as-dbref (site-admins)))
+  
 ;; Generate Test Users
 ;; ------------------------
 

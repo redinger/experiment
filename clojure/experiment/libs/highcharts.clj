@@ -2,11 +2,11 @@
   (:use noir.core
         hiccup.core
 	handlebars.templates)
-  (:require [clojure.data.json :as json]))
+  (:require [cheshire.core :as json]))
 
 (defn default-config [id title type series]
   {:chart {:type type
-	   :renderTo id}
+           :renderTo id}
    :plotOptions {:series {:animation false
 			  :marker {:enabled false}}}
    :title {:text title}

@@ -1,6 +1,5 @@
 (ns experiment.views.pages
   (:require
-   [clojure.data.json :as json]
    [noir.response :as resp]
    [experiment.infra.models :as models]
    [experiment.infra.session :as session]

@@ -39,6 +39,16 @@
 (defn modal-dialog [id & {:keys [header body footer] :as parts}]
   (modal-dialog-template (assoc parts :id id)))
 
+(defn popover-link [text href pop-title pop-content]
+  [:a {:class "popover-link"
+       :href href
+       :rel "popover"
+       :data-original-title pop-title
+       :data-content pop-content}
+   text])
+       
+
+
 ;; FORMS
 ;; ------------------------
 
@@ -48,11 +58,15 @@
 (defelem ctrl-group [[name id] & controls]
   [:div.control-group
    [:label.control-label {:for id} name]
-   [:div.controls
-    controls]])
+   `[:div.controls
+     ~@controls]])
 
 (defelem input [type id value]
   [:input {:type type :id id :value value}])
+
+(defelem textarea [id value]
+  [:textarea {:id id :name id}
+   value])
 
 (defelem help-text [text]
   [:p.help-block text])
@@ -61,9 +75,29 @@
 ;; Menus
 ;; ------------------------
 
+;; ## Pagination
+
+(defn pagination [names active-offset]
+  [:div.pagination
+   [:ul
+    (map-indexed (fn [name idx]
+                   (if (= idx active-offset)
+                     [:li {:class "active"}
+                      [:a {:href "#"} name]]
+                     [:li 
+                      [:a {:href "#"} name]]))
+                 names)]])
+
+(defn pager [left-name right-name & [sides?]]
+  [:ul.pager
+   [:li {:class (if sides? "previous" "")}
+    [:a {:href "#"} left-name]]
+   [:li {:class (if sides? "next" "")}
+    [:a {:href "#"} right-name]]])
+
 ;; ## Render Nav Menus
 (defn- active-class [match current & {:keys [base] :or {base ""}}]
-  (if (= match current) (str "active " base) base))
+  (if (and match (= match current)) (str "active " base) base))
 
 (defn- merge-props [orig over]
   (if-let [new-class (:class over)]
@@ -72,13 +106,13 @@
 
 (declare dropdown-submenu)
 
-(defn- menu-item [active {:keys [name href aprops lprops submenu] :as entry}]
+(defn- menu-item [active {:keys [tag name href aprops lprops submenu] :as entry}]
   (if-not submenu
-    [:li (merge-props {:class (active-class active name)} lprops)
+    [:li (merge-props {:class (active-class active tag)} lprops)
      (when name
        [:a (merge-props {:href href} aprops)
         name])]
-    [:li (merge-props {:class (active-class active name :base "dropdown")}
+    [:li (merge-props {:class (active-class active tag :base "dropdown")}
                       lprops)
      [:a (merge-props {:class "dropdown-toggle"
                        :href href

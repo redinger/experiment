@@ -32,18 +32,22 @@
 (defpage login [:get "/action/login"]
   {:keys [target] :as args}
   (layout
-   "Login to Access Protected Area"
-   (default-nav)
+   ["Login to Access Protected Area"
+    (default-nav)
+    :deps ["views/home"]]
    [:div {:style "height:400px"}
-    [:script "$(document).ready(function () { window.loginModal.show(); });"]]))
+    [:script "define(['jquery', 'views/home'], function ($, Home) {
+                $(document).ready(function () {
+                   $('.login-button').click();
+                });
+              });"]]))
   
 (defapi do-login [:post "/action/login"]
-  {:as user}
-  (resp/json
-   (if-let [user (auth/login user)]
-     {:result "success"}
-     {:result "fail"
-      :message "Username/E-mail not found or password was incorrect"})))
+  {:as auth}
+  (if-let [user (auth/login auth)]
+    {:result "success"}
+    {:result "fail"
+     :message "Username/E-mail not found or password was incorrect"}))
 
 (defpage do-logout "/action/logout" {:as options}
   (session/clear!)
@@ -66,6 +70,18 @@
                (resp/redirect "/study1"))))
 
 (pre-route "/dashboard*" {}
+           (handle-private-route))
+
+(pre-route "/explore*" {}
+           (handle-private-route))
+
+(pre-route "/account*" {}
+           (handle-private-route))
+
+(pre-route "/api/root/*" {}
+           (handle-private-route))
+
+(pre-route "/api/embed/*" {}
            (handle-private-route))
 
 ;; Other protected routes
@@ -120,7 +136,7 @@
 
 (defapi check-username [:get "/action/check-username"]
   {:keys [username] :as data}
-  {:exists (if (models/fetch-model :user {:username username})
+  {:exists (if (models/fetch-model :user {:uname (.toLowerCase username)})
              "true"
              "false")})
 
@@ -131,13 +147,36 @@
 
 
 ;; ## FORGOTTEN Password
+
+
+(def passwords
+  ["bart simpson"
+   "fred freelander"
+   "whola hoola"
+   "i.p.freely"
+   "syndicate zero"
+   "foo bar baz"])
+
+(defn reset-user-password
+  [user]
+  (let [newpw (nth passwords (rand-int (- (count passwords) 1)))]
+    (models/update-model!
+     (auth/set-user-password user newpw))
+    (println "reset " (:username user) " to " newpw)
+    newpw))
+    
+(def reset-email
+  "The password for user '%s' was reset to: %s.  Please go to http://personalexperiments.org/settings to reset your password.")
+
+
 (defapi do-forgot-password [:post "/action/forgotpw"] {:as options}
-  (if-let [user (user/get-user (:username options))]
+  (if-let [user (user/get-user (:userid options))]
     (try
-      (mail/send-message-to (:email user)
-                            {:subject "Forgot Password"
-                             :body "Sorry, we can only reset your password manually for now.  Please reply to this e-mail with a suggested password.  Shortly we'll allow profile editing and can fix your forgotten password more easily."})
-      {:result "success"}
+      (let [newpw (reset-user-password user)]
+        (mail/send-message-to (:email user)
+                              {:subject "PersonalExperiments.org: Password Reset"
+                               :body (format reset-email (:username user) newpw)})
+        {:result "success"})
       (catch java.lang.Throwable e
         {:result "fail"
          :message (format "Internal error: %s please write to eslick@media.mit.edu" e)}))
@@ -145,5 +184,19 @@
      :message "Did not recognize your username or e-mail address"}))
 
 
-;; (defapi reset-password [:get "/action/forgotpw"]
+(defapi do-change-password [:post "/action/changepw"] {:keys [oldPass newPass1] :as options}
+  (clojure.tools.logging/spy options)
+  (if-let [user (session/current-user)]
+    (if (auth/valid-password? user oldPass)
+      (let [newuser (auth/set-user-password user newPass1)]
+        (do (models/modify-model! newuser
+                                  {:$set {:password (:password newuser)}})
+            {:result "success"}))
+      {:result "fail"
+       :message "Old password is not valid"})
+    {:result "fail"
+     :message "You must be logged into to change your password"}))
+      
 
+(defapi touch-timezone [:get "/action/timezone"] {:keys [_timezone] :as options}
+  (resp/empty))

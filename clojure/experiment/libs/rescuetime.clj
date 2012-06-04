@@ -1,23 +1,33 @@
 (ns experiment.libs.rescuetime
-  (:require [clj-http.client :as http]
-            [experiment.libs.datetime :as dt]
-            [experiment.libs.properties :as props]
-	    [clojure.data.json :as json]))
+  (:require
+   [clj-http.client :as http]
+   [clojure.tools.logging :as log]
+   [experiment.infra.services :as services]
+   [experiment.libs.datetime :as dt]
+   [experiment.libs.properties :as props]
+   [cheshire.core :as json]))
 
-(def ^:dynamic *api-key* nil)
+(def ^{:dynamic true} *api-key* nil)
 (def api-base "https://www.rescuetime.com/anapi/data")
 
 (defn api-request [params]
-  (json/read-json
-   (:body
-    (http/get api-base
-	      {:query-params
-	       (merge
-		params
-		{:key *api-key*
-		 :format "json"})
-               :content-type :json
-               :accept :json}))))
+  (let [response
+        (http/get api-base
+                  {:query-params
+                   (merge
+                    params
+                    {:key *api-key*
+                     :format "json"})
+                   :content-type :json
+                   :accept :json})]
+    (log/spy response)
+    (json/parse-string
+     (:body response))
+   true))
+
+(services/register :rt ["RescueTime"]
+   :user {:title "Account Email"}
+   :apikey {:title "API Key"})
 
 (defmacro with-key [value & body]
   `(binding [*api-key* (or ~value (props/get :rescuetime.api-key))]
@@ -55,7 +65,7 @@
        (update-in results [:rows]
                   #(filter (partial matching-row-p pos pattern) %)))))
 
-(defonce ^:dynamic *test* nil)
+(defonce ^{:dynamic true} *test* nil)
 
 (defn aggregate-rows
   [group]

@@ -1,14 +1,18 @@
 (ns experiment.models.suggestions
-  (:require [somnium.congomongo :as mongo]
-	    [noir.response :as response]
-	    [noir.request :as request]
-	    [clojure.data.json :as json]
-	    [clojure.string :as str])
+  (:use
+   noir.core
+   experiment.infra.models 
+   experiment.infra.api
+   [experiment.models.core]
+   [experiment.models.user])
   (:import [org.bson.types ObjectId])
-  (:use noir.core
-	experiment.infra.models 
-	[experiment.models.core]
-	[experiment.models.user]))
+  (:require
+   [somnium.congomongo :as mongo]
+   [noir.response :as response]
+   [noir.request :as request]
+   [clojure.string :as str]
+   [cheshire.core :as json]
+   [experiment.libs.fulltext :as ft]))
 
 ;;
 ;; This file generates a dictionary of autoSuggest objects which
@@ -156,8 +160,8 @@
 
 (defn filter-models [filters]
   (let [treatments (filter-treatments filters)
-	instruments (filter-instruments filters)
-	experiments (filter-experiments treatments filters)]
+        instruments (filter-instruments filters)
+        experiments (filter-experiments treatments filters)]
     (concat (when (show? "experiment" filters) experiments)
 	    (when (show? "treatment" filters) treatments)
 	    (when (show? "instrument" filters) instruments))))
@@ -165,8 +169,88 @@
 
 (defpage filtered-search "/api/fsearch" {:keys [query limit]}
   (let [filters (str/split query #",")]
-    (println filters)
     (response/json
      (vec
       (map model->client-ref
 	   (filter-models filters))))))
+
+;;
+;; New Style Search
+;; -----------------------------------
+
+;; ## Special constraints on search
+
+(defn trim-plural [string]
+  (if (= (last string) \s)
+    (.substring string 0 (- (count string) 1))
+    string))
+
+(def constraint-exprs
+  [[:type "show" trim-plural]
+   [:tags "for"]
+   [:treatment "with"]
+   [:service "using"]])
+
+(defn- match-prefix [term arg]
+  (some (fn [[field prefix pfn]]
+          (when (= term prefix)
+            {field ((or pfn identity) arg)}))
+        constraint-exprs))
+
+(defn- parse-query-map [query]
+  (if (= query "*")
+    {:type "treatment"}
+    (loop [terms (str/split query #" ")
+           cmap {}
+           default-query ""]
+      (if (< (count terms) 2)
+        (assoc cmap
+          :default (str/trim (str/join " " (cons default-query terms))))
+        (if-let [constraint (match-prefix (first terms) (second terms))]
+          (recur (drop 2 terms) (merge cmap constraint) default-query)
+          (recur (drop 1 terms) cmap (str/join " " [(first terms) default-query])))))))
+
+(defn search-response [result-map]
+  (response/json
+   (dissoc
+    (update-in result-map [:models] (comp vec server->client))
+    :results)))
+
+(defpage query-srch "/api/search/query/:q/:n/:skip" {:keys [q n skip]}
+  (let [n (Integer/parseInt (or n "10"))
+        skip (Integer/parseInt (or skip "0"))]
+    (search-response
+     (ft/search (parse-query-map q) :size n :skip skip))))
+    
+(defpage tag-srch "/api/search/tag/:q/:n/:skip" {:keys [q n skip]}
+  (let [n (Integer/parseInt (or n "10"))
+        skip (Integer/parseInt (or skip "0"))]
+    (search-response
+     (ft/search {:tags q} :size n :skip skip))))
+
+;; RELATED OBJECTS (Treatment->Experiments, Outcomes)
+
+(defn fetch-related [type dbref]
+  (case type
+    "treatment"
+    (fetch-models :experiment {:treatment dbref})
+    "experiment"
+    (let [model (resolve-dbref dbref)]
+      (remove #(= % model)
+              (fetch-models :experiment
+                            {:$or [{:treatment (:treatment model)}
+                                   {:instruments {:$in (:instruments model)}}]})))
+    "instrument"
+    (let [inst (resolve-dbref dbref)]
+      (concat (fetch-models :experiment {:instruments dbref})
+              (remove #(= % inst)
+                      (fetch-models :instrument {:service (:service inst)}))))))
+
+(defpage related "/api/search/related/:type/:id" {:keys [type id]}
+  (let [oid (deserialize-id id)
+        ref (as-dbref type oid)]
+    (let [results (fetch-related type ref)]
+      (search-response
+       {:models results
+        :hits (count results)}))))
+                                                      

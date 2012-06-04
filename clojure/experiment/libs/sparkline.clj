@@ -1,5 +1,5 @@
 (ns experiment.libs.sparkline
-  (:require [clojure.data.json :as json]))
+  (:require [cheshire.core :as json]))
   
 (def ^:private ids (atom 1))
 (defn- sparkline-uid []
@@ -11,5 +11,5 @@
      [:script
       (format "$.sparkline(%s, %s, %s)"
 	      (str "#" uid)
-	      (json/json-str (vec data))
-	      (json/json-str (or params {})))]]))
+	      (json/generate-string (vec data))
+	      (json/generate-string (or params {})))]]))
