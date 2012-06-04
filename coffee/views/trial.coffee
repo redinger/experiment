@@ -42,13 +42,17 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
                @renderChart data
           spinner: false
 
+      redraw: ->
+        $('#control1').html('')
+        @renderChart @data if @data?
+
       renderChart: (data) =>
-           ready = $('#control1')
-           if data and _.isEmpty(ready)
-              _.delay @renderChart, 1000, data
-           else
-              console.log data
-              QIChart.renderChart '#control1', data, @cfg
+        ready = $('#control1')
+        if data and _.isEmpty(ready)
+           _.delay @renderChart, 1000, data
+        else
+           @data = data
+           QIChart.renderChart '#control1', data, @cfg
 
       render: ->
         @
@@ -68,24 +72,43 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
           @model.experiment.on 'change', @render, @
           @
 
-      render: ->
+      update: ->
           @chart.remove()
+          @$el.html @template @model.toTemplateJSON()
+          @$el.append @chart.render().el
+          @chart.redraw()
+          @trigger 'update'
+          @
+
+      render: ->
+          @delegateEvents()
           @$el.html @template @model.toTemplateJSON()
           @$el.append @chart.render().el
           @trigger 'update'
           @
 
-      events: ->
+      events:
           'click .pause': 'pause'
+          'click .resume': 'resume'
           'click .cancel': 'cancel'
           'click .archive': 'archive'
 
-      pause: =>
+      notify: (e) =>
+          console.log e
+
+      pause: (e) =>
+          e.preventDefault()
           status = @model.get('status')
           if status is 'active'
              @model.save
                 status: 'paused'
-          else if status is 'paused'
+          else
+             alert 'Error in trial handling, contact administrator'
+
+      resume: (e) =>
+          e.preventDefault()
+          status = @model.get('status')
+          if status is 'paused'
              @model.save
                 status: 'active'
           else
@@ -111,7 +134,7 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
 
       initialize: (options) ->
         @template = Infra.templateLoader.getTemplate 'trial-view-frame'
-        @collection.on 'reset change', @configureViews, @
+        @collection.on 'reset add remove', @configureViews, @
         @configureViews()
         @
 
@@ -120,6 +143,7 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
           _.each @views, (view) -> view.remove()
         @views = _.toArray @collection.map @newTrial, @
         @currentTrial = 0
+        @render()
         @
 
       newTrial: (trial) ->
@@ -128,25 +152,13 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
         trial.on 'update', @updateTrialHeader, @
         trial
 
-      events:
-        'click button.next': 'nextTrial'
-        'click button.prev': 'prevTrial'
-
-      nextTrial: =>
-        @currentTrial = @currentTrial + 1
-        @renderTrial()
-
-      prevTrial: =>
-        @currentTrial = @currentTrial - 1
-        @renderTrial()
-
       render: ->
         @$el.html @template
            empty: _.isEmpty @views
         @renderTrial()
 
       renderTrial: =>
-        if not _.isEmpty @views
+        if @views[@currentTrial]?
           @$('#trial-pane-wrapper').html @views[@currentTrial].render().el
         @
 
@@ -164,6 +176,18 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
             instruments = experiment.get('instruments')
             data = {instruments: _.map(instruments, (x) -> x.toTemplateJSON())}
             mydiv.append @instTableTemplate data
+
+      events:
+        'click button.next': 'nextTrial'
+        'click button.prev': 'prevTrial'
+
+      nextTrial: =>
+        @currentTrial = @currentTrial + 1
+        @renderTrial()
+
+      prevTrial: =>
+        @currentTrial = @currentTrial - 1
+        @renderTrial()
 
     # NAMESPACE
 

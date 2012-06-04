@@ -24,6 +24,12 @@
 ;;  :event {...}
 ;; }
 
+(defmethod public-keys :schedule [sched]
+  (keys sched))
+
+(defmethod import-keys :schedule [sched]
+  (keys sched))
+
 (defn- valid-type? [type]
   (#{"daily", "weekly", "periodic"} type))
 

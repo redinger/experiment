@@ -157,7 +157,7 @@
           (assoc :editable (editable? event))
           (assoc :local-time ltime)
           (assoc :result-time tstime)))
-    event))
+    (log/spy event)))
              
 
 

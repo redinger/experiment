@@ -91,3 +91,6 @@
 (defmethod models/public-keys :service [svc]
   (keys (dissoc svc :oauth)))
 
+(defmethod models/import-keys :service [svc]
+  (keys svc))
+

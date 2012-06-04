@@ -104,8 +104,8 @@
      (boot/input {:id "journal-short" :maxlength "40"} "text" "short" (% short)))
     (boot/ctrl-group
      ["Long Entry" "content"]
-     (boot/textarea {:rows "10"
-                     (%if cols :cols (% cols)) (%unless cols :cols "80")
+     (boot/textarea {:rows "15"
+                     :cols "80"
                      :class "input-xlarge"
                      :id "journal-content"
                      :style "resize: none;"}
@@ -261,21 +261,27 @@
       [:span.label.label-info (% start_str)]]
      (%unless donep
               [:p [:b "Current status: "]
-               [:span.label.label-success (% status_str)]])
+               (%unless pausedp [:span.label.label-success (% status_str)])
+               (%if pausedp [:span.label.label-warning (% status_str)])])
      (%if donep
           [:p [:b "Ended: "]
            [:span.label.label-fail (% end_str)]])]
     [:div.pull-right.trial-actions.btn-group
-     (render-decorated-button
-      {:class "pause" :rel "tooltip" :title "Temporarily pause the trial"}
-      "Pause" "icon-pause")
+     (%unless pausedp
+              (render-decorated-button
+               {:class "pause" :rel "tooltip" :title "Pause the trial"}
+               "Pause" "icon-pause"))
+     (%if pausedp
+          (render-decorated-button
+           {:class "resume" :rel "tooltip" :title "Resume the trial"}
+           "Resume" "icon-play"))
      (%unless donep
               (render-decorated-button
                {:class "cancel" :rel "tooltip" :title "Terminate the trial"}
                "Cancel" "icon-stop"))
      (%if donep
           (render-decorated-button
-           {:class "archive" :rel "tooltip" :title "Pause the trial"}
+           {:class "archive" :rel "tooltip" :title "Archive the Trial"}
            "Archive" "icon-eject"))]]
     [:hr.clear-both]])
     
@@ -289,6 +295,33 @@
 	    [:span.trial-title (% experiment.title)]
 	    [:p (%with stats
 		       (%str "Run for " (% elapsed) " days with " (% remaining) " days remaining"))]])]])
+
+(deftemplate configure-trial-view
+  [:div.configure-trial
+   [:div.row
+    [:div.page-header
+     [:div.span7
+      [:h1 "Configuring new trial"]]
+     [:div.span4]
+     [:div {:style "clear:both;"}]]]
+   [:div.row
+    [:div.span12
+     [:div
+      (%with experiment
+             (%with treatment
+                    [:h3 "For treatment: " (% name)]))]
+     [:div#configureForm]
+     [:div#configureTrackers]
+     [:hr]]]
+   [:div.row
+    [:div.span3 [:p]]
+    [:div.span5
+     [:button.btn.btn-large.btn-success.accept.pull-left
+      {:type "button"} "Create"]
+     [:button.btn.btn-large.btn-danger.cancel.pull-right
+      {:type "button"} "Cancel"]]]])
+     
+   
 
 (defn tag-list []
   [:div.tags
@@ -318,7 +351,7 @@
       [:h1 (% name)]]
      [:div.span4
       [:span.pull-right
-       [:button.btn.btn-large.btn-primary.experiment {:type "button"} "Experiment"]
+       [:button.btn.btn-large.btn-primary.experiment {:type "button"} "Create Experiment"]
        (%if owner [:button.btn.btn-large.edit {:type "button"} "Edit"])
        [:button.btn.btn-large.clone {:type "button"} "Clone"]]]
      [:div {:style "clear:both;"}]]]
@@ -499,11 +532,11 @@
 ;;   [:h2 "Schedule"]
 ;;   [:div.schedule "Schedule view TBD"]])
 
-(deftemplate experiment-editor
-  )
+;;(deftemplate experiment-editor
+;;  )
 
-(deftemplate trial-creation
-  )
+;;(deftemplate trial-creation
+;;  )
 
 
 ;; COMMENT

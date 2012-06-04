@@ -25,7 +25,6 @@
     (catch java.lang.IllegalArgumentException e
       (clojure.tools.logging/warnf "Model type %s does not have index-keys defined" (:type model))
       nil)))
-                                   
   
 (defn index [model & {:as extras}]
   (assert (and db (map? model) (:type model)))
@@ -42,7 +41,7 @@
              ;;       mod))
              :_id {:tokenized false}
              :type {:tokenized false}))))
-      (log/warnf "Cannot index model type: %s" (:type model)))))
+      (log/infof "Cannot index model type: %s" (:type model)))))
 
 (defn delete [model]
   (clucy/search-and-delete db (str "_id:" (:_id model))))

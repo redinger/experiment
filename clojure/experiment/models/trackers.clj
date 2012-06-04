@@ -22,8 +22,9 @@
 
 (defn tracker-events [tracker interval]
   (when-let [schedule (:schedule tracker)]
-    (let [refs (select-keys tracker [:user :instrument])]
-      (map #(merge % refs) (schedule/events schedule interval)))))
+    (when (:stype schedule)
+      (let [refs (select-keys tracker [:user :instrument])]
+        (map #(merge % refs) (schedule/events schedule interval))))))
 
 (defn all-tracker-events [user interval]
   (mapcat #(tracker-events % interval) (trackers user)))

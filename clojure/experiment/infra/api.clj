@@ -154,9 +154,8 @@
   {:keys [mtype mid * id json-payload] :as args}
   (let [location (submodel-location *)
         submod (client->server (assoc json-payload :submodel true))]
-    (set-submodel! (root-signature mtype mid) location
-                   (client->server (assoc json-payload :submodel true)))
-    (server->client
+    (set-submodel! (root-signature mtype mid) location submod)
+    (server->client 
      (get-submodel (root-signature mtype mid) location))))
 
 ;; ### DELETE Submodel

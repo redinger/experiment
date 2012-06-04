@@ -52,17 +52,11 @@
      [:i.icon-comment] "&nbsp;Treament Reminder&nbsp; at " (:local-time event)]))
 
 (defn- events-daily-map [events-map]
-  (if (nil? events-map))
-    (zipmap (range 1 25 3)
-            (repeat [{:title "Record fatigue"
-                      :spec "Respond to SMS fatigue question"}
-                     {:title "QOL Questionnaire"
-                      :desc "Fill out online QOL Questionnaire"}]))
-    (apply hash-map
-           (mapcat (fn [[dt events]]
-                     [(.getDayOfMonth dt)
-                      (map convert-event events)])
-                   events-map))))
+  (apply hash-map
+         (mapcat (fn [[dt events]]
+                   [(.getDayOfMonth dt)
+                    (map convert-event events)])
+                 events-map)))
 
 ;; Compute Day Entry
 

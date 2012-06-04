@@ -43,7 +43,9 @@
   "A predict to test that we have a valid submodel"
   [submodel]
   (and (:type submodel)
-       (:submodel submodel)))
+       (or (:submodel submodel)
+           (and (:id submodel)
+                (re-find #"SM" (:id submodel))))))
 
 (defmulti valid-model? 
   "Enforces invariant properties of a specific model.  Model
@@ -127,11 +129,11 @@
 
 (defmethod public-keys :default
   [model]
-  (keys model))
+  nil)
 
 (defmethod import-keys :default
   [model]
-  (keys model))
+  nil)
 
 (defmethod index-keys :default
   [model]
@@ -273,16 +275,16 @@
 (defn filter-public-keys
   "Must define public-keys for safety purposes"
   [cmodel]
-  (if-let [keys (conj (public-keys cmodel) :_id :id :type)]
-    (select-keys cmodel keys)
-    cmodel))
+  (if-let [keys (public-keys cmodel)]
+    (select-keys cmodel (conj keys :_id :id :type))
+    (throw (java.lang.Error. (str "public-keys not defined for " (:type cmodel))))))
 
 (defn filter-import-keys
-  "Must define public-keys for safety purposes"
+  "Must define import-keys for safety purposes"
   [cmodel]
-  (if-let [keys (conj (import-keys cmodel) :_id :id :type)]
-    (select-keys cmodel keys)
-    cmodel))
+  (if-let [keys (import-keys cmodel)]
+    (select-keys cmodel (conj keys :_id :id :type :submodel))
+    (throw (java.lang.Error. (str "import-keys not defined for " (:type cmodel))))))
 
 (defn as-dbref
   "Return a Mongo DBRef for a model object"
@@ -305,8 +307,9 @@
 
 (defn resolve-dbref
   ([ref]
-     (assert (mongo/db-ref? ref))
-     (somnium.congomongo.coerce/coerce (.fetch ^DBRef ref) [:mongo :clojure]))
+     (if (mongo/db-ref? ref)
+       (somnium.congomongo.coerce/coerce (.fetch ^DBRef ref) [:mongo :clojure])
+       ref))
   ([coll id]
      (assert (or (keyword? coll) (string? coll)))
      (mongo/fetch-one coll :where {:_id (as-oid id)})))
@@ -414,29 +417,36 @@
   
 ;; ### Handle canonical server form to client transforms
 
-(defn server->client* [node]
-  (if (:type node)
-    (-> node
-        server->client-hook
-        filter-public-keys)
-    node))
+(defn server->client*
+  ([node]
+     (server->client* node false))
+  ([node force]
+     (if (or (model? node) (submodel? node) force)
+       (-> node
+           server->client-hook
+           filter-public-keys)
+       node)))
 
 (defn server->client
   "Convert a server-side object into a map that is ready
    for JSON encoding and use by a client of the system"
-  [smodel]
-  (cond (empty? smodel)
-	nil
-	(map? smodel)
-    (-> (walk/postwalk server->client* smodel)
-        serialize-model-id
-        serialize-model-refs)
-	(sequential? smodel)
-	(vec (doall (map server->client smodel)))
-	true
-	(response/status
-         500
-         (format "Cannot export model %s" smodel))))
+  ([smodel]
+     (server->client smodel false))
+  ([smodel force]
+     (cond (empty? smodel)
+           nil
+           (map? smodel)
+           (-> (if force
+                 (server->client* smodel true)
+                 (walk/postwalk server->client* smodel))
+               serialize-model-id
+               serialize-model-refs)
+           (sequential? smodel)
+           (vec (doall (map server->client smodel)))
+           true
+           (response/status
+            500
+            (format "Cannot export model %s" smodel)))))
 
 (defn client->server
   "Take a map transmitted from a client and convert it
@@ -454,7 +464,7 @@
    don't transform the :id field"
   [cmodel]
   (-> cmodel
-      filter-public-keys
+      filter-import-keys
       deserialize-model-refs
       client->server-hook))
 
@@ -557,7 +567,6 @@
 (defn delete-model!
   "Delete a model from the database; must have a valid :_id"
   [model]
-  (assert (and (:type model) (:_id model)))
   (delete-model-hook model)
   (mongo/destroy! (model-collection model) (select-keys model [:_id]))
   true)
@@ -616,21 +625,22 @@
 
 (defn set-submodel!
   [model location submodel]
-  (mongo/update! (model-collection model)
-                 (select-keys model [:_id])
-                 (update-by-modifiers
-                  (update-model-hook submodel)
-                  location)
-                 :upsert false))
+  (let [updates (update-by-modifiers
+                 (update-model-hook submodel)
+                 location)]
+    (mongo/update! (model-collection model)
+                   (select-keys model [:_id])
+                   updates                 
+                   :upsert false)))
 
 (defn delete-submodel!
   [model location]
   (delete-model-hook
    (get-submodel model location))
-  (log/spy (mongo/update! (model-collection model)
+  (mongo/update! (model-collection model)
                  (select-keys model [:_id])
                  {:$unset {(serialize-path location) 1}}
-                 :upsert false)))
+                 :upsert false))
 
 ;; ## Misc Store Utilities
 

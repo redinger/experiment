@@ -61,7 +61,7 @@
 
 (defn make-event-group [[start events]]
   {:date (dt/as-iso start)
-   :events (vec (map server->client events))})
+   :events (vec (map #(server->client % true) events))})
 
 ;; TODO: User's trackers and trials -> track events & reminders
 ;; (for future time horizons)
@@ -74,11 +74,12 @@
         max (time/plus (dt/now) (time/days 90))
         start (if (time/before? start min) min start)
         end (if (time/after? end max) max end)
-        user (session/current-user)]
-    (vec
-     (map make-event-group 
-          (group-events-by-day
-           (event-timeline user start end))))))
+        user (session/current-user)
+        result     (vec
+                    (map make-event-group 
+                         (group-events-by-day
+                          (event-timeline user start end))))]
+    result))
 
 (defapi submit-event [:post "/api/events/submit"]
   {:keys [userid instid date text] :as options}

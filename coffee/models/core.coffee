@@ -75,13 +75,12 @@ define ['jquery', 'use!Backbone', 'models/infra', 'models/user'],
         @get('variable') + " -- " + @get('service')
 
       track: (schedule) ->
-        # Use create parser, requires refs as references
-        console.log @
-        console.log schedule
-        schedule.event = @get('event') if @get('event')?
-        schedule.event.type = 'event'
-        schedule.event.wait = true
-        console.log schedule
+        if schedule?
+          schedule.event = @get('event') if @get('event')?
+          schedule.event.type = 'event'
+          schedule.event.wait = true
+          console.log schedule
+
         tracker = theUser.trackers.create
           type: "tracker"
           user: theUser.asReference()
@@ -153,6 +152,23 @@ define ['jquery', 'use!Backbone', 'models/infra', 'models/user'],
       serverType: 'trial'
       embedded:
         experiment: ['reference', 'Experiment']
+        user: ['reference', 'User']
+
+      schema:
+        start:
+          type: 'Date'
+          title: 'Start Date'
+        reminders:
+          type: 'Checkboxes'
+          title: 'Enable Reminders?'
+          options: ["SMS"] # "Email"]
+
+      setDefaults: (model) ->
+        @set('user', theUser)
+        @set('start', Date())
+        @set('reminders', ["SMS"])
+        @set('status', "active")
+        @
 
     class Trials extends Infra.Collection
       model: Trial

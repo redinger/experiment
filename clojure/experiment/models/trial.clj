@@ -22,9 +22,12 @@
   [:experiment])
 
 (defmethod public-keys :trial [model]
-  [:_id :type :user :experiment
+  [:user :experiment
    :schedule :status :status_str
-   :donep :end_str :start_str :stats])
+   :donep :pausedp :end_str :start :start_str :stats])
+
+(defmethod import-keys :trial [model]
+  [:user :experiment :schedule :status :start :stats])
 
 (defn human-status [trial]
   ({:active "Active"
@@ -35,17 +38,27 @@
    (keyword (:status trial))))
 
 (defn trial-done? [trial]
-  (when (#{:abandoned :completed} (:status trial)) true))
-	     
+  (when (#{"abandoned" "completed"} (:status trial)) true))
+
+(defn trial-paused? [trial]
+  (if (#{"paused"} (:status trial)) true false))
+
 (defmethod server->client-hook :trial [trial]
   (assoc trial
     :status_str (human-status trial)
     :stats {:elapsed 21
             :remaining 7
             :intervals 1}
+    :start (dt/as-iso (:start trial))
     :start_str (dt/as-short-date (:start trial))
     :donep (trial-done? trial)
+    :pausedp (trial-paused? trial)
     :end_str (when-let [end (:end trial)] (dt/as-short-string (dt/from-date end)))))
+
+(defmethod client->server-hook :trial [trial]
+  (assoc trial
+    :start (dt/from-iso (:start trial) time/utc)))
+
 
 (defn lookup-trial
   "Get trial from the user or session user if model is a string submodel id"

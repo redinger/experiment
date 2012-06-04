@@ -218,7 +218,7 @@ define ['models/infra', 'views/common', 'use!Backbone'],
       render: ->
         @$el.append @template
           date: @date.format("MMM, YYYY")
-          title: "Trial Calendar"
+          title: "Events Calendar"
         @$('.cal-body').hide()
         @update()
         @

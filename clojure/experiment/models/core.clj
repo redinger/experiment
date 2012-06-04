@@ -166,7 +166,10 @@
 ;; -  has title
 ;; -  has content
 
-(defmethod import-keys :journal [treat]
+(defmethod public-keys :comment [treat]
+  [:date :content])
+
+(defmethod import-keys :comment [treat]
   [:date :content])
 
 (defmethod server->client-hook :comment [model]
@@ -182,3 +185,11 @@
        :date-str (dt/as-short-string date)})))
 
 
+;; USER Prefs
+;; -------------------------------------------------
+
+(defmethod public-keys :userprefs [prefs]
+  (keys prefs))
+
+(defmethod import-keys :userprefs [prefs]
+  (keys prefs))

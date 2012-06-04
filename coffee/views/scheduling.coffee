@@ -127,6 +127,15 @@ define ['models/infra', 'models/core', 'models/user', 'views/common', 'views/wid
           schema: weeklySchema
         @
 
+      attach: (fn, parent) ->
+        @on 'all', fn, parent
+        @delegateEvents()
+
+      detach: (fn, parent) ->
+        @undelegateEvents()
+        @off 'all', fn, parent
+        @remove()
+
       render: ->
         tabs =
           daily: @forms.daily?
@@ -163,13 +172,11 @@ define ['models/infra', 'models/core', 'models/user', 'views/common', 'views/wid
            result.day = parseInt result.day
         result = _.extend result,
           type: "schedule"
-
         @callback result
         @trigger 'nav:doView', @parent
 
       cancel: (event) =>
         event.preventDefault()
-        @callback null if @callback?
         @trigger 'nav:doView', @parent
 
     configureTracker = (parent, instrument, handler) ->
@@ -196,7 +203,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/common', 'views/wid
             if result is 'accept'
               handler(null)
               if not Core.theUser.services.find( (service) ->
-                   service.get('name') is instrument.get('service') )
+                   service.get('id') is instrument.get('src') )
                 Common.modalMessage.showMessage
                   header: "Configure Service"
                   message: "Click Continue to configure the #{instrument.get('service')} service"

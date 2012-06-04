@@ -1,5 +1,5 @@
-define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/journal', 'views/scheduling', 'views/common', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEditors'],
-  (Infra, Core, User, Widgets, Journal, Scheduling, Common) ->
+define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/journal', 'views/scheduling', 'views/common', 'use!Moment', 'use!Handlebars', 'use!BackboneFormsBS', 'use!BackboneFormsEditors'],
+  (Infra, Core, User, Widgets, Journal, Scheduling, Common, moment) ->
 
 # ## Related Objects -
 #
@@ -136,8 +136,6 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
       initialize: (options) ->
         super(options)
         @template = Infra.templateLoader.getTemplate 'experiment-view'
-        console.log @
-        console.log @model
         @
 
       events:
@@ -147,8 +145,11 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
         'click .add-tag': 'addTags'
         'click .run': 'startTrial'
 
-      startTrial: ->
+      startTrial: =>
         trial = new (Backbone.ReferenceCache.lookupConstructor('trial'))
+        trial.setDefaults()
+        trial.set('experiment', @model)
+        @trigger 'nav:configTrial', trial
 
 #
 # Treatments
@@ -193,7 +194,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
         Scheduling.configureTrackerSchedule @, @model, @trackSchedule
 
       trackSchedule: (schedule) =>
-        @model.track schedule if schedule?
+        @model.track schedule
 
       untrack: (event) =>
         Common.modalMessage.showMessage
@@ -302,6 +303,112 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
         @
 
 
+    # ## TRIAL CONFIGURATION
+    class ConfigureTrackerView extends Backbone.View
+      initialize: (options) ->
+        @parent = options.parent
+        @
+
+      trackedp: ->
+        _title = @model.title()
+        Core.theUser.trackers.find (tracker) ->
+            if tracker.instrument.title() is _title then true else false
+
+      instruments: ->
+        Core.theUser.trackers.map (tracker) ->
+           tracker.instrument
+
+      validate: ->
+        if @trackedp()
+          @$('.tracker-error').remove()
+          true
+        else
+          existing = @$('.tracker-error')
+          console.log existing.length
+          console.log _.isEmpty existing
+          if  existing.length is 0
+            @$el.prepend "<p class='tracker-error' style='color:red;'>You must configure tracking to start the trial</p>"
+          false
+
+      render: ->
+        console.log 'rendering tracker configurator'
+        status = if @trackedp() then '<b>Enabled</b>' else "<a href='#' class='configure'>Configure</a>"
+        @$el.html "<p> <span class='tracker-title'>#{ @model.title() }</span> <span class='tracker-status'>#{ status }</span></p>"
+        @
+
+      events:
+        'click .configure': 'configure'
+
+      configure: (e) =>
+        e.preventDefault()
+        Scheduling.configureTrackerSchedule @parent, @model, @trackSchedule
+
+      trackSchedule: (schedule) =>
+        @model.track schedule
+
+    class ConfigureTrialView extends ExplorerSubview
+      initialize: (options) ->
+        @template = Infra.templateLoader.getTemplate 'configure-trial-view'
+        exp = @model.experiment
+        outcomeViews = exp.outcome.map @createTracker, @
+        covariateViews = exp.covariates.map @createTracker, @
+        @trackerViews = outcomeViews.concat covariateViews
+        _.each @trackerViews, (view) ->
+            view.on 'all', @forwardEvents, @
+        , @
+        @form = new Backbone.Form
+          model: @model
+        window.mydebug = @
+        @
+
+      forwardEvents: (action, arg1, arg2) ->
+          @trigger action, arg1, arg2
+
+      createTracker: (inst) ->
+        new ConfigureTrackerView
+          model: inst
+          parent: @
+
+      renderTrackers: () ->
+        target = @$('#configureTrackers')
+        target.html '<h3>Track Measurements</h3>'
+        _.each @trackerViews, (view) ->
+           target.append view.render().el
+        @
+
+      validateTrackers: () ->
+        _.all @trackerViews, (view) ->
+            view.validate()
+
+      render: ->
+        @$el.html @template @model.toTemplateJSON()
+        @$('#configureForm').html @form.render().el
+        @$('.bbf-date input').datepicker 'option', 'dateFormat', 'mm/dd/yy'
+        @$('.bbf-date input').datepicker 'refresh'
+        @renderTrackers()
+        @
+
+      events:
+        'click .accept': 'create'
+        'click .cancel': 'cancel'
+
+      create: =>
+        event.preventDefault()
+        errors = @form.commit()
+        if not errors and @validateTrackers()
+          Core.theUser.trials.create @model,
+            wait: true
+            success: (model, resp) =>
+              window.location = '/dashboard/overview'
+            failure: (model, resp) =>
+              alert 'Server error creating model'
+
+      cancel: =>
+        event.preventDefault()
+        if @model.experiment? and @model.experiment.name()
+           @trigger 'nav:view', @model.experiment
+        else
+           @trigger 'nav:search'
 
 # Search results and state
 # --------------------------------------------
@@ -452,7 +559,6 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
       doSearch: (event) =>
         event.preventDefault()
         query = $(event.target).text()
-        console.log query
         @trigger 'nav:search', query
 
       handleKey: (event) =>
@@ -492,8 +598,8 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
           'search/tag/:tag/p:page': 'searchTag'
           'view/:type/:id': 'viewObject'
           'edit/:type/:id': 'editObject'
-          'edit/:type': 'createObject'
-          'start/:id': 'startTrial'
+          'create/:type': 'createObject'
+          '*path': 'selectDefault'
 
       selectDefault: (data) =>
           @navigate @default, {trigger: true, replace: true} if @default?
@@ -515,7 +621,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
             trigger: if trigger? then trigger else true
 
       navCreateModel: (type, trigger) ->
-          @navigate "/edit/#{type}",
+          @navigate "/create/#{type}",
             trigger: if trigger? then trigger else true
 
       navViewModel: (model) ->
@@ -648,7 +754,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
           default: 'search/query'
         @router.on 'route:viewObject', @viewObject
         @router.on 'route:editObject', @editObject
-        @router.on 'route:createObject', @editObject
+        @router.on 'route:createObject', @createObject
         @router.on 'route:startTrial', @startTrial
         @router.on 'route:searchQuery', @doSearch
         @router.on 'route:searchTag', @doTagSearch
@@ -702,6 +808,11 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
             @router.navViewModel object
         else if action is 'nav:doView'
             @changeView object
+        else if action is 'nav:configTrial'
+            editor = new ConfigureTrialView
+                model: object
+            @changeView editor
+            @router.navCreateModel 'trial', false
         else if action is 'nav:search'
             if object? and object.length > 0
                @router.navQuery(object, arg or 1)
@@ -740,6 +851,9 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
               model: model
            else alert('Error: type ' + model.get('type') + ' not recognized')
         view
+
+      createObject: (type, id) =>
+        @editObject type, id
 
       editObject: (type, id) =>
         if _.isObject type
@@ -790,23 +904,3 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
           pushState: true
 
        window.Explore.render()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
