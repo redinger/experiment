@@ -3,7 +3,7 @@
    noir.core
    experiment.infra.models)
   (:require
-   [clojure.contrib.string :as string]
+   [clojure.string :as string]
    [clojure.tools.logging :as log]
    [clj-http.client :as http]
    [cheshire.core :as json]
@@ -78,7 +78,7 @@
 ;; ## Send an SMS
 
 (defn- clean-phone-number [number]
-  (string/replace-re #"-" "" number))
+  (string/replace "" #"-" number))
 
 (defn send-sms [number message & [credentials]]
   (assert (< (count message) 160))
