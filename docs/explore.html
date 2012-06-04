@@ -1,229 +1,770 @@
-<!DOCTYPE html>  <html> <head>   <title>explore.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="core.html">                 core.coffee               </a>                                           <a class="source" href="infra.html">                 infra.coffee               </a>                                           <a class="source" href="user.html">                 user.coffee               </a>                                           <a class="source" href="common.html">                 common.coffee               </a>                                           <a class="source" href="dashboard.html">                 dashboard.coffee               </a>                                           <a class="source" href="events.html">                 events.coffee               </a>                                           <a class="source" href="explore.html">                 explore.coffee               </a>                                           <a class="source" href="home.html">                 home.coffee               </a>                                           <a class="source" href="journal.html">                 journal.coffee               </a>                                           <a class="source" href="settings.html">                 settings.coffee               </a>                                           <a class="source" href="social.html">                 social.coffee               </a>                                           <a class="source" href="trial.html">                 trial.coffee               </a>                                           <a class="source" href="widgets.html">                 widgets.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               explore.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p>++++++++++++++++++++++++++++++
-Search App
-++++++++++++++++++++++++++++++</p>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <hr />
+<!DOCTYPE html>  <html> <head>   <title>explore.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="core.html">                 core.coffee               </a>                                           <a class="source" href="infra.html">                 infra.coffee               </a>                                           <a class="source" href="user.html">                 user.coffee               </a>                                           <a class="source" href="common.html">                 common.coffee               </a>                                           <a class="source" href="dashboard.html">                 dashboard.coffee               </a>                                           <a class="source" href="events.html">                 events.coffee               </a>                                           <a class="source" href="explore.html">                 explore.coffee               </a>                                           <a class="source" href="home.html">                 home.coffee               </a>                                           <a class="source" href="journal.html">                 journal.coffee               </a>                                           <a class="source" href="old-explore.html">                 old-explore.coffee               </a>                                           <a class="source" href="scheduling.html">                 scheduling.coffee               </a>                                           <a class="source" href="settings.html">                 settings.coffee               </a>                                           <a class="source" href="social.html">                 social.coffee               </a>                                           <a class="source" href="timeline.html">                 timeline.coffee               </a>                                           <a class="source" href="trial.html">                 trial.coffee               </a>                                           <a class="source" href="widgets.html">                 widgets.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               explore.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>                            </td>             <td class="code">               <div class="highlight"><pre><span class="nx">define</span> <span class="p">[</span><span class="s1">&#39;models/infra&#39;</span><span class="p">,</span> <span class="s1">&#39;models/core&#39;</span><span class="p">,</span> <span class="s1">&#39;models/user&#39;</span><span class="p">,</span> <span class="s1">&#39;views/widgets&#39;</span><span class="p">,</span> <span class="s1">&#39;views/journal&#39;</span><span class="p">,</span> <span class="s1">&#39;views/scheduling&#39;</span><span class="p">,</span> <span class="s1">&#39;views/common&#39;</span><span class="p">,</span> <span class="s1">&#39;use!Moment&#39;</span><span class="p">,</span> <span class="s1">&#39;use!Handlebars&#39;</span><span class="p">,</span> <span class="s1">&#39;use!BackboneFormsBS&#39;</span><span class="p">,</span> <span class="s1">&#39;use!BackboneFormsEditors&#39;</span><span class="p">],</span>
+  <span class="nf">(Infra, Core, User, Widgets, Journal, Scheduling, Common, moment) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <h2>Related Objects -</h2>
 
-<h2>  NLP Filter Box</h2>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>The BB Model for the current filter state</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">SearchFilterModel</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Model</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>Configuration for the autocomplete</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">searchSuggestDefaults =</span>
-       <span class="nv">startText: </span><span class="s1">&#39;What are you looking for?&#39;</span>
-       <span class="nv">keyDelay: </span><span class="mi">200</span>
-       <span class="nv">resultsHighlight: </span><span class="kc">false</span>
-       <span class="nv">neverSubmit: </span><span class="kc">true</span>
-       <span class="nv">retrieveLimit: </span><span class="mi">20</span>
-       <span class="nv">selectedValuesProp: </span><span class="s1">&#39;value&#39;</span>
-       <span class="nv">selectedItemProp: </span><span class="s1">&#39;title&#39;</span>
-       <span class="nv">searchObjProps: </span><span class="s1">&#39;trigger,title,search&#39;</span>
-       <span class="nv">resultsHighlight: </span><span class="kc">false</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>The UI View for the filter state, handles autocomplete for phrases</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">SearchFilterView</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
-      <span class="nx">@implements</span> <span class="nx">TemplateView</span>
-      <span class="nv">initialize: </span><span class="o">-&gt;</span>
-            <span class="vi">@model = </span><span class="nx">App</span><span class="p">.</span><span class="nx">searchFilter</span> <span class="o">or=</span> <span class="k">new</span> <span class="nx">SearchFilterModel</span>
-            <span class="nx">@initTemplate</span> <span class="s1">&#39;#search-filter&#39;</span>
-
-      <span class="nv">update: </span><span class="p">(</span><span class="nx">elt</span><span class="p">)</span> <span class="o">=&gt;</span>
-            <span class="nv">results = </span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;input.as-values&#39;</span><span class="p">).</span><span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">).</span><span class="nx">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">).</span><span class="nx">filter</span><span class="p">(</span> <span class="nf">(x) -&gt;</span>
-                    <span class="nx">x</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="p">)</span>
-            <span class="nx">@model</span><span class="p">.</span><span class="nx">set</span> <span class="nv">filters: </span><span class="nx">results</span>
-
-      <span class="nv">removeUpdate: </span><span class="p">(</span><span class="nx">elt</span><span class="p">)</span> <span class="o">=&gt;</span>
-            <span class="nx">elt</span><span class="p">.</span><span class="nx">remove</span><span class="p">()</span>
-            <span class="nx">@update</span><span class="p">()</span>
-
-      <span class="nv">allObjects: </span><span class="o">-&gt;</span>
-            <span class="nx">App</span><span class="p">.</span><span class="nx">Suggestions</span><span class="p">.</span><span class="nx">toJSON</span><span class="p">()</span>
-
-      <span class="nv">render: </span><span class="o">=&gt;</span>
-            <span class="nx">@$el</span><span class="p">.</span><span class="nx">empty</span><span class="p">()</span>
-            <span class="nx">@inlineTemplate</span><span class="p">()</span>
-            <span class="err">@</span>
-
-      <span class="nv">finalize: </span><span class="o">=&gt;</span>
-            <span class="nv">defaults = </span><span class="nx">searchSuggestDefaults</span>
-            <span class="nv">defaults.selectionAdded = </span><span class="nx">@update</span>
-            <span class="nv">defaults.selectionRemoved = </span><span class="nx">@removeUpdate</span>
-            <span class="nx">@$el</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="s1">&#39;#search-filter-input&#39;</span><span class="p">).</span><span class="nx">autoSuggest</span> <span class="nx">@allObjects</span><span class="p">(),</span> <span class="nx">defaults</span>
-            <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;input.as-values&#39;</span><span class="p">).</span><span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Help Dialog</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">events:</span>
-            <span class="s1">&#39;click a.help-link&#39;</span><span class="o">:</span> <span class="s1">&#39;showHelpDialog&#39;</span>
-
-      <span class="nv">showHelpDialog: </span><span class="nf">(e) -&gt;</span>
-            <span class="nx">e</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">()</span>
-            <span class="nx">root</span><span class="p">.</span><span class="nx">renderDialog</span> <span class="s2">&quot;Search Help&quot;</span><span class="p">,</span> <span class="s2">&quot;Type &#39;show X&#39; to filter by experiment&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <hr />
-
-<h2>  NLP filter list according to selected tags</h2>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>Views for individual models
-- requires @model and @parent to be valid</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">SearchItemView</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
-      <span class="nv">className: </span><span class="s1">&#39;search-list-item&#39;</span>
-      <span class="nv">initTemplate: </span><span class="o">-&gt;</span>
-            <span class="vi">@template = </span><span class="nx">@parent</span><span class="p">.</span><span class="nx">lookupTemplate</span> <span class="nx">@model</span>
+<p>A standard view for viewing a list of objects connected to the current
+object in some way.  Views results of an ajax server call based on the
+current model</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">RelatedObjects</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
+      <span class="nv">attributes:</span>
+        <span class="k">class</span><span class="o">:</span> <span class="s2">&quot;related-objects&quot;</span>
 
       <span class="nv">initialize: </span><span class="o">-&gt;</span>
-            <span class="vi">@parent = </span><span class="nx">@options</span><span class="p">.</span><span class="nx">parent</span>
-            <span class="nx">@initTemplate</span><span class="p">()</span>
-            <span class="err">@</span>
+        <span class="vi">@templates = </span><span class="p">{}</span>
+        <span class="vi">@templates.treatment = </span><span class="nx">Infra</span><span class="p">.</span><span class="nx">templateLoader</span><span class="p">.</span><span class="nx">getTemplate</span> <span class="s1">&#39;treatment-row-view&#39;</span>
+        <span class="vi">@templates.instrument = </span><span class="nx">Infra</span><span class="p">.</span><span class="nx">templateLoader</span><span class="p">.</span><span class="nx">getTemplate</span> <span class="s1">&#39;instrument-row-view&#39;</span>
+        <span class="vi">@templates.experiment = </span><span class="nx">Infra</span><span class="p">.</span><span class="nx">templateLoader</span><span class="p">.</span><span class="nx">getTemplate</span> <span class="s1">&#39;experiment-row-view&#39;</span>
+        <span class="vi">@total = </span><span class="mi">0</span>
+        <span class="vi">@results = </span><span class="kc">null</span>
+        <span class="nx">@fetchRelated</span><span class="p">()</span>
+        <span class="err">@</span>
 
-      <span class="nv">events:</span>
-            <span class="s1">&#39;mouseover&#39;</span><span class="o">:</span> <span class="s1">&#39;inspect&#39;</span>
-            <span class="s1">&#39;click&#39;</span><span class="o">:</span> <span class="s1">&#39;viewModel&#39;</span>
-
-      <span class="nv">render: </span><span class="o">=&gt;</span>
-            <span class="nx">@$el</span><span class="p">.</span><span class="nx">html</span> <span class="nx">@template</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">toJSON</span><span class="p">()</span>
-            <span class="err">@</span>
-
-      <span class="nv">inspect: </span><span class="o">=&gt;</span>
-            <span class="nx">App</span><span class="p">.</span><span class="nx">socialView</span><span class="p">.</span><span class="nx">setContext</span> <span class="nx">@model</span>
-
-      <span class="nv">viewModel: </span><span class="o">=&gt;</span>
-            <span class="nx">App</span><span class="p">.</span><span class="nx">socialView</span><span class="p">.</span><span class="nx">setContext</span> <span class="nx">@model</span>
-            <span class="nv">type = </span><span class="nx">@model</span><span class="p">.</span><span class="nx">get</span> <span class="s1">&#39;type&#39;</span>
-            <span class="nv">id = </span><span class="nx">@model</span><span class="p">.</span><span class="nx">get</span> <span class="s1">&#39;id&#39;</span>
-            <span class="nx">App</span><span class="p">.</span><span class="nx">router</span><span class="p">.</span><span class="nx">navigate</span> <span class="s2">&quot;search/#{ type }/#{ id }&quot;</span><span class="p">,</span> <span class="kc">true</span></pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <p>The UI View for the filtered object set</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">SearchListView</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <p>State</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">limit: </span><span class="mi">20</span></pre></div>             </td>           </tr>                               <tr id="section-11">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-11">&#182;</a>               </div>               <p>View configuration and setup</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">className: </span><span class="s1">&#39;search-list&#39;</span>
-
-      <span class="nv">subviews:</span>
-            <span class="nv">experiment: </span><span class="s1">&#39;#experiment-list-view&#39;</span>
-            <span class="nv">treatment: </span><span class="s1">&#39;#treatment-list-view&#39;</span>
-            <span class="nv">instrument: </span><span class="s1">&#39;#instrument-list-view&#39;</span>
-
-      <span class="nv">buildTemplates: </span><span class="o">-&gt;</span>
-            <span class="nv">results = </span><span class="p">{}</span>
-            <span class="nx">_</span><span class="p">.</span><span class="nx">map</span> <span class="nx">@subviews</span><span class="p">,</span> <span class="nf">(id, type) -&gt;</span>
-                    <span class="nx">results</span><span class="p">[</span><span class="nx">type</span><span class="p">]</span> <span class="o">=</span> <span class="nx">Handlebars</span><span class="p">.</span><span class="nx">compile</span> <span class="nx">$</span><span class="p">(</span><span class="nx">id</span><span class="p">).</span><span class="nx">html</span><span class="p">()</span>
-            <span class="nx">results</span>
-
-      <span class="nv">lookupTemplate: </span><span class="nf">(model) -&gt;</span>
-            <span class="nv">type = </span><span class="nx">model</span><span class="p">.</span><span class="nx">get</span> <span class="s1">&#39;type&#39;</span>
-            <span class="nx">@templates</span><span class="p">[</span><span class="nx">type</span><span class="p">]</span>
-
-      <span class="nv">initialize: </span><span class="o">-&gt;</span>
-            <span class="vi">@views = </span><span class="p">[]</span>
-            <span class="vi">@templates = </span><span class="nx">@buildTemplates</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-12">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-12">&#182;</a>               </div>               <p>Handle search bar changes</p>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="nx">@model</span><span class="p">.</span><span class="kc">on</span><span class="p">(</span><span class="s1">&#39;change&#39;</span><span class="p">,</span> <span class="nx">@updateModels</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-13">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-13">&#182;</a>               </div>               <p>Handle new models</p>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="vi">@models = </span><span class="k">new</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Collection</span>
-            <span class="nx">@models</span><span class="p">.</span><span class="kc">on</span><span class="p">(</span><span class="s1">&#39;reset&#39;</span><span class="p">,</span> <span class="nx">@updateView</span><span class="p">)</span>
-            <span class="nx">@updateModels</span><span class="p">()</span> <span class="c1"># called when new filters added</span>
-            <span class="err">@</span></pre></div>             </td>           </tr>                               <tr id="section-14">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-14">&#182;</a>               </div>               <p>Handling changes</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">allModels: </span><span class="o">-&gt;</span>
-             <span class="nx">App</span><span class="p">.</span><span class="nx">Experiments</span><span class="p">.</span><span class="nx">models</span><span class="p">.</span><span class="nx">concat</span> <span class="nx">App</span><span class="p">.</span><span class="nx">Treatments</span><span class="p">.</span><span class="nx">models</span><span class="p">.</span><span class="nx">concat</span> <span class="nx">App</span><span class="p">.</span><span class="nx">Instruments</span><span class="p">.</span><span class="nx">models</span>
-
-      <span class="nv">selectModels: </span><span class="nf">(selects) -&gt;</span>
-            <span class="nx">selects</span> <span class="o">or=</span> <span class="p">[]</span>
-            <span class="k">if</span> <span class="nx">selects</span><span class="p">.</span><span class="nx">length</span> <span class="o">==</span> <span class="mi">0</span>
-                    <span class="nv">models = </span><span class="nx">@allModels</span><span class="p">()</span>
-                    <span class="nx">@models</span><span class="p">.</span><span class="nx">reset</span> <span class="nx">models</span>
-            <span class="k">else</span>
-                    <span class="nx">$</span><span class="p">.</span><span class="nx">get</span> <span class="s2">&quot;/api/fsearch?query=#{ selects }&amp;limit=#{ @limit }&quot;</span><span class="p">,</span>
-                          <span class="p">{},</span>
-                          <span class="p">(</span> <span class="nx">refs</span><span class="p">,</span> <span class="nx">status</span><span class="p">,</span> <span class="nx">jqxhr</span> <span class="p">)</span> <span class="o">=&gt;</span>
-                              <span class="nx">@models</span><span class="p">.</span><span class="nx">reset</span> <span class="nx">App</span><span class="p">.</span><span class="nx">lookupModels</span> <span class="nx">refs</span>
-
-      <span class="nv">updateModels: </span><span class="o">=&gt;</span>
-            <span class="nv">filters = </span><span class="nx">@model</span><span class="p">.</span><span class="nx">get</span> <span class="s1">&#39;filters&#39;</span>
-            <span class="nx">@selectModels</span> <span class="nx">filters</span></pre></div>             </td>           </tr>                               <tr id="section-15">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-15">&#182;</a>               </div>               <p>Rendering current result list</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">asItemView: </span><span class="p">(</span><span class="nx">model</span><span class="p">)</span> <span class="o">=&gt;</span>
-            <span class="k">new</span> <span class="nx">SearchItemView</span>
-                    <span class="nv">model: </span><span class="nx">model</span>
-                    <span class="nv">parent: </span><span class="k">this</span>
-
-      <span class="nv">updateView: </span><span class="o">=&gt;</span>
-            <span class="vi">@views = </span><span class="nx">_</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">@models</span><span class="p">.</span><span class="nx">models</span><span class="p">,</span> <span class="nx">@asItemView</span><span class="p">)</span>
+      <span class="nv">fetchRelated: </span><span class="o">-&gt;</span>
+        <span class="nx">$</span><span class="p">.</span><span class="nx">ajax</span> <span class="s2">&quot;/api/search/related/#{@model.get(&#39;type&#39;)}/#{@model.id}&quot;</span><span class="p">,</span>
+          <span class="nv">context: </span><span class="err">@</span>
+          <span class="nv">success: </span><span class="p">(</span><span class="nx">results</span><span class="p">)</span> <span class="o">=&gt;</span>
+            <span class="vi">@total = </span><span class="nx">results</span><span class="p">.</span><span class="nx">hits</span>
+            <span class="vi">@results = </span><span class="nx">_</span><span class="p">.</span><span class="nx">map</span> <span class="nx">results</span><span class="p">.</span><span class="nx">models</span><span class="p">,</span> <span class="nf">(result) -&gt;</span>
+              <span class="nv">model = </span><span class="nx">Backbone</span><span class="p">.</span><span class="nx">ReferenceCache</span><span class="p">.</span><span class="nx">resolve</span> <span class="kc">null</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span>
+                <span class="nv">attrs: </span><span class="nx">result</span>
+              <span class="nx">model</span><span class="p">.</span><span class="nx">watch</span> <span class="s1">&#39;change&#39;</span><span class="p">,</span> <span class="nx">@render</span><span class="p">,</span> <span class="err">@</span>
+              <span class="nx">model</span>
+            <span class="p">,</span> <span class="err">@</span>
             <span class="nx">@render</span><span class="p">()</span>
 
-      <span class="nv">render: </span><span class="o">=&gt;</span>
-            <span class="nx">@$el</span><span class="p">.</span><span class="nx">empty</span><span class="p">()</span>
-            <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="nx">view</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span> <span class="k">for</span> <span class="nx">view</span> <span class="k">in</span> <span class="nx">@views</span>
-            <span class="err">@</span>
+      <span class="nv">render: </span><span class="o">-&gt;</span>
+        <span class="nx">@$el</span><span class="p">.</span><span class="nx">html</span> <span class="s1">&#39;&lt;h3&gt;Related&lt;/h3&gt;&#39;</span>
+        <span class="nx">_</span><span class="p">.</span><span class="nx">map</span> <span class="nx">@results</span><span class="p">,</span> <span class="nf">(result) -&gt;</span>
+          <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="nx">@templates</span><span class="p">[</span><span class="nx">result</span><span class="p">.</span><span class="nx">type</span><span class="p">()]</span> <span class="nx">result</span><span class="p">.</span><span class="nx">toTemplateJSON</span><span class="p">()</span>
+        <span class="p">,</span> <span class="err">@</span>
+        <span class="err">@</span>
 
-      <span class="nv">finalize: </span><span class="o">-&gt;</span>
-            <span class="nx">view</span><span class="p">.</span><span class="nx">delegateEvents</span><span class="p">()</span> <span class="k">for</span> <span class="nx">view</span> <span class="k">in</span> <span class="nx">@views</span>
+      <span class="nv">events:</span>
+        <span class="s1">&#39;click a&#39;</span><span class="o">:</span> <span class="s1">&#39;view&#39;</span>
 
-    <span class="k">class</span> <span class="nx">SearchView</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
-      <span class="nx">@implements</span> <span class="nx">TemplateView</span>
-      <span class="nv">className: </span><span class="s2">&quot;search-view&quot;</span>
+      <span class="nv">view: </span><span class="o">-&gt;</span>
+        <span class="nx">event</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">()</span>
+        <span class="nv">id = </span><span class="nx">$</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">target</span><span class="p">).</span><span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;data-id&#39;</span><span class="p">)</span>
+        <span class="nv">type = </span><span class="nx">$</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">target</span><span class="p">).</span><span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;data-type&#39;</span><span class="p">)</span>
+        <span class="nv">model = </span><span class="nx">Backbone</span><span class="p">.</span><span class="nx">ReferenceCache</span><span class="p">.</span><span class="nx">resolve</span> <span class="nx">type</span><span class="p">,</span> <span class="nx">id</span>
+        <span class="nx">@trigger</span> <span class="s1">&#39;nav:view&#39;</span><span class="p">,</span> <span class="nx">model</span> <span class="k">if</span> <span class="nx">model</span><span class="o">?</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <h3>Protocol for adding/removing an explorer view from the main DOM</h3>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">ExplorerSubview</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
+      <span class="nv">attach: </span><span class="nf">(fn, parent) -&gt;</span>
+        <span class="nx">@on</span> <span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="nx">fn</span><span class="p">,</span> <span class="nx">parent</span>
+        <span class="nx">@delegateEvents</span><span class="p">()</span>
+
+      <span class="nv">detach: </span><span class="nf">(fn, parent) -&gt;</span>
+        <span class="nx">@undelegateEvents</span><span class="p">()</span>
+        <span class="nx">@off</span> <span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="nx">fn</span><span class="p">,</span> <span class="nx">parent</span>
+        <span class="nx">@remove</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <h2>Item Views</h2>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>Base class provides common init, handlers and rendering
+Subclasses customize the template, listening, etc.
+Subclasses must also specify all events that need to be
+handled.</p>
+
+<p>The ItemView triggers inter-view actions via the 'nav:...'
+event namespace</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">ItemView</span> <span class="k">extends</span> <span class="nx">ExplorerSubview</span>
       <span class="nv">initialize: </span><span class="o">-&gt;</span>
-            <span class="vi">@filterView = </span><span class="k">new</span> <span class="nx">SearchFilterView</span>
-            <span class="nx">@filterView</span><span class="p">.</span><span class="nx">render</span><span class="p">()</span>
-            <span class="vi">@listView = </span><span class="k">new</span> <span class="nx">SearchListView</span>
-                    <span class="nv">model: </span><span class="nx">@filterView</span><span class="p">.</span><span class="nx">model</span>
-            <span class="nx">@listView</span><span class="p">.</span><span class="nx">render</span><span class="p">()</span>
+        <span class="nx">@model</span><span class="p">.</span><span class="nx">watch</span> <span class="s1">&#39;change&#39;</span><span class="p">,</span> <span class="nx">@render</span><span class="p">,</span> <span class="err">@</span>
+        <span class="vi">@related = </span><span class="k">new</span> <span class="nx">RelatedObjects</span>
+            <span class="nv">model: </span><span class="nx">@model</span>
+        <span class="nx">@related</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="nx">@forwardEvents</span><span class="p">,</span> <span class="err">@</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <pre><code>   @discuss = new Discussion
+       model: @model
+</code></pre>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="err">@</span>
 
-      <span class="nv">show: </span><span class="o">-&gt;</span>
-            <span class="nx">@$el</span><span class="p">.</span><span class="nx">show</span><span class="p">()</span>
-      <span class="nv">hide: </span><span class="o">-&gt;</span>
-            <span class="nx">@$el</span><span class="p">.</span><span class="nx">hide</span><span class="p">()</span>
+      <span class="nv">forwardEvents: </span><span class="nf">(action, arg1, arg2) -&gt;</span>
+          <span class="nx">@trigger</span> <span class="nx">action</span><span class="p">,</span> <span class="nx">arg1</span><span class="p">,</span> <span class="nx">arg2</span>
 
-      <span class="nv">render: </span><span class="o">=&gt;</span>
-            <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="nx">@filterView</span><span class="p">.</span><span class="nx">el</span>
-            <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="nx">@listView</span><span class="p">.</span><span class="nx">el</span>
-            <span class="err">@</span>
+      <span class="nv">attach: </span><span class="nf">(fn, parent) -&gt;</span>
+          <span class="k">super</span> <span class="nx">fn</span><span class="p">,</span> <span class="nx">parent</span>
+          <span class="nx">@related</span><span class="p">.</span><span class="nx">delegateEvents</span><span class="p">()</span>
 
-      <span class="nv">finalize: </span><span class="o">=&gt;</span>
-            <span class="nx">@filterView</span><span class="p">.</span><span class="nx">finalize</span><span class="p">()</span>
-            <span class="nx">@listView</span><span class="p">.</span><span class="nx">finalize</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-16">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-16">&#182;</a>               </div>               <p>SINGLE OBJECT VIEW</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">ObjectView</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
-      <span class="nx">@implements</span> <span class="nx">TemplateView</span>
-      <span class="nv">className: </span><span class="s2">&quot;object-view&quot;</span>
-      <span class="nv">viewMap:</span>
-            <span class="nv">experiment: </span><span class="s1">&#39;#experiment-view&#39;</span>
-            <span class="nv">treatment: </span><span class="s1">&#39;#treatment-view&#39;</span>
-            <span class="nv">instrument: </span><span class="s1">&#39;#instrument-view&#39;</span>
-      <span class="nv">templateMap: </span><span class="p">{}</span>
-      <span class="nv">initialize: </span><span class="o">-&gt;</span>
-            <span class="k">try</span>
-                    <span class="nx">_</span><span class="p">.</span><span class="nx">map</span> <span class="nx">@viewMap</span><span class="p">,</span> <span class="p">(</span><span class="nx">id</span><span class="p">,</span> <span class="nx">type</span><span class="p">)</span> <span class="o">=&gt;</span>
-                            <span class="nx">@templateMap</span><span class="p">[</span><span class="nx">type</span><span class="p">]</span> <span class="o">=</span> <span class="nx">Handlebars</span><span class="p">.</span><span class="nx">compile</span> <span class="nx">$</span><span class="p">(</span><span class="nx">id</span><span class="p">).</span><span class="nx">html</span><span class="p">()</span>
-            <span class="k">catch</span> <span class="nx">error</span>
-                    <span class="nx">alert</span> <span class="s1">&#39;Failed to load object view templates&#39;</span></pre></div>             </td>           </tr>                               <tr id="section-17">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-17">&#182;</a>               </div>               <p>Actions</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">show: </span><span class="o">-&gt;</span>
-            <span class="nx">@$el</span><span class="p">.</span><span class="nx">show</span><span class="p">()</span>
+      <span class="nv">detach: </span><span class="nf">(fn, parent) -&gt;</span>
+          <span class="k">super</span> <span class="nx">fn</span><span class="p">,</span> <span class="nx">parent</span>
+          <span class="nx">@related</span><span class="p">.</span><span class="nx">undelegateEvents</span><span class="p">()</span>
+          <span class="nx">@related</span><span class="p">.</span><span class="nx">remove</span><span class="p">()</span>
 
-      <span class="nv">hide: </span><span class="o">-&gt;</span>
-            <span class="nx">@$el</span><span class="p">.</span><span class="nx">hide</span><span class="p">()</span>
+      <span class="nv">render: </span><span class="o">-&gt;</span>
+        <span class="k">if</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">isLoaded</span><span class="p">()</span>
+           <span class="nx">@$el</span><span class="p">.</span><span class="nx">html</span> <span class="nx">@template</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">toTemplateJSON</span><span class="p">()</span>
+           <span class="nx">@$</span><span class="p">(</span><span class="s1">&#39;#related&#39;</span><span class="p">).</span><span class="nx">html</span> <span class="nx">@related</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span>
+           <span class="nx">@renderAux</span><span class="p">()</span> <span class="k">if</span> <span class="nx">@renderAux</span><span class="o">?</span>
+        <span class="k">else</span> <span class="k">if</span> <span class="o">not</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">_loading</span>
+           <span class="nx">@model</span><span class="p">.</span><span class="nx">fetch</span><span class="p">()</span>
+        <span class="err">@</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>Common Event Handlers</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">addTags: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">event</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">()</span>
+        <span class="k">if</span> <span class="o">not</span> <span class="nx">@tagDialog</span><span class="o">?</span>
+          <span class="vi">@tagDialog = </span><span class="k">new</span> <span class="nx">Widgets</span><span class="p">.</span><span class="nx">AddTagDialog</span><span class="p">()</span>
+          <span class="nx">@tagDialog</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;form:accept&#39;</span><span class="p">,</span> <span class="nf">(result) -&gt;</span>
+             <span class="nx">@model</span><span class="p">.</span><span class="nx">addTagString</span> <span class="nx">result</span><span class="p">.</span><span class="nx">tags</span>
+          <span class="p">,</span> <span class="err">@</span>
+        <span class="nx">@tagDialog</span><span class="p">.</span><span class="nx">show</span><span class="p">()</span>
 
-      <span class="nv">setModel: </span><span class="p">(</span><span class="nx">model</span><span class="p">)</span> <span class="o">=&gt;</span>
-            <span class="vi">@model = </span><span class="nx">model</span>
-            <span class="nx">@render</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-18">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-18">&#182;</a>               </div>               <p>Rendering</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">render: </span><span class="o">=&gt;</span>
-            <span class="nx">@$el</span><span class="p">.</span><span class="nx">empty</span><span class="p">()</span>
-            <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="s2">&quot;&lt;span class=&#39;breadcrumb&#39;&gt;&lt;a href=&#39;search&#39;&gt;Search&lt;/a&gt; -&gt; &lt;a href=&#39;search&#39;&gt;#{ @model.attributes.type }&lt;/a&gt; -&gt; &lt;a href=&#39;search/#{ @model.attributes.type }/#{ @model.attributes.id }&#39;&gt;#{ @model.attributes.name }&lt;/a&gt;&lt;/span&gt;&quot;</span> <span class="k">if</span> <span class="nx">@model</span>
-            <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="s2">&quot;&lt;span class=&#39;breadcrumb&#39;&gt;&lt;a  href=&#39;search&#39;&gt;Search&lt;/a&gt;&lt;/span&gt;&quot;</span> <span class="nx">unless</span> <span class="nx">@model</span>
-            <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="nx">@templateMap</span><span class="p">[</span><span class="nx">@model</span><span class="p">.</span><span class="nx">get</span> <span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">toJSON</span><span class="p">()</span> <span class="k">if</span> <span class="nx">@model</span>
-            <span class="k">if</span> <span class="nx">@model</span>
-                <span class="nx">App</span><span class="p">.</span><span class="nx">socialView</span><span class="p">.</span><span class="nx">setContext</span> <span class="nx">@model</span>
-                <span class="nx">App</span><span class="p">.</span><span class="nx">socialView</span><span class="p">.</span><span class="nx">setEdit</span> <span class="kc">true</span>
-            <span class="err">@</span>
+      <span class="nv">view: </span><span class="o">=&gt;</span>
+        <span class="nx">event</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">()</span>
+        <span class="nv">id = </span><span class="nx">$</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">target</span><span class="p">).</span><span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;data-id&#39;</span><span class="p">)</span>
+        <span class="nv">type = </span><span class="nx">$</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">target</span><span class="p">).</span><span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;data-type&#39;</span><span class="p">)</span>
+        <span class="nv">model = </span><span class="nx">Backbone</span><span class="p">.</span><span class="nx">ReferenceCache</span><span class="p">.</span><span class="nx">resolve</span> <span class="nx">type</span><span class="p">,</span> <span class="nx">id</span>
+        <span class="nx">@trigger</span> <span class="s1">&#39;nav:view&#39;</span><span class="p">,</span> <span class="nx">model</span>
 
-      <span class="nv">finalize: </span><span class="o">=&gt;</span>
-            <span class="nx">@delegateEvents</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-19">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-19">&#182;</a>               </div>               <p>Events</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">events:</span>
-            <span class="s1">&#39;click .run&#39;</span><span class="o">:</span> <span class="s1">&#39;startExperiment&#39;</span>
+      <span class="nv">edit: </span><span class="o">=&gt;</span>
+        <span class="nx">@trigger</span> <span class="s1">&#39;nav:edit&#39;</span><span class="p">,</span> <span class="nx">@model</span>
 
-      <span class="nv">startExperiment: </span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="o">=&gt;</span>
-            <span class="nx">e</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">()</span>
-            <span class="nx">root</span><span class="p">.</span><span class="nx">renderDialog</span> <span class="s2">&quot;Configure Experiment&quot;</span><span class="p">,</span> <span class="s2">&quot;Placeholder Dialog pending Forms Package&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-20">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-20">&#182;</a>               </div>               <hr />
+      <span class="nv">clone: </span><span class="o">=&gt;</span>
+        <span class="nv">clone = </span><span class="nx">@model</span><span class="p">.</span><span class="nx">cloneModel</span><span class="p">()</span>
+        <span class="nx">@trigger</span> <span class="s1">&#39;nav:create&#39;</span><span class="p">,</span> <span class="nx">clone</span><span class="p">,</span> <span class="kc">true</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>Experiments</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">ExperimentView</span> <span class="k">extends</span> <span class="nx">ItemView</span>
+      <span class="nv">initialize: </span><span class="nf">(options) -&gt;</span>
+        <span class="k">super</span><span class="p">(</span><span class="nx">options</span><span class="p">)</span>
+        <span class="vi">@template = </span><span class="nx">Infra</span><span class="p">.</span><span class="nx">templateLoader</span><span class="p">.</span><span class="nx">getTemplate</span> <span class="s1">&#39;experiment-view&#39;</span>
+        <span class="err">@</span>
 
-<h2> Main browser window - rarely refreshed</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">SearchPane</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
-      <span class="nx">@implements</span> <span class="nx">TemplateView</span><span class="p">,</span> <span class="nx">SwitchPane</span>
-      <span class="nv">id: </span><span class="s1">&#39;search&#39;</span>
-      <span class="nv">initialize: </span><span class="o">-&gt;</span>
-            <span class="vi">@search = </span><span class="k">new</span> <span class="nx">SearchView</span>
-            <span class="nx">@search</span><span class="p">.</span><span class="nx">render</span><span class="p">()</span>
-            <span class="vi">@view = </span><span class="k">new</span> <span class="nx">ObjectView</span>
-            <span class="err">@</span></pre></div>             </td>           </tr>                               <tr id="section-21">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-21">&#182;</a>               </div>               <p>Dispatch object</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">dispatchObject: </span><span class="p">(</span><span class="nx">ref</span><span class="p">)</span> <span class="o">=&gt;</span>
-               <span class="nv">models = </span><span class="nx">App</span><span class="p">.</span><span class="nx">lookupModels</span> <span class="p">[</span> <span class="nx">ref</span> <span class="p">]</span>
-               <span class="k">if</span> <span class="nx">models</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span>
-                    <span class="nx">@view</span><span class="p">.</span><span class="nx">setModel</span> <span class="nx">models</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                    <span class="nb">document</span><span class="p">.</span><span class="nv">name = </span><span class="nx">models</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">get</span> <span class="s1">&#39;name&#39;</span>
-                    <span class="k">return</span> <span class="kc">true</span>
-               <span class="k">else</span>
-                    <span class="nx">alert</span> <span class="s2">&quot;no model found for #{ ref }&quot;</span> <span class="nx">unless</span> <span class="nx">models</span>
-                    <span class="nx">App</span><span class="p">.</span><span class="nx">router</span><span class="p">.</span><span class="nx">navigate</span> <span class="s2">&quot;search&quot;</span><span class="p">,</span> <span class="kc">true</span>
-                    <span class="k">return</span> <span class="kc">false</span></pre></div>             </td>           </tr>                               <tr id="section-22">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-22">&#182;</a>               </div>               <p>Dispatch view type</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">dispatch: </span><span class="p">(</span><span class="nx">path</span><span class="p">)</span> <span class="o">=&gt;</span>
-            <span class="k">if</span> <span class="nx">@$el</span><span class="p">.</span><span class="nx">children</span><span class="p">().</span><span class="nx">size</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span>
-               <span class="nx">@render</span><span class="p">()</span>
+      <span class="nv">events:</span>
+        <span class="s1">&#39;click a.view&#39;</span><span class="o">:</span> <span class="s1">&#39;view&#39;</span>
+        <span class="s1">&#39;click .edit&#39;</span><span class="o">:</span> <span class="s1">&#39;edit&#39;</span>
+        <span class="s1">&#39;click .clone&#39;</span><span class="o">:</span> <span class="s1">&#39;clone&#39;</span>
+        <span class="s1">&#39;click .add-tag&#39;</span><span class="o">:</span> <span class="s1">&#39;addTags&#39;</span>
+        <span class="s1">&#39;click .run&#39;</span><span class="o">:</span> <span class="s1">&#39;startTrial&#39;</span>
 
-            <span class="nv">ref = </span><span class="nx">path</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="nx">path</span>
-            <span class="k">if</span> <span class="nx">ref</span> <span class="o">and</span> <span class="nv">ref.length = </span><span class="mi">2</span>
-               <span class="k">if</span> <span class="nx">@dispatchObject</span><span class="p">(</span><span class="nx">ref</span><span class="p">)</span>
-                  <span class="nx">@search</span><span class="p">.</span><span class="nx">hide</span><span class="p">()</span>
-                  <span class="nx">@view</span><span class="p">.</span><span class="nx">show</span><span class="p">()</span>
+      <span class="nv">startTrial: </span><span class="o">=&gt;</span>
+        <span class="nv">trial = </span><span class="k">new</span> <span class="p">(</span><span class="nx">Backbone</span><span class="p">.</span><span class="nx">ReferenceCache</span><span class="p">.</span><span class="nx">lookupConstructor</span><span class="p">(</span><span class="s1">&#39;trial&#39;</span><span class="p">))</span>
+        <span class="nx">trial</span><span class="p">.</span><span class="nx">setDefaults</span><span class="p">()</span>
+        <span class="nx">trial</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;experiment&#39;</span><span class="p">,</span> <span class="nx">@model</span><span class="p">)</span>
+        <span class="nx">@trigger</span> <span class="s1">&#39;nav:configTrial&#39;</span><span class="p">,</span> <span class="nx">trial</span></pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <p>Treatments</p>
+
+<p>Experiments (membership), Instruments (via tags)</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">TreatmentView</span> <span class="k">extends</span> <span class="nx">ItemView</span>
+      <span class="nv">initialize: </span><span class="nf">(options) -&gt;</span>
+        <span class="k">super</span><span class="p">(</span><span class="nx">options</span><span class="p">)</span>
+        <span class="vi">@template = </span><span class="nx">Infra</span><span class="p">.</span><span class="nx">templateLoader</span><span class="p">.</span><span class="nx">getTemplate</span> <span class="s1">&#39;treatment-view&#39;</span>
+        <span class="vi">@jview = </span><span class="k">new</span> <span class="nx">Journal</span><span class="p">.</span><span class="nx">View</span>
+            <span class="nv">model: </span><span class="nx">@model</span>
+        <span class="err">@</span>
+
+      <span class="nv">renderAux: </span><span class="o">-&gt;</span>
+        <span class="nx">@$</span><span class="p">(</span><span class="s1">&#39;#journal&#39;</span><span class="p">).</span><span class="nx">html</span> <span class="nx">@jview</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span>
+        <span class="err">@</span>
+
+      <span class="nv">events:</span>
+        <span class="s1">&#39;click .add-tag&#39;</span><span class="o">:</span> <span class="s1">&#39;addTags&#39;</span>
+        <span class="s1">&#39;click .edit&#39;</span><span class="o">:</span> <span class="s1">&#39;edit&#39;</span>
+        <span class="s1">&#39;click .clone&#39;</span><span class="o">:</span> <span class="s1">&#39;clone&#39;</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <p>Instruments</p>
+
+<p>Experiments (membership), Treatments (via tags)</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">InstrumentView</span> <span class="k">extends</span> <span class="nx">ItemView</span>
+      <span class="nv">initialize: </span><span class="nf">(options) -&gt;</span>
+        <span class="k">super</span><span class="p">(</span><span class="nx">options</span><span class="p">)</span>
+        <span class="vi">@template = </span><span class="nx">Infra</span><span class="p">.</span><span class="nx">templateLoader</span><span class="p">.</span><span class="nx">getTemplate</span> <span class="s1">&#39;instrument-view&#39;</span>
+        <span class="err">@</span>
+
+      <span class="nv">events:</span>
+        <span class="s1">&#39;click .edit&#39;</span><span class="o">:</span> <span class="s1">&#39;edit&#39;</span>
+        <span class="s1">&#39;click .add-tag&#39;</span><span class="o">:</span> <span class="s1">&#39;addTags&#39;</span>
+        <span class="s1">&#39;click .track&#39;</span><span class="o">:</span> <span class="s1">&#39;track&#39;</span>
+        <span class="s1">&#39;click .untrack&#39;</span><span class="o">:</span> <span class="s1">&#39;untrack&#39;</span>
+
+      <span class="nv">track: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">Scheduling</span><span class="p">.</span><span class="nx">configureTrackerSchedule</span> <span class="err">@</span><span class="p">,</span> <span class="nx">@model</span><span class="p">,</span> <span class="nx">@trackSchedule</span>
+
+      <span class="nv">trackSchedule: </span><span class="p">(</span><span class="nx">schedule</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">@model</span><span class="p">.</span><span class="nx">track</span> <span class="nx">schedule</span>
+
+      <span class="nv">untrack: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">Common</span><span class="p">.</span><span class="nx">modalMessage</span><span class="p">.</span><span class="nx">showMessage</span>
+          <span class="nv">header: </span><span class="s2">&quot;Stop tracking &#39;#{@model.title()}&#39;&quot;</span>
+          <span class="nv">message: </span><span class="s2">&quot;&lt;p&gt;Are you sure you wish to stop tracking?  You may lose historical data by disabling this tracker.&lt;/p&gt;&quot;</span>
+          <span class="nv">accept: </span><span class="s2">&quot;Yes&quot;</span>
+          <span class="nv">reject: </span><span class="s2">&quot;No&quot;</span>
+          <span class="nv">callback: </span><span class="p">(</span><span class="nx">result</span><span class="p">)</span> <span class="o">=&gt;</span>
+            <span class="nx">@model</span><span class="p">.</span><span class="nx">untrack</span><span class="p">()</span> <span class="k">if</span> <span class="nx">result</span> <span class="o">is</span> <span class="s1">&#39;accept&#39;</span></pre></div>             </td>           </tr>                               <tr id="section-11">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-11">&#182;</a>               </div>               <h2>Item Creators</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">treatmentFieldsets = </span><span class="p">[</span>
+      <span class="nv">legend: </span><span class="s2">&quot;Content&quot;</span>
+      <span class="nv">fields: </span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;description&#39;</span><span class="p">,</span> <span class="s1">&#39;reminder&#39;</span><span class="p">]</span>
+    <span class="p">,</span>
+      <span class="nv">legend: </span><span class="s2">&quot;Treatment Information&quot;</span>
+      <span class="nv">fields: </span><span class="p">[</span><span class="s1">&#39;dynamics&#39;</span><span class="p">]</span>
+    <span class="p">]</span></pre></div>             </td>           </tr>                               <tr id="section-12">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-12">&#182;</a>               </div>               <h2>Treatment</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">TreatmentEdit</span> <span class="k">extends</span> <span class="nx">ExplorerSubview</span>
+      <span class="nv">initialize: </span><span class="nf">(options) -&gt;</span>
+        <span class="nx">alert</span><span class="p">(</span><span class="s1">&#39;Treatment editor requires treatment object, got &#39;</span> <span class="o">+</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">))</span> <span class="k">if</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)</span> <span class="o">is</span> <span class="o">not</span> <span class="s1">&#39;treatment&#39;</span>
+        <span class="nx">@model</span><span class="p">.</span><span class="nx">watch</span> <span class="s1">&#39;change&#39;</span><span class="p">,</span> <span class="nx">@render</span><span class="p">,</span> <span class="err">@</span>
+        <span class="vi">@template = </span><span class="nx">Infra</span><span class="p">.</span><span class="nx">templateLoader</span><span class="p">.</span><span class="nx">getTemplate</span> <span class="s1">&#39;treatment-editor&#39;</span>
+        <span class="vi">@form = </span><span class="k">new</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Form</span>
+            <span class="nv">model: </span><span class="nx">@model</span>
+            <span class="nv">fieldsets: </span><span class="nx">treatmentFieldsets</span>
+        <span class="err">@</span>
+
+      <span class="nv">render: </span><span class="o">-&gt;</span>
+        <span class="nx">@$el</span><span class="p">.</span><span class="nx">html</span> <span class="nx">@template</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">toTemplateJSON</span><span class="p">()</span>
+        <span class="nx">@$</span><span class="p">(</span><span class="s1">&#39;#editForm&#39;</span><span class="p">).</span><span class="nx">html</span> <span class="nx">@form</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span>
+        <span class="err">@</span>
+
+      <span class="nv">events:</span>
+        <span class="s1">&#39;click .accept&#39;</span><span class="o">:</span> <span class="s1">&#39;accept&#39;</span>
+        <span class="s1">&#39;click .cancel&#39;</span><span class="o">:</span> <span class="s1">&#39;cancel&#39;</span>
+
+      <span class="nv">accept: </span><span class="o">=&gt;</span>
+        <span class="nv">errors = </span><span class="nx">@form</span><span class="p">.</span><span class="nx">commit</span><span class="p">();</span>
+        <span class="k">if</span> <span class="o">not</span> <span class="nx">errors</span>
+           <span class="nx">@model</span><span class="p">.</span><span class="nx">save</span> <span class="p">{},</span>
+             <span class="nv">wait: </span><span class="kc">true</span>
+             <span class="nv">success: </span><span class="p">(</span><span class="nx">model</span><span class="p">,</span> <span class="nx">resp</span><span class="p">)</span> <span class="o">=&gt;</span>
+               <span class="nx">@trigger</span> <span class="s1">&#39;nav:view&#39;</span><span class="p">,</span> <span class="nx">model</span>
+             <span class="nv">failure: </span><span class="p">(</span><span class="nx">model</span><span class="p">,</span> <span class="nx">resp</span><span class="p">)</span> <span class="o">=&gt;</span>
+               <span class="nx">alert</span> <span class="s1">&#39;Server Error Saving Model&#39;</span>
+
+      <span class="nv">cancel: </span><span class="o">=&gt;</span>
+        <span class="k">if</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">name</span><span class="p">()</span><span class="o">?</span> <span class="o">and</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">id</span><span class="o">?</span>
+          <span class="nx">@trigger</span> <span class="s1">&#39;nav:view&#39;</span><span class="p">,</span> <span class="nx">@model</span>
+        <span class="k">else</span>
+          <span class="nx">@trigger</span> <span class="s1">&#39;nav:search&#39;</span></pre></div>             </td>           </tr>                               <tr id="section-13">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-13">&#182;</a>               </div>               <h2>Instrument</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">InstrumentEdit</span> <span class="k">extends</span> <span class="nx">ExplorerSubview</span>
+      <span class="nv">initialize: </span><span class="nf">(options) -&gt;</span>
+        <span class="nx">alert</span><span class="p">(</span><span class="s1">&#39;Treatment editor requires treatment object, got &#39;</span> <span class="o">+</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">))</span> <span class="k">if</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)</span> <span class="o">is</span> <span class="o">not</span> <span class="s1">&#39;treatment&#39;</span>
+        <span class="nx">@model</span><span class="p">.</span><span class="nx">watch</span> <span class="s1">&#39;change&#39;</span><span class="p">,</span> <span class="nx">@render</span><span class="p">,</span> <span class="err">@</span>
+        <span class="vi">@template = </span><span class="nx">Infra</span><span class="p">.</span><span class="nx">templateLoader</span><span class="p">.</span><span class="nx">getTemplate</span> <span class="s1">&#39;instrument-editor&#39;</span>
+        <span class="vi">@form = </span><span class="k">new</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Form</span>
+            <span class="nv">model: </span><span class="nx">@model</span>
+        <span class="err">@</span>
+
+      <span class="nv">render: </span><span class="o">-&gt;</span>
+        <span class="nx">@$el</span><span class="p">.</span><span class="nx">html</span> <span class="nx">@template</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">toTemplateJSON</span><span class="p">()</span>
+        <span class="nx">@$</span><span class="p">(</span><span class="s1">&#39;#editForm&#39;</span><span class="p">).</span><span class="nx">html</span> <span class="nx">@form</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span>
+        <span class="err">@</span>
+
+      <span class="nv">events:</span>
+        <span class="s1">&#39;click .cancel&#39;</span><span class="o">:</span> <span class="s1">&#39;cancel&#39;</span>
+        <span class="s1">&#39;click .accept&#39;</span><span class="o">:</span> <span class="s1">&#39;accept&#39;</span>
+
+      <span class="nv">cancel: </span><span class="o">=&gt;</span>
+        <span class="k">if</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">name</span><span class="p">()</span><span class="o">?</span>
+          <span class="nx">@trigger</span> <span class="s1">&#39;nav:view&#39;</span><span class="p">,</span> <span class="nx">@model</span>
+        <span class="k">else</span>
+          <span class="nx">@trigger</span> <span class="s1">&#39;nav:search&#39;</span>
+
+      <span class="nv">accept: </span><span class="o">=&gt;</span>
+        <span class="nv">errors = </span><span class="nx">@form</span><span class="p">.</span><span class="nx">commit</span><span class="p">();</span>
+        <span class="k">if</span> <span class="o">not</span> <span class="nx">errors</span>
+           <span class="nx">@model</span><span class="p">.</span><span class="nx">save</span> <span class="p">{},</span>
+             <span class="nv">wait: </span><span class="kc">true</span>
+             <span class="nv">success: </span><span class="p">(</span><span class="nx">model</span><span class="p">,</span> <span class="nx">resp</span><span class="p">)</span> <span class="o">=&gt;</span>
+               <span class="nx">@trigger</span> <span class="s1">&#39;nav:view&#39;</span><span class="p">,</span> <span class="nx">model</span>
+             <span class="nv">failure: </span><span class="p">(</span><span class="nx">model</span><span class="p">,</span> <span class="nx">resp</span><span class="p">)</span> <span class="o">=&gt;</span>
+               <span class="nx">alert</span> <span class="s1">&#39;Server Error Saving Model&#39;</span></pre></div>             </td>           </tr>                               <tr id="section-14">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-14">&#182;</a>               </div>               <h2>EXPERIMENT</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">ExperimentEdit</span> <span class="k">extends</span> <span class="nx">ExplorerSubview</span>
+      <span class="nv">initialize: </span><span class="nf">(options) -&gt;</span>
+        <span class="vi">@template = </span><span class="nx">Infra</span><span class="p">.</span><span class="nx">templateLoader</span><span class="p">.</span><span class="nx">getTemplate</span> <span class="s1">&#39;experiment-editor&#39;</span>
+        <span class="err">@</span>
+
+      <span class="nv">render: </span><span class="o">-&gt;</span>
+        <span class="k">if</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">isLoaded</span><span class="p">()</span>
+           <span class="nx">@$el</span><span class="p">.</span><span class="nx">html</span> <span class="nx">@template</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">toTemplateJSON</span><span class="p">()</span>
+        <span class="k">else</span> <span class="k">if</span> <span class="o">not</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">_loading</span><span class="o">?</span>
+           <span class="nx">@model</span><span class="p">.</span><span class="nx">fetch</span><span class="p">()</span>
+        <span class="err">@</span></pre></div>             </td>           </tr>                               <tr id="section-15">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-15">&#182;</a>               </div>               <h2>TRIAL CONFIGURATION</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">ConfigureTrackerView</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
+      <span class="nv">initialize: </span><span class="nf">(options) -&gt;</span>
+        <span class="vi">@parent = </span><span class="nx">options</span><span class="p">.</span><span class="nx">parent</span>
+        <span class="err">@</span>
+
+      <span class="nv">trackedp: </span><span class="o">-&gt;</span>
+        <span class="nv">_title = </span><span class="nx">@model</span><span class="p">.</span><span class="nx">title</span><span class="p">()</span>
+        <span class="nx">Core</span><span class="p">.</span><span class="nx">theUser</span><span class="p">.</span><span class="nx">trackers</span><span class="p">.</span><span class="nx">find</span> <span class="nf">(tracker) -&gt;</span>
+            <span class="k">if</span> <span class="nx">tracker</span><span class="p">.</span><span class="nx">instrument</span><span class="p">.</span><span class="nx">title</span><span class="p">()</span> <span class="o">is</span> <span class="nx">_title</span> <span class="k">then</span> <span class="kc">true</span> <span class="k">else</span> <span class="kc">false</span>
+
+      <span class="nv">instruments: </span><span class="o">-&gt;</span>
+        <span class="nx">Core</span><span class="p">.</span><span class="nx">theUser</span><span class="p">.</span><span class="nx">trackers</span><span class="p">.</span><span class="nx">map</span> <span class="nf">(tracker) -&gt;</span>
+           <span class="nx">tracker</span><span class="p">.</span><span class="nx">instrument</span>
+
+      <span class="nv">validate: </span><span class="o">-&gt;</span>
+        <span class="k">if</span> <span class="nx">@trackedp</span><span class="p">()</span>
+          <span class="nx">@$</span><span class="p">(</span><span class="s1">&#39;.tracker-error&#39;</span><span class="p">).</span><span class="nx">remove</span><span class="p">()</span>
+          <span class="kc">true</span>
+        <span class="k">else</span>
+          <span class="nv">existing = </span><span class="nx">@$</span><span class="p">(</span><span class="s1">&#39;.tracker-error&#39;</span><span class="p">)</span>
+          <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="nx">existing</span><span class="p">.</span><span class="nx">length</span>
+          <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="nx">_</span><span class="p">.</span><span class="nx">isEmpty</span> <span class="nx">existing</span>
+          <span class="k">if</span>  <span class="nx">existing</span><span class="p">.</span><span class="nx">length</span> <span class="o">is</span> <span class="mi">0</span>
+            <span class="nx">@$el</span><span class="p">.</span><span class="nx">prepend</span> <span class="s2">&quot;&lt;p class=&#39;tracker-error&#39; style=&#39;color:red;&#39;&gt;You must configure tracking to start the trial&lt;/p&gt;&quot;</span>
+          <span class="kc">false</span>
+
+      <span class="nv">render: </span><span class="o">-&gt;</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s1">&#39;rendering tracker configurator&#39;</span>
+        <span class="nv">status = </span><span class="k">if</span> <span class="nx">@trackedp</span><span class="p">()</span> <span class="k">then</span> <span class="s1">&#39;&lt;b&gt;Enabled&lt;/b&gt;&#39;</span> <span class="k">else</span> <span class="s2">&quot;&lt;a href=&#39;#&#39; class=&#39;configure&#39;&gt;Configure&lt;/a&gt;&quot;</span>
+        <span class="nx">@$el</span><span class="p">.</span><span class="nx">html</span> <span class="s2">&quot;&lt;p&gt; &lt;span class=&#39;tracker-title&#39;&gt;#{ @model.title() }&lt;/span&gt; &lt;span class=&#39;tracker-status&#39;&gt;#{ status }&lt;/span&gt;&lt;/p&gt;&quot;</span>
+        <span class="err">@</span>
+
+      <span class="nv">events:</span>
+        <span class="s1">&#39;click .configure&#39;</span><span class="o">:</span> <span class="s1">&#39;configure&#39;</span>
+
+      <span class="nv">configure: </span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">e</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">()</span>
+        <span class="nx">Scheduling</span><span class="p">.</span><span class="nx">configureTrackerSchedule</span> <span class="nx">@parent</span><span class="p">,</span> <span class="nx">@model</span><span class="p">,</span> <span class="nx">@trackSchedule</span>
+
+      <span class="nv">trackSchedule: </span><span class="p">(</span><span class="nx">schedule</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">@model</span><span class="p">.</span><span class="nx">track</span> <span class="nx">schedule</span>
+
+    <span class="k">class</span> <span class="nx">ConfigureTrialView</span> <span class="k">extends</span> <span class="nx">ExplorerSubview</span>
+      <span class="nv">initialize: </span><span class="nf">(options) -&gt;</span>
+        <span class="vi">@template = </span><span class="nx">Infra</span><span class="p">.</span><span class="nx">templateLoader</span><span class="p">.</span><span class="nx">getTemplate</span> <span class="s1">&#39;configure-trial-view&#39;</span>
+        <span class="nv">exp = </span><span class="nx">@model</span><span class="p">.</span><span class="nx">experiment</span>
+        <span class="nv">outcomeViews = </span><span class="nx">exp</span><span class="p">.</span><span class="nx">outcome</span><span class="p">.</span><span class="nx">map</span> <span class="nx">@createTracker</span><span class="p">,</span> <span class="err">@</span>
+        <span class="nv">covariateViews = </span><span class="nx">exp</span><span class="p">.</span><span class="nx">covariates</span><span class="p">.</span><span class="nx">map</span> <span class="nx">@createTracker</span><span class="p">,</span> <span class="err">@</span>
+        <span class="vi">@trackerViews = </span><span class="nx">outcomeViews</span><span class="p">.</span><span class="nx">concat</span> <span class="nx">covariateViews</span>
+        <span class="nx">_</span><span class="p">.</span><span class="nx">each</span> <span class="nx">@trackerViews</span><span class="p">,</span> <span class="nf">(view) -&gt;</span>
+            <span class="nx">view</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="nx">@forwardEvents</span><span class="p">,</span> <span class="err">@</span>
+        <span class="p">,</span> <span class="err">@</span>
+        <span class="vi">@form = </span><span class="k">new</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Form</span>
+          <span class="nv">model: </span><span class="nx">@model</span>
+        <span class="nb">window</span><span class="p">.</span><span class="nv">mydebug = </span><span class="err">@</span>
+        <span class="err">@</span>
+
+      <span class="nv">forwardEvents: </span><span class="nf">(action, arg1, arg2) -&gt;</span>
+          <span class="nx">@trigger</span> <span class="nx">action</span><span class="p">,</span> <span class="nx">arg1</span><span class="p">,</span> <span class="nx">arg2</span>
+
+      <span class="nv">createTracker: </span><span class="nf">(inst) -&gt;</span>
+        <span class="k">new</span> <span class="nx">ConfigureTrackerView</span>
+          <span class="nv">model: </span><span class="nx">inst</span>
+          <span class="nv">parent: </span><span class="err">@</span>
+
+      <span class="nv">renderTrackers: </span><span class="nf">() -&gt;</span>
+        <span class="nv">target = </span><span class="nx">@$</span><span class="p">(</span><span class="s1">&#39;#configureTrackers&#39;</span><span class="p">)</span>
+        <span class="nx">target</span><span class="p">.</span><span class="nx">html</span> <span class="s1">&#39;&lt;h3&gt;Track Measurements&lt;/h3&gt;&#39;</span>
+        <span class="nx">_</span><span class="p">.</span><span class="nx">each</span> <span class="nx">@trackerViews</span><span class="p">,</span> <span class="nf">(view) -&gt;</span>
+           <span class="nx">target</span><span class="p">.</span><span class="nx">append</span> <span class="nx">view</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span>
+        <span class="err">@</span>
+
+      <span class="nv">validateTrackers: </span><span class="nf">() -&gt;</span>
+        <span class="nx">_</span><span class="p">.</span><span class="nx">all</span> <span class="nx">@trackerViews</span><span class="p">,</span> <span class="nf">(view) -&gt;</span>
+            <span class="nx">view</span><span class="p">.</span><span class="nx">validate</span><span class="p">()</span>
+
+      <span class="nv">render: </span><span class="o">-&gt;</span>
+        <span class="nx">@$el</span><span class="p">.</span><span class="nx">html</span> <span class="nx">@template</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">toTemplateJSON</span><span class="p">()</span>
+        <span class="nx">@$</span><span class="p">(</span><span class="s1">&#39;#configureForm&#39;</span><span class="p">).</span><span class="nx">html</span> <span class="nx">@form</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span>
+        <span class="nx">@$</span><span class="p">(</span><span class="s1">&#39;.bbf-date input&#39;</span><span class="p">).</span><span class="nx">datepicker</span> <span class="s1">&#39;option&#39;</span><span class="p">,</span> <span class="s1">&#39;dateFormat&#39;</span><span class="p">,</span> <span class="s1">&#39;mm/dd/yy&#39;</span>
+        <span class="nx">@$</span><span class="p">(</span><span class="s1">&#39;.bbf-date input&#39;</span><span class="p">).</span><span class="nx">datepicker</span> <span class="s1">&#39;refresh&#39;</span>
+        <span class="nx">@renderTrackers</span><span class="p">()</span>
+        <span class="err">@</span>
+
+      <span class="nv">events:</span>
+        <span class="s1">&#39;click .accept&#39;</span><span class="o">:</span> <span class="s1">&#39;create&#39;</span>
+        <span class="s1">&#39;click .cancel&#39;</span><span class="o">:</span> <span class="s1">&#39;cancel&#39;</span>
+
+      <span class="nv">create: </span><span class="o">=&gt;</span>
+        <span class="nx">event</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">()</span>
+        <span class="nv">errors = </span><span class="nx">@form</span><span class="p">.</span><span class="nx">commit</span><span class="p">()</span>
+        <span class="k">if</span> <span class="o">not</span> <span class="nx">errors</span> <span class="o">and</span> <span class="nx">@validateTrackers</span><span class="p">()</span>
+          <span class="nx">Core</span><span class="p">.</span><span class="nx">theUser</span><span class="p">.</span><span class="nx">trials</span><span class="p">.</span><span class="nx">create</span> <span class="nx">@model</span><span class="p">,</span>
+            <span class="nv">wait: </span><span class="kc">true</span>
+            <span class="nv">success: </span><span class="p">(</span><span class="nx">model</span><span class="p">,</span> <span class="nx">resp</span><span class="p">)</span> <span class="o">=&gt;</span>
+              <span class="nb">window</span><span class="p">.</span><span class="nv">location = </span><span class="s1">&#39;/dashboard/overview&#39;</span>
+            <span class="nv">failure: </span><span class="p">(</span><span class="nx">model</span><span class="p">,</span> <span class="nx">resp</span><span class="p">)</span> <span class="o">=&gt;</span>
+              <span class="nx">alert</span> <span class="s1">&#39;Server error creating model&#39;</span>
+
+      <span class="nv">cancel: </span><span class="o">=&gt;</span>
+        <span class="nx">event</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">experiment</span><span class="o">?</span> <span class="o">and</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">experiment</span><span class="p">.</span><span class="nx">name</span><span class="p">()</span>
+           <span class="nx">@trigger</span> <span class="s1">&#39;nav:view&#39;</span><span class="p">,</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">experiment</span>
+        <span class="k">else</span>
+           <span class="nx">@trigger</span> <span class="s1">&#39;nav:search&#39;</span></pre></div>             </td>           </tr>                               <tr id="section-16">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-16">&#182;</a>               </div>               <h2>Search results and state</h2>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-17">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-17">&#182;</a>               </div>               <p>Search results model</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">SearchResults</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Collection</span>
+      <span class="nv">initialize: </span><span class="nf">(options) -&gt;</span>
+        <span class="vi">@total = </span><span class="mi">0</span>
+        <span class="vi">@query = </span><span class="s2">&quot;&quot;</span>
+        <span class="vi">@page = </span><span class="mi">1</span>
+        <span class="vi">@pages = </span><span class="mi">1</span>
+        <span class="k">if</span> <span class="nx">options</span><span class="o">?</span> <span class="o">and</span> <span class="nx">options</span><span class="p">.</span><span class="nx">pagesize</span><span class="o">?</span>
+           <span class="vi">@size = </span><span class="nx">options</span><span class="p">.</span><span class="nx">pagesize</span>
+        <span class="k">else</span>
+           <span class="vi">@size = </span><span class="mi">5</span>
+        <span class="err">@</span>
+
+      <span class="nv">reset: </span><span class="nf">(results, options) -&gt;</span>
+        <span class="nv">models = </span><span class="nx">_</span><span class="p">.</span><span class="nx">map</span> <span class="nx">results</span><span class="p">,</span> <span class="nf">(object) -&gt;</span>
+           <span class="nx">Backbone</span><span class="p">.</span><span class="nx">ReferenceCache</span><span class="p">.</span><span class="nx">import</span> <span class="nx">object</span>
+        <span class="k">super</span> <span class="nx">models</span><span class="p">,</span> <span class="nx">options</span>
+        <span class="err">@</span>
+
+      <span class="nv">doQuery: </span><span class="nf">(query, page) -&gt;</span>
+        <span class="vi">@last = </span><span class="s1">&#39;query&#39;</span>
+        <span class="vi">@query = </span><span class="nx">query</span> <span class="o">or</span> <span class="nx">@query</span>
+        <span class="k">if</span> <span class="nx">@query</span><span class="p">.</span><span class="nx">length</span> <span class="o">is</span> <span class="mi">0</span>
+           <span class="vi">@query = </span><span class="s1">&#39;show treatments&#39;</span>
+        <span class="vi">@page = </span><span class="nx">page</span> <span class="o">or</span> <span class="nx">@page</span> <span class="o">or</span> <span class="mi">1</span>
+        <span class="nv">offset = </span><span class="p">(</span><span class="nx">@page</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="nx">@size</span>
+        <span class="nx">$</span><span class="p">.</span><span class="nx">ajax</span> <span class="s2">&quot;/api/search/query/#{@query}/#{@size}/#{offset}&quot;</span><span class="p">,</span>
+          <span class="nv">context: </span><span class="err">@</span>
+          <span class="nv">success: </span><span class="p">(</span><span class="nx">results</span><span class="p">)</span> <span class="o">=&gt;</span>
+            <span class="vi">@total = </span><span class="nx">results</span><span class="p">.</span><span class="nx">hits</span>
+            <span class="vi">@pages = </span><span class="nb">Math</span><span class="p">.</span><span class="nx">ceil</span><span class="p">(</span><span class="nx">@total</span> <span class="err">/ @size)</span>
+            <span class="nx">@trigger</span> <span class="s1">&#39;search:pagecount&#39;</span><span class="p">,</span> <span class="nx">@pages</span>
+            <span class="nx">@reset</span> <span class="nx">results</span><span class="p">.</span><span class="nx">models</span>
+
+      <span class="nv">doTagQuery: </span><span class="nf">(tag, page) -&gt;</span>
+        <span class="vi">@last = </span><span class="s1">&#39;tag&#39;</span>
+        <span class="vi">@query = </span><span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="p">(</span> <span class="nx">tag</span> <span class="o">or</span> <span class="nx">@query</span> <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;&quot;&#39;</span>
+        <span class="vi">@page = </span><span class="nx">page</span> <span class="o">or</span> <span class="nx">@page</span> <span class="o">or</span> <span class="mi">1</span>
+        <span class="nv">offset = </span><span class="p">(</span><span class="nx">@page</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="nx">@size</span>
+        <span class="nx">$</span><span class="p">.</span><span class="nx">ajax</span> <span class="s2">&quot;/api/search/tag/#{@query}/#{@size}/#{offset}&quot;</span><span class="p">,</span>
+          <span class="nv">context: </span><span class="err">@</span>
+          <span class="nv">success: </span><span class="p">(</span><span class="nx">results</span><span class="p">)</span> <span class="o">=&gt;</span>
+            <span class="vi">@total = </span><span class="nx">results</span><span class="p">.</span><span class="nx">hits</span>
+            <span class="vi">@pages = </span><span class="nb">Math</span><span class="p">.</span><span class="nx">ceil</span><span class="p">(</span><span class="nx">@total</span> <span class="err">/ @size)</span>
+            <span class="nx">@trigger</span> <span class="s1">&#39;search:pagecount&#39;</span><span class="p">,</span> <span class="nx">@pages</span>
+            <span class="nx">@reset</span> <span class="nx">results</span><span class="p">.</span><span class="nx">models</span></pre></div>             </td>           </tr>                               <tr id="section-18">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-18">&#182;</a>               </div>               <p>Single result view, multiple types</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">ResultView</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
+      <span class="nv">attributes:</span>
+        <span class="k">class</span><span class="o">:</span> <span class="s1">&#39;search-result&#39;</span>
+
+      <span class="nv">initialize: </span><span class="nf">(options) -&gt;</span>
+        <span class="vi">@template = </span><span class="nx">Infra</span><span class="p">.</span><span class="nx">templateLoader</span><span class="p">.</span><span class="nx">getTemplate</span> <span class="k">switch</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)</span>
+              <span class="k">when</span> <span class="s2">&quot;experiment&quot;</span> <span class="k">then</span> <span class="s1">&#39;experiment-list-view&#39;</span>
+              <span class="k">when</span> <span class="s2">&quot;instrument&quot;</span> <span class="k">then</span> <span class="s1">&#39;instrument-list-view&#39;</span>
+              <span class="k">when</span> <span class="s2">&quot;treatment&quot;</span> <span class="k">then</span> <span class="s1">&#39;treatment-list-view&#39;</span>
+        <span class="vi">@model = </span><span class="nx">Backbone</span><span class="p">.</span><span class="nx">ReferenceCache</span><span class="p">.</span><span class="nx">resolve</span> <span class="nx">options</span><span class="p">.</span><span class="nx">type</span><span class="p">,</span> <span class="nx">options</span><span class="p">.</span><span class="nx">mid</span> <span class="k">if</span> <span class="o">not</span> <span class="nx">@model</span><span class="o">?</span>
+        <span class="nx">@model</span><span class="p">.</span><span class="nx">watch</span> <span class="s1">&#39;change&#39;</span><span class="p">,</span> <span class="nx">@render</span><span class="p">,</span> <span class="err">@</span>
+        <span class="err">@</span>
+
+      <span class="nv">render: </span><span class="o">-&gt;</span>
+        <span class="k">if</span> <span class="nx">@model</span><span class="o">?</span> <span class="o">and</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">isLoaded</span><span class="p">()</span>
+           <span class="nx">@$el</span><span class="p">.</span><span class="nx">html</span> <span class="nx">@template</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">toTemplateJSON</span><span class="p">()</span>
+           <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="s1">&#39;&lt;hr&gt;&#39;</span>
+        <span class="err">@</span>
+
+      <span class="nv">events: </span><span class="o">-&gt;</span>
+        <span class="s1">&#39;click a&#39;</span><span class="o">:</span> <span class="s1">&#39;view&#39;</span>
+
+      <span class="nv">view: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">event</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">()</span>
+        <span class="nx">@trigger</span> <span class="s1">&#39;nav:view&#39;</span><span class="p">,</span> <span class="nx">@model</span></pre></div>             </td>           </tr>                               <tr id="section-19">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-19">&#182;</a>               </div>               <p>Result page and handlers</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">SearchPage</span> <span class="k">extends</span> <span class="nx">ExplorerSubview</span></pre></div>             </td>           </tr>                               <tr id="section-20">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-20">&#182;</a>               </div>               <p>STATE</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">initialize: </span><span class="nf">(options) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-21">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-21">&#182;</a>               </div>               <p>View maintenance and rendering</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="vi">@template = </span><span class="nx">Infra</span><span class="p">.</span><span class="nx">templateLoader</span><span class="p">.</span><span class="nx">getTemplate</span> <span class="s1">&#39;search-header&#39;</span>
+        <span class="vi">@popular = </span><span class="nx">Infra</span><span class="p">.</span><span class="nx">templateLoader</span><span class="p">.</span><span class="nx">getTemplate</span> <span class="s1">&#39;popular-searches&#39;</span>
+        <span class="vi">@pagination = </span><span class="k">new</span> <span class="nx">Widgets</span><span class="p">.</span><span class="nx">Pagination</span><span class="p">()</span>
+        <span class="nx">@pagination</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;pagination:change&#39;</span><span class="p">,</span> <span class="nf">(page) -&gt;</span>
+          <span class="nx">@trigger</span> <span class="s1">&#39;pagination:change&#39;</span><span class="p">,</span> <span class="nx">page</span>
+        <span class="p">,</span> <span class="err">@</span>
+        <span class="vi">@views = </span><span class="p">[]</span></pre></div>             </td>           </tr>                               <tr id="section-22">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-22">&#182;</a>               </div>               <p>Result objects</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="vi">@results = </span><span class="nx">options</span><span class="p">.</span><span class="nx">results</span>
+        <span class="nx">@results</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;reset&#39;</span><span class="p">,</span> <span class="nx">@updateViews</span>
+        <span class="nx">@render</span><span class="p">()</span>
+        <span class="err">@</span></pre></div>             </td>           </tr>                               <tr id="section-23">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-23">&#182;</a>               </div>               <p>MODEL EVENTS</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">updateViews: </span><span class="p">()</span> <span class="o">=&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-24">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-24">&#182;</a>               </div>               <p>Update header views</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nx">@$</span><span class="p">(</span><span class="s1">&#39;.search-query&#39;</span><span class="p">).</span><span class="nx">val</span><span class="p">([</span><span class="nx">@results</span><span class="p">.</span><span class="nx">query</span><span class="p">])</span>
+        <span class="nx">@pagination</span><span class="p">.</span><span class="nx">changePage</span> <span class="nx">@results</span><span class="p">.</span><span class="nx">page</span><span class="p">,</span> <span class="nx">@results</span><span class="p">.</span><span class="nx">pages</span></pre></div>             </td>           </tr>                               <tr id="section-25">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-25">&#182;</a>               </div>               <p>Render our results</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nx">@renderResults</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-26">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-26">&#182;</a>               </div>               <p>RENDERING</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">render: </span><span class="o">-&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-27">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-27">&#182;</a>               </div>               <p>Render or update search bar</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="k">if</span> <span class="nx">@$</span><span class="p">(</span><span class="s1">&#39;.search-query&#39;</span><span class="p">).</span><span class="nx">length</span> <span class="o">==</span> <span class="mi">0</span>
+           <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="nx">@template</span> <span class="nx">@query</span>
+           <span class="nx">@$</span><span class="p">(</span><span class="s1">&#39;#pagination&#39;</span><span class="p">).</span><span class="nx">append</span> <span class="nx">@pagination</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span>
+        <span class="err">@</span>
+
+      <span class="nv">attach: </span><span class="nf">(fn, parent) -&gt;</span>
+          <span class="k">super</span> <span class="nx">fn</span><span class="p">,</span> <span class="nx">parent</span>
+          <span class="nx">@pagination</span><span class="p">.</span><span class="nx">delegateEvents</span><span class="p">()</span>
+          <span class="nx">_</span><span class="p">.</span><span class="nx">each</span> <span class="nx">@views</span><span class="p">,</span> <span class="nf">(view) -&gt;</span>
+            <span class="nx">view</span><span class="p">.</span><span class="nx">delegateEvents</span><span class="p">()</span>
+
+      <span class="nv">detach: </span><span class="nf">(fn) -&gt;</span>
+          <span class="k">super</span> <span class="nx">fn</span>
+          <span class="nx">@pagination</span><span class="p">.</span><span class="nx">undelegateEvents</span><span class="p">()</span>
+
+      <span class="nv">renderResults: </span><span class="o">-&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-28">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-28">&#182;</a>               </div>               <p>Remove if exist</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nx">_</span><span class="p">.</span><span class="nx">each</span> <span class="nx">@views</span><span class="p">,</span> <span class="nf">(view) -&gt;</span>
+           <span class="nx">view</span><span class="p">.</span><span class="nx">remove</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-29">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-29">&#182;</a>               </div>               <p>Create new</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="vi">@views = </span><span class="nx">@results</span><span class="p">.</span><span class="nx">map</span> <span class="nf">(model) -&gt;</span>
+           <span class="k">new</span> <span class="nx">ResultView</span>
+             <span class="nv">model: </span><span class="nx">model</span></pre></div>             </td>           </tr>                               <tr id="section-30">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-30">&#182;</a>               </div>               <p>Render new</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nx">_</span><span class="p">.</span><span class="nx">each</span> <span class="nx">@views</span><span class="p">,</span> <span class="p">(</span><span class="nx">view</span><span class="p">)</span> <span class="o">=&gt;</span>
+           <span class="nx">view</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="nf">(action, model) -&gt;</span>
+             <span class="nx">@trigger</span> <span class="nx">action</span><span class="p">,</span> <span class="nx">model</span>
+           <span class="p">,</span> <span class="err">@</span>
+           <span class="nx">@$</span><span class="p">(</span><span class="s1">&#39;#results&#39;</span><span class="p">).</span><span class="nx">append</span> <span class="nx">view</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span>
+        <span class="err">@</span></pre></div>             </td>           </tr>                               <tr id="section-31">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-31">&#182;</a>               </div>               <p>UI EVENTS</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">events:</span>
+        <span class="s1">&#39;keyup input[type=text]&#39;</span><span class="o">:</span> <span class="s1">&#39;handleKey&#39;</span>
+        <span class="s1">&#39;click .search-btn&#39;</span><span class="o">:</span> <span class="s1">&#39;submitQuery&#39;</span>
+        <span class="s1">&#39;click .help-btn&#39;</span><span class="o">:</span> <span class="s1">&#39;showHelp&#39;</span>
+        <span class="s1">&#39;click .popsearch&#39;</span><span class="o">:</span> <span class="s1">&#39;doSearch&#39;</span>
+
+      <span class="nv">doSearch: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">event</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">()</span>
+        <span class="nv">query = </span><span class="nx">$</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">target</span><span class="p">).</span><span class="nx">text</span><span class="p">()</span>
+        <span class="nx">@trigger</span> <span class="s1">&#39;nav:search&#39;</span><span class="p">,</span> <span class="nx">query</span>
+
+      <span class="nv">handleKey: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="k">if</span> <span class="nx">event</span><span class="p">.</span><span class="nx">which</span> <span class="o">is</span> <span class="mi">13</span>
+           <span class="nx">@submitQuery</span><span class="p">(</span><span class="nx">event</span><span class="p">)</span>
+           <span class="kc">false</span>
+        <span class="k">else</span>
+           <span class="kc">true</span>
+
+      <span class="nv">submitQuery: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">event</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">()</span>
+        <span class="nv">query = </span><span class="nx">@$</span><span class="p">(</span><span class="s1">&#39;input&#39;</span><span class="p">).</span><span class="nx">val</span><span class="p">()</span> <span class="o">or</span> <span class="s2">&quot;&quot;</span>
+        <span class="nx">@trigger</span> <span class="s1">&#39;nav:search&#39;</span><span class="p">,</span> <span class="nx">query</span>
+        <span class="kc">true</span>
+
+      <span class="nv">showHelp: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">Common</span><span class="p">.</span><span class="nx">modalMessage</span><span class="p">.</span><span class="nx">showMessage</span>
+          <span class="nv">header: </span><span class="s2">&quot;Search Help&quot;</span>
+          <span class="nv">message: </span><span class="s2">&quot;To see different types of objects: &#39;show &lt;type&gt;&#39; where type can be instrument, treatment, or experiment.&lt;br&gt;</span>
+<span class="s2">      To filter by a given treatment: &#39;using &lt;treatment keyword&gt;&#39;&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-32">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-32">&#182;</a>               </div>               <h2>Explorer Router</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">ExploreRouter</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Router</span>
+      <span class="nv">initialize: </span><span class="nf">(options = {}) -&gt;</span>
+          <span class="vi">@default = </span><span class="nx">options</span><span class="p">.</span><span class="nx">default</span>
+          <span class="err">@</span>
+
+      <span class="nv">routes:</span>
+          <span class="s1">&#39;&#39;</span><span class="o">:</span> <span class="s1">&#39;selectDefault&#39;</span>
+          <span class="s1">&#39;search/query&#39;</span><span class="o">:</span> <span class="s1">&#39;searchQuery&#39;</span>
+          <span class="s1">&#39;search/query/:query&#39;</span><span class="o">:</span> <span class="s1">&#39;searchQuery&#39;</span>
+          <span class="s1">&#39;search/query/:query/p:page&#39;</span><span class="o">:</span> <span class="s1">&#39;searchQuery&#39;</span>
+          <span class="s1">&#39;search/tag/:tag&#39;</span><span class="o">:</span> <span class="s1">&#39;searchTag&#39;</span>
+          <span class="s1">&#39;search/tag/:tag/p:page&#39;</span><span class="o">:</span> <span class="s1">&#39;searchTag&#39;</span>
+          <span class="s1">&#39;view/:type/:id&#39;</span><span class="o">:</span> <span class="s1">&#39;viewObject&#39;</span>
+          <span class="s1">&#39;edit/:type/:id&#39;</span><span class="o">:</span> <span class="s1">&#39;editObject&#39;</span>
+          <span class="s1">&#39;create/:type&#39;</span><span class="o">:</span> <span class="s1">&#39;createObject&#39;</span>
+          <span class="s1">&#39;*path&#39;</span><span class="o">:</span> <span class="s1">&#39;selectDefault&#39;</span>
+
+      <span class="nv">selectDefault: </span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="o">=&gt;</span>
+          <span class="nx">@navigate</span> <span class="nx">@default</span><span class="p">,</span> <span class="p">{</span><span class="nv">trigger: </span><span class="kc">true</span><span class="p">,</span> <span class="nv">replace: </span><span class="kc">true</span><span class="p">}</span> <span class="k">if</span> <span class="nx">@default</span><span class="o">?</span>
+
+      <span class="nv">navQuery: </span><span class="nf">(query, page) -&gt;</span>
+          <span class="k">if</span> <span class="nx">query</span>
+            <span class="nx">@navigate</span> <span class="s2">&quot;/search/query/#{query}/p#{page}&quot;</span><span class="p">,</span>
+              <span class="nv">trigger: </span><span class="kc">true</span>
+          <span class="k">else</span>
+            <span class="nx">@navigate</span> <span class="s2">&quot;/search/query&quot;</span><span class="p">,</span>
+              <span class="nv">trigger: </span><span class="kc">true</span>
+
+      <span class="nv">navTag: </span><span class="nf">(tag, page) -&gt;</span>
+          <span class="nx">@navigate</span> <span class="s2">&quot;/search/tag/#{tag}/p#{page}&quot;</span><span class="p">,</span>
+            <span class="nv">trigger: </span><span class="kc">true</span>
+
+      <span class="nv">navEditModel: </span><span class="nf">(model, trigger) -&gt;</span>
+          <span class="nx">@navigate</span> <span class="s2">&quot;/edit/#{model.get(&#39;type&#39;)}/#{model.id}&quot;</span><span class="p">,</span>
+            <span class="nv">trigger: </span><span class="k">if</span> <span class="nx">trigger</span><span class="o">?</span> <span class="k">then</span> <span class="nx">trigger</span> <span class="k">else</span> <span class="kc">true</span>
+
+      <span class="nv">navCreateModel: </span><span class="nf">(type, trigger) -&gt;</span>
+          <span class="nx">@navigate</span> <span class="s2">&quot;/create/#{type}&quot;</span><span class="p">,</span>
+            <span class="nv">trigger: </span><span class="k">if</span> <span class="nx">trigger</span><span class="o">?</span> <span class="k">then</span> <span class="nx">trigger</span> <span class="k">else</span> <span class="kc">true</span>
+
+      <span class="nv">navViewModel: </span><span class="nf">(model) -&gt;</span>
+          <span class="nx">@navigate</span> <span class="s2">&quot;/view/#{model.get(&#39;type&#39;)}/#{model.id}&quot;</span><span class="p">,</span>
+            <span class="nv">trigger: </span><span class="kc">true</span></pre></div>             </td>           </tr>                               <tr id="section-33">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-33">&#182;</a>               </div>               <h2>Explorer Breadcrumbs</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">Breadcrumbs</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
+      <span class="nv">initialize: </span><span class="nf">(options = {}) -&gt;</span>
+        <span class="vi">@template = </span><span class="nx">Infra</span><span class="p">.</span><span class="nx">templateLoader</span><span class="p">.</span><span class="nx">getTemplate</span> <span class="s1">&#39;breadcrumbs-view&#39;</span>
+        <span class="vi">@base =</span>
+          <span class="nv">name: </span><span class="s2">&quot;Explore&quot;</span>
+          <span class="k">class</span><span class="o">:</span> <span class="s2">&quot;&quot;</span>
+          <span class="nv">url: </span><span class="s2">&quot;/&quot;</span>
+        <span class="vi">@crumbs =</span>
+          <span class="nv">path: </span><span class="p">[]</span>
+          <span class="nv">tail: </span><span class="nx">@base</span>
+        <span class="vi">@router = </span><span class="nx">options</span><span class="p">.</span><span class="nx">router</span> <span class="o">or</span> <span class="kc">null</span>
+        <span class="nx">@router</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;route:viewObject&#39;</span><span class="p">,</span> <span class="nx">@viewCrumbs</span>
+        <span class="nx">@router</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;route:editObject&#39;</span><span class="p">,</span> <span class="nx">@editCrumbs</span>
+        <span class="nx">@router</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;route:createObject&#39;</span><span class="p">,</span> <span class="nx">@editCrumbs</span>
+        <span class="nx">@router</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;route:searchQuery&#39;</span><span class="p">,</span> <span class="nx">@queryCrumbs</span>
+        <span class="nx">@router</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;route:searchTag&#39;</span><span class="p">,</span> <span class="nx">@tagCrumbs</span>
+        <span class="err">@</span>
+
+      <span class="nv">viewCrumbs: </span><span class="p">(</span><span class="nx">type</span><span class="p">,</span> <span class="nx">id</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">@model</span><span class="p">.</span><span class="kc">off</span> <span class="s1">&#39;change&#39;</span><span class="p">,</span> <span class="nx">@rerenderObj</span><span class="p">,</span> <span class="err">@</span> <span class="k">if</span> <span class="nx">@model</span><span class="o">?</span>
+        <span class="vi">@model = </span><span class="nx">Backbone</span><span class="p">.</span><span class="nx">ReferenceCache</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">type</span><span class="p">,</span> <span class="nx">id</span><span class="p">)</span>
+        <span class="nx">@model</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;change&#39;</span><span class="p">,</span> <span class="nx">@rerenderObj</span><span class="p">,</span> <span class="err">@</span>
+        <span class="nv">view =</span>
+            <span class="nv">name: </span><span class="s2">&quot;View&quot;</span>
+            <span class="k">class</span><span class="o">:</span> <span class="s2">&quot;&quot;</span>
+            <span class="nv">url: </span><span class="s2">&quot;/view&quot;</span>
+        <span class="nv">thetype =</span>
+            <span class="nv">name: </span><span class="nx">type</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">toUpperCase</span><span class="p">()</span> <span class="o">+</span> <span class="nx">type</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">class</span><span class="o">:</span> <span class="s2">&quot;&quot;</span>
+            <span class="nv">url: </span><span class="s2">&quot;/view/#{type.toLowerCase()}&quot;</span>
+        <span class="vi">@crumbs.path = </span><span class="p">[</span><span class="nx">@base</span><span class="p">,</span> <span class="nx">view</span><span class="p">,</span> <span class="nx">thetype</span><span class="p">]</span>
+        <span class="vi">@crumbs.tail =</span>
+            <span class="nv">name: </span><span class="nx">@model</span><span class="p">.</span><span class="nx">name</span><span class="p">()</span>
+            <span class="k">class</span><span class="o">:</span> <span class="s2">&quot;active&quot;</span>
+            <span class="nv">url: </span><span class="s2">&quot;/view/#{type}/#{id}&quot;</span>
+        <span class="nx">@render</span><span class="p">()</span>
+
+      <span class="nv">editCrumbs: </span><span class="p">(</span><span class="nx">type</span><span class="p">,</span> <span class="nx">id</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">@model</span><span class="p">.</span><span class="kc">off</span> <span class="s1">&#39;change&#39;</span><span class="p">,</span> <span class="nx">@rerenderObj</span><span class="p">,</span> <span class="err">@</span> <span class="k">if</span> <span class="nx">@model</span><span class="o">?</span>
+        <span class="k">if</span> <span class="nx">type</span><span class="o">?</span> <span class="o">and</span> <span class="nx">id</span><span class="o">?</span>
+          <span class="vi">@model = </span><span class="nx">Backbone</span><span class="p">.</span><span class="nx">ReferenceCache</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">type</span><span class="p">,</span> <span class="nx">id</span><span class="p">)</span>
+          <span class="nx">@model</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;change&#39;</span><span class="p">,</span> <span class="nx">@rerenderObj</span><span class="p">,</span> <span class="err">@</span>
+        <span class="k">else</span>
+          <span class="vi">@model = </span><span class="kc">null</span>
+        <span class="nv">view =</span>
+            <span class="nv">name: </span><span class="s2">&quot;Edit&quot;</span>
+            <span class="k">class</span><span class="o">:</span> <span class="s2">&quot;&quot;</span>
+            <span class="nv">url: </span><span class="s2">&quot;/edit&quot;</span>
+        <span class="nv">thetype =</span>
+            <span class="nv">name: </span><span class="nx">type</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">toUpperCase</span><span class="p">()</span> <span class="o">+</span> <span class="nx">type</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">class</span><span class="o">:</span> <span class="s2">&quot;&quot;</span>
+            <span class="nv">url: </span><span class="s2">&quot;/edit/#{type.toLowerCase()}&quot;</span>
+        <span class="vi">@crumbs =</span>
+           <span class="nv">path: </span><span class="p">[</span><span class="nx">@base</span><span class="p">,</span> <span class="nx">view</span><span class="p">,</span> <span class="nx">thetype</span><span class="p">]</span>
+           <span class="nv">tail:</span>
+             <span class="nv">name: </span><span class="k">if</span> <span class="nx">@model</span><span class="o">?</span> <span class="k">then</span> <span class="nx">@model</span><span class="p">.</span><span class="nx">name</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;Create&quot;</span>
+             <span class="k">class</span><span class="o">:</span> <span class="s2">&quot;active&quot;</span>
+             <span class="nv">url: </span><span class="s2">&quot;/edit/#{type}/#{id}&quot;</span>
+        <span class="nx">@render</span><span class="p">()</span>
+
+      <span class="nv">queryCrumbs: </span><span class="p">(</span><span class="nx">query</span><span class="p">,</span> <span class="nx">page</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="vi">@crumbs.path = </span><span class="p">[</span> <span class="nx">@base</span><span class="p">,</span>
+            <span class="nv">name: </span><span class="s2">&quot;Query&quot;</span>
+            <span class="k">class</span><span class="o">:</span> <span class="s2">&quot;&quot;</span>
+            <span class="nv">url: </span><span class="s2">&quot;/search/query&quot;</span>
+        <span class="p">]</span>
+        <span class="vi">@crumbs.tail =</span>
+           <span class="nv">name: </span><span class="nx">query</span>
+           <span class="k">class</span><span class="o">:</span> <span class="s2">&quot;active&quot;</span>
+           <span class="nv">url: </span><span class="k">if</span> <span class="nx">page</span> <span class="k">then</span> <span class="s2">&quot;/search/query/#{query}/#{page}&quot;</span> <span class="k">else</span> <span class="s2">&quot;/search/query/#{query}&quot;</span>
+        <span class="nx">@render</span><span class="p">()</span>
+
+      <span class="nv">tagCrumbs: </span><span class="p">(</span><span class="nx">tag</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="vi">@crumbs =</span>
+          <span class="nv">path: </span><span class="p">[</span><span class="nx">@base</span><span class="p">,</span>
+            <span class="nv">name: </span><span class="s2">&quot;Tags&quot;</span>
+            <span class="k">class</span><span class="o">:</span> <span class="s2">&quot;&quot;</span>
+            <span class="nv">url: </span><span class="s2">&quot;/search/tag&quot;</span>
+          <span class="p">]</span>
+          <span class="nv">tail:</span>
+            <span class="nv">name: </span><span class="nx">tag</span>
+            <span class="k">class</span><span class="o">:</span> <span class="s2">&quot;active&quot;</span>
+            <span class="nv">url: </span><span class="s2">&quot;#&quot;</span>
+        <span class="nx">@render</span><span class="p">()</span>
+
+      <span class="nv">rerenderObj: </span><span class="o">-&gt;</span>
+        <span class="vi">@crumbs.tail.name = </span><span class="nx">@model</span><span class="p">.</span><span class="nx">name</span><span class="p">()</span>
+        <span class="nx">@render</span><span class="p">()</span>
+
+      <span class="nv">render: </span><span class="o">-&gt;</span>
+        <span class="nx">@$el</span><span class="p">.</span><span class="nx">html</span> <span class="nx">@template</span> <span class="nx">@crumbs</span>
+        <span class="err">@</span>
+
+      <span class="nv">events:</span>
+        <span class="s1">&#39;click a&#39;</span><span class="o">:</span> <span class="s1">&#39;navigate&#39;</span>
+
+      <span class="nv">navigate: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">event</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">()</span>
+        <span class="nv">link = </span><span class="nx">$</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">currentTarget</span><span class="p">).</span><span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;href&#39;</span><span class="p">)</span>
+        <span class="nx">@router</span><span class="p">.</span><span class="nx">navigate</span> <span class="nx">link</span><span class="p">,</span> <span class="p">{</span> <span class="nv">trigger: </span><span class="kc">true</span><span class="p">,</span> <span class="nv">replace: </span><span class="kc">true</span> <span class="p">}</span> <span class="k">if</span> <span class="nx">@router</span></pre></div>             </td>           </tr>                               <tr id="section-34">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-34">&#182;</a>               </div>               <h2>Explorer Application</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">ExploreHome</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
+      <span class="nv">initialize: </span><span class="o">-&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-35">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-35">&#182;</a>               </div>               <p>Manage some views, default is search</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="vi">@views = </span><span class="p">{}</span>
+        <span class="vi">@editors = </span><span class="p">{}</span>
+        <span class="vi">@results = </span><span class="k">new</span> <span class="nx">SearchResults</span><span class="p">()</span>
+        <span class="vi">@search = </span><span class="k">new</span> <span class="nx">SearchPage</span>
+          <span class="nv">results: </span><span class="nx">@results</span>
+        <span class="nx">@search</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;pagination:change&#39;</span><span class="p">,</span> <span class="nx">@changeSearchPage</span><span class="p">,</span> <span class="err">@</span>
+        <span class="nx">@search</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="nx">@viewAction</span><span class="p">,</span> <span class="err">@</span>
+        <span class="vi">@currentView = </span><span class="nx">@search</span></pre></div>             </td>           </tr>                               <tr id="section-36">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-36">&#182;</a>               </div>               <p>Change views based on router events</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="vi">@router = </span><span class="k">new</span> <span class="nx">ExploreRouter</span>
+          <span class="nv">default: </span><span class="s1">&#39;search/query&#39;</span>
+        <span class="nx">@router</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;route:viewObject&#39;</span><span class="p">,</span> <span class="nx">@viewObject</span>
+        <span class="nx">@router</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;route:editObject&#39;</span><span class="p">,</span> <span class="nx">@editObject</span>
+        <span class="nx">@router</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;route:createObject&#39;</span><span class="p">,</span> <span class="nx">@createObject</span>
+        <span class="nx">@router</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;route:startTrial&#39;</span><span class="p">,</span> <span class="nx">@startTrial</span>
+        <span class="nx">@router</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;route:searchQuery&#39;</span><span class="p">,</span> <span class="nx">@doSearch</span>
+        <span class="nx">@router</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;route:searchTag&#39;</span><span class="p">,</span> <span class="nx">@doTagSearch</span>
+        <span class="err">@</span>
+
+      <span class="nv">render: </span><span class="nf">() -&gt;</span>
+        <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="nx">@currentView</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span> <span class="k">if</span> <span class="nx">@currentView</span>
+        <span class="err">@</span></pre></div>             </td>           </tr>                               <tr id="section-37">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-37">&#182;</a>               </div>               <p>Common events</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">events:</span>
+        <span class="s1">&#39;click .tags .label&#39;</span><span class="o">:</span> <span class="s1">&#39;searchTagClick&#39;</span>
+        <span class="s1">&#39;click .create-experiment&#39;</span><span class="o">:</span> <span class="s1">&#39;createExp&#39;</span>
+        <span class="s1">&#39;click .create-treatment&#39;</span><span class="o">:</span> <span class="s1">&#39;createTreat&#39;</span></pre></div>             </td>           </tr>                               <tr id="section-38">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-38">&#182;</a>               </div>               <p>Common UI event handlers</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">searchTagClick: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">event</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">()</span>
+        <span class="nv">tag = </span><span class="nx">$</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">currentTarget</span><span class="p">).</span><span class="nx">text</span><span class="p">()</span>
+        <span class="nx">@router</span><span class="p">.</span><span class="nx">navTag</span> <span class="nx">tag</span><span class="p">,</span> <span class="mi">1</span>
+
+      <span class="nv">createExp: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">@router</span><span class="p">.</span><span class="nx">navCreateModel</span><span class="p">(</span><span class="s1">&#39;experiment&#39;</span><span class="p">)</span>
+
+      <span class="nv">createTreat: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">@router</span><span class="p">.</span><span class="nx">navCreateModel</span><span class="p">(</span><span class="s1">&#39;treatment&#39;</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-39">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-39">&#182;</a>               </div>               <p>Managing view and view navigation actions</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">changeView: </span><span class="nf">(view) -&gt;</span>
+        <span class="nx">@currentView</span><span class="p">.</span><span class="nx">detach</span><span class="p">(</span><span class="nx">@viewAction</span><span class="p">,</span> <span class="err">@</span><span class="p">)</span> <span class="k">if</span> <span class="nx">@currentView</span><span class="o">?</span>
+        <span class="vi">@currentView = </span><span class="nx">view</span>
+        <span class="nx">@currentView</span><span class="p">.</span><span class="nx">attach</span><span class="p">(</span><span class="nx">@viewAction</span><span class="p">,</span> <span class="err">@</span><span class="p">)</span>
+        <span class="nx">@render</span><span class="p">()</span>
+
+      <span class="nv">viewAction: </span><span class="nf">(action, object, arg) -&gt;</span>
+        <span class="k">if</span> <span class="nx">action</span> <span class="o">is</span> <span class="s1">&#39;nav:edit&#39;</span>
+            <span class="k">if</span> <span class="nx">arg</span> <span class="c1"># arg == direct; if true implies direct view (no URL change)</span>
+               <span class="nv">editor = </span><span class="nx">@createEditView</span> <span class="nx">object</span>
+               <span class="nx">@changeView</span> <span class="nx">editor</span>
+               <span class="nx">@router</span><span class="p">.</span><span class="nx">navEditModel</span> <span class="nx">object</span><span class="p">,</span> <span class="kc">false</span>
             <span class="k">else</span>
-               <span class="nx">@search</span><span class="p">.</span><span class="nx">show</span><span class="p">()</span>
-               <span class="nx">@view</span><span class="p">.</span><span class="nx">hide</span><span class="p">()</span>
-            <span class="err">@</span>
+               <span class="nx">@router</span><span class="p">.</span><span class="nx">navEditModel</span> <span class="nx">object</span>
+        <span class="k">else</span> <span class="k">if</span> <span class="nx">action</span> <span class="o">is</span> <span class="s1">&#39;nav:create&#39;</span>
+            <span class="k">if</span> <span class="nx">arg</span>
+               <span class="nv">editor = </span><span class="nx">@createEditView</span> <span class="nx">object</span>
+               <span class="nx">@changeView</span> <span class="nx">editor</span>
+               <span class="nx">@router</span><span class="p">.</span><span class="nx">navCreateModel</span> <span class="nx">object</span><span class="p">.</span><span class="nx">type</span><span class="p">(),</span> <span class="kc">false</span>
+            <span class="k">else</span>
+               <span class="nx">@router</span><span class="p">.</span><span class="nx">navCreateModel</span> <span class="nx">object</span>
+        <span class="k">else</span> <span class="k">if</span> <span class="nx">action</span> <span class="o">is</span> <span class="s1">&#39;nav:view&#39;</span>
+            <span class="nx">@router</span><span class="p">.</span><span class="nx">navViewModel</span> <span class="nx">object</span>
+        <span class="k">else</span> <span class="k">if</span> <span class="nx">action</span> <span class="o">is</span> <span class="s1">&#39;nav:doView&#39;</span>
+            <span class="nx">@changeView</span> <span class="nx">object</span>
+        <span class="k">else</span> <span class="k">if</span> <span class="nx">action</span> <span class="o">is</span> <span class="s1">&#39;nav:configTrial&#39;</span>
+            <span class="nv">editor = </span><span class="k">new</span> <span class="nx">ConfigureTrialView</span>
+                <span class="nv">model: </span><span class="nx">object</span>
+            <span class="nx">@changeView</span> <span class="nx">editor</span>
+            <span class="nx">@router</span><span class="p">.</span><span class="nx">navCreateModel</span> <span class="s1">&#39;trial&#39;</span><span class="p">,</span> <span class="kc">false</span>
+        <span class="k">else</span> <span class="k">if</span> <span class="nx">action</span> <span class="o">is</span> <span class="s1">&#39;nav:search&#39;</span>
+            <span class="k">if</span> <span class="nx">object</span><span class="o">?</span> <span class="o">and</span> <span class="nx">object</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span>
+               <span class="nx">@router</span><span class="p">.</span><span class="nx">navQuery</span><span class="p">(</span><span class="nx">object</span><span class="p">,</span> <span class="nx">arg</span> <span class="o">or</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span>
+               <span class="nx">@router</span><span class="p">.</span><span class="nx">navQuery</span><span class="p">(</span><span class="kc">null</span><span class="p">)</span>
 
-      <span class="nv">render: </span><span class="o">=&gt;</span>
-            <span class="nx">@$el</span><span class="p">.</span><span class="nx">empty</span><span class="p">()</span>
-            <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="nx">@search</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span>
-            <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="nx">@view</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span>
-            <span class="nx">@search</span><span class="p">.</span><span class="nx">finalize</span><span class="p">()</span>
-            <span class="nx">@view</span><span class="p">.</span><span class="nx">finalize</span><span class="p">()</span>
-            <span class="err">@</span>
+      <span class="nv">changeSearchPage: </span><span class="nf">(page) -&gt;</span>
+        <span class="nx">@viewAction</span> <span class="s1">&#39;nav:search&#39;</span><span class="p">,</span> <span class="nx">@results</span><span class="p">.</span><span class="nx">query</span><span class="p">,</span> <span class="nx">page</span></pre></div>             </td>           </tr>                               <tr id="section-40">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-40">&#182;</a>               </div>               <p>Router View Object Handler</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">viewObject: </span><span class="p">(</span><span class="nx">type</span><span class="p">,</span><span class="nx">id</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="k">if</span> <span class="o">not</span> <span class="nx">@views</span><span class="p">[</span><span class="nx">id</span><span class="p">]</span><span class="o">?</span>
+           <span class="nv">model = </span><span class="nx">Backbone</span><span class="p">.</span><span class="nx">ReferenceCache</span><span class="p">.</span><span class="nx">resolve</span> <span class="nx">type</span><span class="p">,</span> <span class="nx">id</span>
+           <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="nx">model</span>
+           <span class="k">switch</span> <span class="nx">type</span>
+             <span class="k">when</span> <span class="s2">&quot;experiment&quot;</span> <span class="k">then</span> <span class="nv">view = </span><span class="k">new</span> <span class="nx">ExperimentView</span>
+                <span class="nv">model: </span><span class="nx">model</span>
+             <span class="k">when</span> <span class="s2">&quot;treatment&quot;</span> <span class="k">then</span> <span class="nv">view = </span><span class="k">new</span> <span class="nx">TreatmentView</span>
+                <span class="nv">model: </span><span class="nx">model</span>
+             <span class="k">when</span> <span class="s2">&quot;instrument&quot;</span> <span class="k">then</span> <span class="nv">view = </span><span class="k">new</span> <span class="nx">InstrumentView</span>
+                <span class="nv">model: </span><span class="nx">model</span>
+             <span class="k">else</span> <span class="nx">alert</span><span class="p">(</span><span class="s1">&#39;Error: type &#39;</span> <span class="o">+</span> <span class="nx">type</span> <span class="o">+</span> <span class="s1">&#39; not recognized&#39;</span><span class="p">)</span>
+           <span class="nx">@views</span><span class="p">[</span><span class="nx">id</span><span class="p">]</span> <span class="o">=</span> <span class="nx">view</span>
+           <span class="nx">@changeView</span> <span class="nx">@views</span><span class="p">[</span><span class="nx">id</span><span class="p">]</span>
+        <span class="k">else</span>
+           <span class="nx">@changeView</span> <span class="nx">@views</span><span class="p">[</span><span class="nx">id</span><span class="p">]</span></pre></div>             </td>           </tr>                               <tr id="section-41">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-41">&#182;</a>               </div>               <p>Direct and Router-based Editing Views</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">createEditView: </span><span class="nf">(model) -&gt;</span>
+        <span class="k">switch</span> <span class="nx">model</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)</span>
+           <span class="k">when</span> <span class="s2">&quot;experiment&quot;</span> <span class="k">then</span> <span class="nv">view = </span><span class="k">new</span> <span class="nx">ExperimentEdit</span>
+              <span class="nv">model: </span><span class="nx">model</span>
+           <span class="k">when</span> <span class="s2">&quot;instrument&quot;</span> <span class="k">then</span> <span class="nv">view = </span><span class="k">new</span> <span class="nx">InstrumentEdit</span>
+              <span class="nv">model: </span><span class="nx">model</span>
+           <span class="k">when</span> <span class="s2">&quot;treatment&quot;</span> <span class="k">then</span> <span class="nv">view = </span><span class="k">new</span> <span class="nx">TreatmentEdit</span>
+              <span class="nv">model: </span><span class="nx">model</span>
+           <span class="k">else</span> <span class="nx">alert</span><span class="p">(</span><span class="s1">&#39;Error: type &#39;</span> <span class="o">+</span> <span class="nx">model</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; not recognized&#39;</span><span class="p">)</span>
+        <span class="nx">view</span>
+
+      <span class="nv">createObject: </span><span class="p">(</span><span class="nx">type</span><span class="p">,</span> <span class="nx">id</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">@editObject</span> <span class="nx">type</span><span class="p">,</span> <span class="nx">id</span>
+
+      <span class="nv">editObject: </span><span class="p">(</span><span class="nx">type</span><span class="p">,</span> <span class="nx">id</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="k">if</span> <span class="nx">_</span><span class="p">.</span><span class="nx">isObject</span> <span class="nx">type</span>
+           <span class="nv">model = </span><span class="nx">type</span>
+        <span class="k">else</span> <span class="k">if</span> <span class="nx">type</span><span class="o">?</span> <span class="o">and</span> <span class="nx">id</span><span class="o">?</span>
+           <span class="nv">model = </span><span class="nx">Backbone</span><span class="p">.</span><span class="nx">ReferenceCache</span><span class="p">.</span><span class="nx">resolve</span> <span class="nx">type</span><span class="p">,</span> <span class="nx">id</span>
+        <span class="k">else</span> <span class="k">if</span> <span class="nx">type</span><span class="o">?</span>
+           <span class="nv">model = </span><span class="k">new</span> <span class="p">(</span><span class="nx">Backbone</span><span class="p">.</span><span class="nx">ReferenceCache</span><span class="p">.</span><span class="nx">lookupConstructor</span><span class="p">(</span><span class="nx">type</span><span class="p">))</span>
+           <span class="nx">model</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="nx">type</span><span class="p">)</span>
+        <span class="k">else</span>
+           <span class="nx">alert</span> <span class="s1">&#39;Error, cannot edit unless type is provided&#39;</span>
+        <span class="nv">view = </span><span class="nx">@editors</span><span class="p">[</span><span class="nx">type</span><span class="p">]</span>
+        <span class="k">if</span> <span class="o">not</span> <span class="nx">view</span><span class="o">?</span>
+           <span class="nv">view = </span><span class="nx">@createEditView</span><span class="p">(</span><span class="nx">model</span><span class="p">)</span>
+           <span class="nx">@editors</span><span class="p">[</span><span class="nx">type</span><span class="p">]</span> <span class="o">=</span> <span class="nx">view</span>
+           <span class="nx">@changeView</span> <span class="nx">view</span>
+        <span class="k">else</span>
+           <span class="nv">view.model = </span><span class="nx">model</span>
+           <span class="nx">@changeView</span> <span class="nx">view</span>
+
+      <span class="nv">startTrial: </span><span class="p">(</span><span class="nx">id</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">alert</span><span class="p">(</span><span class="s1">&#39;not implemented&#39;</span><span class="p">)</span>
+
+      <span class="nv">doSearch: </span><span class="p">(</span><span class="nx">query</span><span class="p">,</span> <span class="nx">page</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">@results</span><span class="p">.</span><span class="nx">doQuery</span> <span class="nx">query</span> <span class="o">or</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="nx">page</span> <span class="o">or</span> <span class="mi">1</span>
+        <span class="nx">@changeView</span> <span class="nx">@search</span>
+        <span class="err">@</span>
+
+      <span class="nv">doTagSearch: </span><span class="p">(</span><span class="nx">tag</span><span class="p">,</span> <span class="nx">page</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">@results</span><span class="p">.</span><span class="nx">doTagQuery</span> <span class="nx">tag</span> <span class="o">or</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="nx">page</span> <span class="o">or</span> <span class="mi">1</span>
+        <span class="nx">@changeView</span> <span class="nx">@search</span>
+        <span class="err">@</span>
+
+
+    <span class="nx">$</span><span class="p">(</span><span class="nb">document</span><span class="p">).</span><span class="nx">ready</span> <span class="o">-&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-42">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-42">&#182;</a>               </div>               <p>Create the main app body</p>             </td>             <td class="code">               <div class="highlight"><pre>       <span class="nb">window</span><span class="p">.</span><span class="nv">Explore = </span><span class="k">new</span> <span class="nx">ExploreHome</span>
+          <span class="nv">el: </span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#explore&#39;</span><span class="p">)</span>
+
+       <span class="nv">crumbs = </span><span class="k">new</span> <span class="nx">Breadcrumbs</span>
+          <span class="nv">el: </span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#crumbs&#39;</span><span class="p">)</span>
+          <span class="nv">router: </span><span class="nb">window</span><span class="p">.</span><span class="nx">Explore</span><span class="p">.</span><span class="nx">router</span>
+       <span class="nx">crumbs</span><span class="p">.</span><span class="nx">render</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-43">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-43">&#182;</a>               </div>               <p>Initialize navigation, resolve URL</p>             </td>             <td class="code">               <div class="highlight"><pre>       <span class="nx">Backbone</span><span class="p">.</span><span class="nx">history</span><span class="p">.</span><span class="nx">start</span>
+          <span class="nv">root: </span><span class="s1">&#39;/explore/&#39;</span>
+          <span class="nv">pushState: </span><span class="kc">true</span>
+
+       <span class="nb">window</span><span class="p">.</span><span class="nx">Explore</span><span class="p">.</span><span class="nx">render</span><span class="p">()</span>
 
 </pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 

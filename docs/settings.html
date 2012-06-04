@@ -1,97 +1,74 @@
-<!DOCTYPE html>  <html> <head>   <title>settings.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="core.html">                 core.coffee               </a>                                           <a class="source" href="infra.html">                 infra.coffee               </a>                                           <a class="source" href="user.html">                 user.coffee               </a>                                           <a class="source" href="common.html">                 common.coffee               </a>                                           <a class="source" href="dashboard.html">                 dashboard.coffee               </a>                                           <a class="source" href="events.html">                 events.coffee               </a>                                           <a class="source" href="explore.html">                 explore.coffee               </a>                                           <a class="source" href="home.html">                 home.coffee               </a>                                           <a class="source" href="journal.html">                 journal.coffee               </a>                                           <a class="source" href="settings.html">                 settings.coffee               </a>                                           <a class="source" href="social.html">                 social.coffee               </a>                                           <a class="source" href="trial.html">                 trial.coffee               </a>                                           <a class="source" href="widgets.html">                 widgets.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               settings.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p>Account Page and Tabs</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">define</span> <span class="p">[</span><span class="s1">&#39;models/core&#39;</span><span class="p">,</span> <span class="s1">&#39;use!BackboneFormsBS&#39;</span><span class="p">,</span> <span class="s1">&#39;use!BackboneFormsEditors&#39;</span><span class="p">],</span>
-  <span class="nf">(Models) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <h1>Account Settings Definitions</h1>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">accountSchemas =</span>
-     <span class="s1">&#39;personal&#39;</span><span class="o">:</span>
-           <span class="nv">firstname:</span>
-                <span class="nv">title: </span><span class="s2">&quot;First Name&quot;</span>
-           <span class="nv">lastname:</span>
-                <span class="nv">title: </span><span class="s2">&quot;Last Name&quot;</span>
-           <span class="nv">bio:</span>
-                <span class="nv">title: </span><span class="s2">&quot;Bio&quot;</span>
-                <span class="nv">type: </span><span class="s2">&quot;TextArea&quot;</span>
-                <span class="nv">editorAttrs:</span>
-                        <span class="nv">maxlength: </span><span class="mi">256</span>
-                        <span class="nv">rows: </span><span class="mi">4</span>
-                        <span class="nv">style: </span><span class="s2">&quot;resize: none;&quot;</span>
-           <span class="nv">gender:</span>
-                <span class="nv">type: </span><span class="s1">&#39;Select&#39;</span>
-                <span class="nv">options: </span><span class="p">[</span>
-                        <span class="p">{</span>
-                         <span class="nv">val: </span><span class="s1">&#39;female&#39;</span>
-                         <span class="nv">label: </span><span class="s1">&#39;Female&#39;</span>
-                        <span class="p">},</span> <span class="p">{</span>
-                         <span class="nv">val: </span><span class="s1">&#39;male&#39;</span>
-                         <span class="nv">label: </span><span class="s1">&#39;Male&#39;</span>
-                        <span class="p">}</span> <span class="p">]</span>
-           <span class="nv">dob:</span>
-                <span class="nv">title: </span><span class="s2">&quot;Date of Birth&quot;</span>
-                <span class="nv">type: </span><span class="s2">&quot;Date&quot;</span>
-           <span class="nv">email:</span>
-                <span class="nv">title: </span><span class="s2">&quot;Email&quot;</span>
-                <span class="nv">validators: </span><span class="p">[</span><span class="s2">&quot;required&quot;</span><span class="p">,</span> <span class="s2">&quot;email&quot;</span><span class="p">]</span>
-                <span class="nv">dataType: </span><span class="s1">&#39;email&#39;</span>
-           <span class="nv">cell:</span>
-                <span class="nv">title: </span><span class="s2">&quot;Cell Phone&quot;</span>
-                <span class="nv">help: </span><span class="s2">&quot;Used to send SMS messages when requested&quot;</span>
-                <span class="nv">dataType: </span><span class="s1">&#39;phn&#39;</span>
-     <span class="s1">&#39;password&#39;</span><span class="o">:</span>
-           <span class="nv">oldPass:</span>
-                <span class="nv">title: </span><span class="s2">&quot;Old Password&quot;</span>
-                <span class="nv">type: </span><span class="s1">&#39;Password&#39;</span>
-                <span class="nv">validators: </span><span class="p">[</span><span class="s1">&#39;required&#39;</span><span class="p">]</span>
-           <span class="nv">newPass1:</span>
-                <span class="nv">title: </span><span class="s2">&quot;New Password&quot;</span>
-                <span class="nv">type: </span><span class="s1">&#39;Password&#39;</span>
-                <span class="nv">validators: </span><span class="p">[</span><span class="s1">&#39;required&#39;</span><span class="p">]</span>
-           <span class="nv">newPass2:</span>
-                <span class="nv">title: </span><span class="s2">&quot;Confirm Password&quot;</span>
-                <span class="nv">type: </span><span class="s1">&#39;Password&#39;</span>
-                <span class="nv">validators: </span><span class="p">[</span><span class="s1">&#39;required&#39;</span><span class="p">,</span>
+<!DOCTYPE html>  <html> <head>   <title>settings.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="core.html">                 core.coffee               </a>                                           <a class="source" href="infra.html">                 infra.coffee               </a>                                           <a class="source" href="user.html">                 user.coffee               </a>                                           <a class="source" href="common.html">                 common.coffee               </a>                                           <a class="source" href="dashboard.html">                 dashboard.coffee               </a>                                           <a class="source" href="events.html">                 events.coffee               </a>                                           <a class="source" href="explore.html">                 explore.coffee               </a>                                           <a class="source" href="home.html">                 home.coffee               </a>                                           <a class="source" href="journal.html">                 journal.coffee               </a>                                           <a class="source" href="old-explore.html">                 old-explore.coffee               </a>                                           <a class="source" href="scheduling.html">                 scheduling.coffee               </a>                                           <a class="source" href="settings.html">                 settings.coffee               </a>                                           <a class="source" href="social.html">                 social.coffee               </a>                                           <a class="source" href="timeline.html">                 timeline.coffee               </a>                                           <a class="source" href="trial.html">                 trial.coffee               </a>                                           <a class="source" href="widgets.html">                 widgets.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               settings.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p>Account Page and Tabs</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">define</span> <span class="p">[</span><span class="s1">&#39;models/infra&#39;</span><span class="p">,</span> <span class="s1">&#39;models/core&#39;</span><span class="p">,</span> <span class="s1">&#39;views/widgets&#39;</span><span class="p">,</span> <span class="s1">&#39;use!Bootstrap&#39;</span><span class="p">,</span> <span class="s1">&#39;use!BackboneFormsBS&#39;</span><span class="p">,</span> <span class="s1">&#39;use!BackboneFormsEditors&#39;</span><span class="p">],</span>
+  <span class="nf">(Infra, Core, Widgets) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <h2>View for updating User Preferences Submodel</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">PreferencesView</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
+      <span class="nv">id: </span><span class="s2">&quot;preferences&quot;</span>
+      <span class="k">class</span><span class="o">:</span> <span class="s2">&quot;tab-pane&quot;</span>
+      <span class="nv">initialize: </span><span class="nf">() -&gt;</span>
+        <span class="vi">@model = </span><span class="nx">Core</span><span class="p">.</span><span class="nx">theUser</span><span class="p">.</span><span class="nx">preferences</span>
+        <span class="vi">@form = </span><span class="k">new</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Form</span>
+                <span class="nv">model: </span><span class="nx">@model</span>
+
+      <span class="nv">render: </span><span class="p">()</span> <span class="o">=&gt;</span>
+        <span class="nv">heading = </span><span class="s2">&quot;&lt;div class=&#39;page-header&#39;&gt;&lt;h1&gt;Preferences&lt;/h1&gt;&lt;/div&gt;&quot;</span>
+        <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="nx">heading</span>
+        <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="nx">@form</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span>
+        <span class="err">@</span>
+
+      <span class="nv">updateModel: </span><span class="p">()</span> <span class="o">=&gt;</span>
+        <span class="nv">errors = </span><span class="nx">@form</span><span class="p">.</span><span class="nx">commit</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nx">errors</span>
+          <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="nx">errors</span>
+        <span class="k">else</span>
+          <span class="nx">@model</span><span class="p">.</span><span class="nx">save</span><span class="p">()</span>
+
+      <span class="nv">events:</span>
+        <span class="s1">&#39;keyup&#39;</span><span class="o">:</span> <span class="s1">&#39;handleKeyUp&#39;</span>
+        <span class="s1">&#39;change [type=checkbox]&#39;</span><span class="o">:</span> <span class="s1">&#39;handleCheckBox&#39;</span>
+        <span class="s1">&#39;change [type!=checkbox]&#39;</span><span class="o">:</span> <span class="s1">&#39;updateModel&#39;</span>
+
+      <span class="nv">handleKeyUp: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="k">if</span> <span class="o">not</span> <span class="nx">@handleKeyUpAux</span>
+          <span class="vi">@handleKeyUpAux = </span><span class="nx">_</span><span class="p">.</span><span class="nx">debounce</span> <span class="p">()</span> <span class="o">=&gt;</span>
+            <span class="nx">@updateModel</span><span class="p">()</span>
+          <span class="p">,</span> <span class="mi">1000</span>
+        <span class="nx">@handleKeyUpAux</span><span class="p">()</span>
+
+      <span class="nv">handleCheckBox: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">alert</span> <span class="s1">&#39;checkbox&#39;</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <h1>Change Password --</h1>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">schemaPassword =</span>
+      <span class="nv">oldPass:</span>
+        <span class="nv">title: </span><span class="s2">&quot;Old Password&quot;</span>
+        <span class="nv">type: </span><span class="s1">&#39;Password&#39;</span>
+        <span class="nv">validators: </span><span class="p">[</span><span class="s1">&#39;required&#39;</span><span class="p">]</span>
+      <span class="nv">newPass1:</span>
+        <span class="nv">title: </span><span class="s2">&quot;New Password&quot;</span>
+        <span class="nv">type: </span><span class="s1">&#39;Password&#39;</span>
+        <span class="nv">validators: </span><span class="p">[</span><span class="s1">&#39;required&#39;</span><span class="p">]</span>
+      <span class="nv">newPass2:</span>
+        <span class="nv">title: </span><span class="s2">&quot;Confirm Password&quot;</span>
+        <span class="nv">type: </span><span class="s1">&#39;Password&#39;</span>
+        <span class="nv">validators: </span><span class="p">[</span><span class="s1">&#39;required&#39;</span><span class="p">,</span>
                      <span class="nv">type: </span><span class="s1">&#39;match&#39;</span>
                      <span class="nv">field: </span><span class="s1">&#39;newPass1&#39;</span>
                      <span class="nv">message: </span><span class="s1">&#39;Passwords must match&#39;</span>
-                <span class="p">]</span>
+                    <span class="p">]</span>
 
-    <span class="nv">accountFieldsets =</span>
-      <span class="s1">&#39;personal&#39;</span><span class="o">:</span>
-        <span class="p">[{</span>
-              <span class="nv">legend: </span><span class="s1">&#39;Personal&#39;</span>
-              <span class="nv">fields: </span><span class="p">[</span><span class="s1">&#39;firstname&#39;</span><span class="p">,</span> <span class="s1">&#39;lastname&#39;</span><span class="p">,</span> <span class="s1">&#39;bio&#39;</span><span class="p">,</span> <span class="s1">&#39;gender&#39;</span><span class="p">,</span> <span class="s1">&#39;dob&#39;</span><span class="p">,</span> <span class="s1">&#39;email&#39;</span><span class="p">]</span>
-        <span class="p">},</span> <span class="p">{</span>
-              <span class="nv">legend: </span><span class="s1">&#39;Services&#39;</span>
-              <span class="nv">fields: </span><span class="p">[</span><span class="s1">&#39;cell&#39;</span><span class="p">]</span>
-        <span class="p">}]</span>
-
-    <span class="nv">accountTitles =</span>
-      <span class="s1">&#39;personal&#39;</span><span class="o">:</span> <span class="s2">&quot;Personal Preferences&quot;</span>
-      <span class="s1">&#39;password&#39;</span><span class="o">:</span> <span class="s2">&quot;Change Password&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <h1>Generic Settings View</h1>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">AccountView</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
-      <span class="nv">initialize: </span><span class="nf">() -&gt;</span>
-        <span class="vi">@pane = </span><span class="nx">@options</span><span class="p">.</span><span class="nx">pane</span>
+    <span class="k">class</span> <span class="nx">ChangePasswordView</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
+      <span class="nv">id: </span><span class="s2">&quot;password&quot;</span>
+      <span class="nv">className: </span><span class="s2">&quot;tab-pane&quot;</span>
+      <span class="nv">initialize: </span><span class="o">-&gt;</span>
         <span class="vi">@form = </span><span class="k">new</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Form</span>
-                <span class="nv">schema: </span><span class="nx">accountSchemas</span><span class="p">[</span><span class="nx">@pane</span><span class="p">]</span>
-                <span class="nv">fieldsets: </span><span class="nx">accountFieldsets</span><span class="p">[</span><span class="nx">@pane</span><span class="p">]</span>
-                <span class="nv">data: </span><span class="nx">@options</span><span class="p">.</span><span class="nx">data</span> <span class="o">or</span> <span class="p">{}</span>
+                  <span class="nv">schema: </span><span class="nx">schemaPassword</span>
+                  <span class="nv">data: </span><span class="p">{}</span>
+        <span class="err">@</span>
 
-      <span class="nv">render: </span><span class="p">()</span> <span class="o">=&gt;</span>
-        <span class="nv">heading = </span><span class="s1">&#39;&lt;h1&gt;&#39;</span> <span class="o">+</span> <span class="nx">accountTitles</span><span class="p">[</span><span class="nx">@pane</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;&lt;/h1&gt;&#39;</span>
-        <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="nx">heading</span>
+      <span class="nv">render: </span><span class="o">-&gt;</span>
+        <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="s2">&quot;&lt;div class=&#39;page-header&#39;&gt;&lt;h1&gt;Change Password&lt;/h1&gt;&lt;/div&gt;&quot;</span>
         <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="nx">@form</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span>
-        <span class="k">if</span> <span class="nx">@pane</span> <span class="o">is</span> <span class="s1">&#39;password&#39;</span>
-           <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="s2">&quot;&lt;button class=&#39;btn pwcommit&#39;&gt;Update&lt;/button&gt;&quot;</span>
-        <span class="nx">@delegateEvents</span><span class="p">()</span>
+        <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="s2">&quot;&lt;button class=&#39;btn pwcommit&#39;&gt;Update&lt;/button&gt;&quot;</span>
         <span class="err">@</span>
 
       <span class="nv">events:</span>
-        <span class="s1">&#39;change [type=checkbox]&#39;</span><span class="o">:</span> <span class="s1">&#39;handleCheckBox&#39;</span>
-        <span class="s1">&#39;keyup input&#39;</span><span class="o">:</span> <span class="s1">&#39;handleKeyup&#39;</span>
-        <span class="s1">&#39;focus input&#39;</span><span class="o">:</span> <span class="s1">&#39;handleFocus&#39;</span>
         <span class="s1">&#39;click .pwcommit&#39;</span><span class="o">:</span> <span class="s1">&#39;handlePasswordUpdate&#39;</span>
-
-      <span class="nv">handleCheckBox: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
-        <span class="nx">alert</span> <span class="s1">&#39;checkbox&#39;</span>
-
-      <span class="nv">handleChange: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
-        <span class="k">if</span> <span class="o">not</span> <span class="nx">@form</span><span class="p">.</span><span class="nx">validate</span><span class="p">()</span>
-           <span class="nx">@updateUser</span> <span class="nx">@form</span><span class="p">.</span><span class="nx">getValue</span><span class="p">()</span>
+        <span class="s1">&#39;keyup input&#39;</span><span class="o">:</span> <span class="s1">&#39;handleKeyup&#39;</span>
 
       <span class="nv">handleKeyup: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
         <span class="k">if</span> <span class="nx">event</span><span class="p">.</span><span class="nx">which</span> <span class="o">==</span> <span class="mi">13</span>
@@ -127,27 +104,141 @@
       <span class="nv">passwordValidateError: </span><span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="nx">status</span><span class="p">,</span> <span class="nx">error</span><span class="p">)</span> <span class="o">=&gt;</span>
         <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="nx">data</span>
         <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="nx">status</span>
-        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="nx">error</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="nx">error</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <h2># Services View</h2>
 
-      <span class="nv">handleFocus: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
+<p>Provide a view for adding/removing service configurations,
+sort of like Mint.com's accounts page</p>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <h2>Service Sub-view</h2>
 
-      <span class="nv">updateUser: </span><span class="nf">(values) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <h1>Account Page Setup</h1>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">renderSettings = </span><span class="nf">(pane) -&gt;</span>
-      <span class="nv">view = </span><span class="k">new</span> <span class="nx">AccountView</span>
-                <span class="nv">el: </span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.accountSettings&#39;</span><span class="p">)</span>
-                <span class="nv">pane: </span><span class="nx">pane</span>
-                <span class="nv">data: </span><span class="p">{}</span>
-      <span class="nx">view</span><span class="p">.</span><span class="nx">render</span><span class="p">()</span>
+<p>Takes a configuration option (from the registry)
+Generates a form from it</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">ServiceView</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
+      <span class="nv">className: </span><span class="s2">&quot;service-view&quot;</span>
+      <span class="nv">initialize: </span><span class="nf">(options) -&gt;</span>
+        <span class="vi">@rendered = </span><span class="kc">false</span>
+        <span class="vi">@config = </span><span class="nx">options</span><span class="p">.</span><span class="nx">config</span>
+        <span class="k">if</span> <span class="nx">@config</span><span class="o">?</span> <span class="o">and</span> <span class="nx">@config</span><span class="p">.</span><span class="nx">oauth</span><span class="o">?</span> <span class="o">and</span> <span class="nx">@config</span><span class="p">.</span><span class="nx">oauth</span>
+           <span class="vi">@template = </span><span class="nx">Infra</span><span class="p">.</span><span class="nx">templateLoader</span><span class="p">.</span><span class="nx">getTemplate</span> <span class="s2">&quot;service-oauth-template&quot;</span>
+        <span class="k">else</span>
+           <span class="vi">@template = </span><span class="nx">Infra</span><span class="p">.</span><span class="nx">templateLoader</span><span class="p">.</span><span class="nx">getTemplate</span> <span class="s2">&quot;service-template&quot;</span>
+           <span class="vi">@form = </span><span class="k">new</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Form</span>
+             <span class="nv">model: </span><span class="nx">@model</span>
+             <span class="nv">schema: </span><span class="nx">@config</span><span class="p">.</span><span class="nx">schema</span>
+             <span class="nv">fields: </span><span class="nx">@config</span><span class="p">.</span><span class="nx">fields</span>
+        <span class="err">@</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Rendering the View</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">render: </span><span class="o">-&gt;</span>
+        <span class="k">if</span> <span class="o">not</span> <span class="nx">@rendered</span>
+          <span class="k">if</span> <span class="nx">@config</span><span class="o">?</span> <span class="o">and</span> <span class="nx">@config</span><span class="p">.</span><span class="nx">oauth</span><span class="o">?</span>
+             <span class="nx">@renderOauth</span><span class="p">()</span>
+          <span class="k">else</span>
+             <span class="nx">@renderForm</span><span class="p">()</span>
+        <span class="vi">@rendered = </span><span class="kc">true</span>
+        <span class="err">@</span>
 
-    <span class="nv">renderServices = </span><span class="nf">() -&gt;</span>
-      <span class="nv">view = </span><span class="k">new</span> <span class="nx">ServicesView</span>
-                <span class="nv">el: </span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#services&#39;</span><span class="p">)</span>
-                <span class="nv">data: </span><span class="p">{}</span>
-      <span class="nx">view</span><span class="p">.</span><span class="nx">render</span><span class="p">()</span>
+      <span class="nv">renderOauth: </span><span class="o">-&gt;</span>
+        <span class="nv">data = </span><span class="nx">@model</span><span class="p">.</span><span class="nx">toJSON</span><span class="p">()</span>
+        <span class="nv">data.config = </span><span class="nx">@config</span>
+        <span class="nx">@$el</span><span class="p">.</span><span class="nx">html</span> <span class="nx">@template</span> <span class="nx">data</span>
+        <span class="err">@</span>
 
-    <span class="nx">$</span><span class="p">(</span><span class="nb">document</span><span class="p">).</span><span class="nx">ready</span> <span class="o">-&gt;</span>
-        <span class="k">if</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.accountSettings&#39;</span><span class="p">)</span>
-           <span class="nx">renderSettings</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.accountSettings&#39;</span><span class="p">).</span><span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.serviceSettings&#39;</span><span class="p">)</span>
-           <span class="nx">renderServices</span>
+      <span class="nv">renderForm: </span><span class="o">-&gt;</span>
+        <span class="nv">data = </span><span class="nx">@model</span><span class="p">.</span><span class="nx">toJSON</span><span class="p">()</span>
+        <span class="nv">data.config = </span><span class="nx">@config</span>
+        <span class="nx">@$el</span><span class="p">.</span><span class="nx">html</span> <span class="nx">@template</span> <span class="nx">data</span>
+        <span class="nx">@$</span><span class="p">(</span><span class="s1">&#39;.svcform&#39;</span><span class="p">).</span><span class="nx">append</span> <span class="nx">@form</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span>
+        <span class="err">@</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>Handling UI Events</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">events:</span>
+        <span class="s1">&#39;keyup input[type=text]&#39;</span><span class="o">:</span> <span class="s1">&#39;handleKey&#39;</span>
+        <span class="s1">&#39;keyup input[type=password]&#39;</span><span class="o">:</span> <span class="s1">&#39;handleKey&#39;</span>
+        <span class="s1">&#39;change input&#39;</span><span class="o">:</span> <span class="s1">&#39;update&#39;</span>
+
+      <span class="nv">handleKey: </span><span class="o">=&gt;</span>
+        <span class="k">if</span> <span class="o">not</span> <span class="nx">@handleKeyAux</span>
+           <span class="vi">@handleKeyAux = </span><span class="nx">_</span><span class="p">.</span><span class="nx">debounce</span> <span class="nx">@update</span><span class="p">,</span> <span class="mi">1000</span>
+        <span class="nx">@handleKeyAux</span><span class="p">()</span>
+
+      <span class="nv">update: </span><span class="o">=&gt;</span>
+        <span class="nv">error = </span><span class="nx">@form</span><span class="p">.</span><span class="nx">commit</span><span class="p">()</span>
+        <span class="k">if</span> <span class="o">not</span> <span class="nx">error</span>
+           <span class="nx">@model</span><span class="p">.</span><span class="nx">save</span> <span class="p">{},</span> <span class="p">{</span><span class="nv">silent: </span><span class="kc">true</span><span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <h2>Service submodel containers</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">ServicesView</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
+      <span class="nv">id: </span><span class="s2">&quot;services&quot;</span>
+      <span class="nv">className: </span><span class="s2">&quot;tab-pane&quot;</span>
+      <span class="nv">initialize: </span><span class="nf">(options) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <p>Registry is 'tag: {schema:, fields:, ...}' (move to model?)</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="vi">@registry = </span><span class="nx">$</span><span class="p">.</span><span class="nx">parseJSON</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#services-registry&#39;</span><span class="p">).</span><span class="nx">html</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nx">_</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span><span class="nx">@registry</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span>
+          <span class="nx">alert</span> <span class="s1">&#39;Registry was not rendered for ServicesView&#39;</span>
+        <span class="k">else</span>
+          <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="nx">@registry</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <p>Manage our subviews</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="vi">@views = </span><span class="p">[]</span>
+        <span class="nx">@collection</span><span class="p">.</span><span class="nx">each</span> <span class="nx">@addSubView</span><span class="p">,</span> <span class="err">@</span></pre></div>             </td>           </tr>                               <tr id="section-11">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-11">&#182;</a>               </div>               <p>Template for header dropdown and body entries</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="vi">@template = </span><span class="nx">Infra</span><span class="p">.</span><span class="nx">templateLoader</span><span class="p">.</span><span class="nx">getTemplate</span> <span class="s2">&quot;services-header-template&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-12">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-12">&#182;</a>               </div>               <p>Compute the list of possible new services</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nx">@computeServiceList</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-13">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-13">&#182;</a>               </div>               <p>In case services change in the background</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nx">@collection</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;add remove&#39;</span><span class="p">,</span> <span class="o">-&gt;</span>
+           <span class="nx">@render</span><span class="p">()</span>
+        <span class="p">,</span> <span class="err">@</span>
+        <span class="err">@</span>
+
+      <span class="nv">addSubView: </span><span class="nf">(model) -&gt;</span>
+        <span class="nv">config = </span><span class="nx">@registry</span><span class="p">[</span><span class="nx">model</span><span class="p">.</span><span class="nx">id</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nx">config</span><span class="o">?</span>
+          <span class="nv">view = </span><span class="k">new</span> <span class="nx">ServiceView</span>
+            <span class="nv">model: </span><span class="nx">model</span>
+            <span class="nv">config: </span><span class="nx">@registry</span><span class="p">[</span><span class="nx">model</span><span class="p">.</span><span class="nx">id</span><span class="p">]</span>
+          <span class="vi">@views = </span><span class="p">[</span><span class="nx">view</span><span class="p">].</span><span class="nx">concat</span> <span class="nx">@views</span></pre></div>             </td>           </tr>                               <tr id="section-14">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-14">&#182;</a>               </div>               <p>NOTE: Move to services model</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">computeServiceList: </span><span class="nf">() -&gt;</span>
+        <span class="nv">records = </span><span class="nx">_</span><span class="p">.</span><span class="nx">clone</span> <span class="nx">@registry</span></pre></div>             </td>           </tr>                               <tr id="section-15">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-15">&#182;</a>               </div>               <p>Make the tag available to config consumers</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nx">_</span><span class="p">.</span><span class="nx">each</span> <span class="nx">records</span><span class="p">,</span> <span class="nf">(record, tag) -&gt;</span>
+          <span class="nv">record.tag = </span><span class="nx">tag</span></pre></div>             </td>           </tr>                               <tr id="section-16">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-16">&#182;</a>               </div>               <p>Remove those configs already registered</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nx">@collection</span><span class="p">.</span><span class="nx">each</span> <span class="nf">(model) -&gt;</span>
+          <span class="k">delete</span> <span class="nx">records</span><span class="p">[</span><span class="nx">model</span><span class="p">.</span><span class="nx">id</span><span class="p">]</span></pre></div>             </td>           </tr>                               <tr id="section-17">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-17">&#182;</a>               </div>               <p>Records not configured</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nv">options = </span><span class="nx">_</span><span class="p">.</span><span class="nx">values</span><span class="p">(</span><span class="nx">records</span><span class="p">)</span>
+        <span class="vi">@serviceList = </span><span class="nx">options</span>
+
+      <span class="nv">events:</span>
+        <span class="s1">&#39;click .new&#39;</span><span class="o">:</span> <span class="s1">&#39;newService&#39;</span>
+        <span class="s1">&#39;click .del&#39;</span><span class="o">:</span> <span class="s1">&#39;delService&#39;</span>
+
+      <span class="nv">newService: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-18">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-18">&#182;</a>               </div>               <p>What view?</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nx">event</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">()</span>
+        <span class="nv">tag = </span><span class="nx">$</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">currentTarget</span><span class="p">).</span><span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;href&#39;</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-19">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-19">&#182;</a>               </div>               <p>Create and add the view</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nv">model = </span><span class="nx">@collection</span><span class="p">.</span><span class="nx">create</span>
+          <span class="nv">id: </span><span class="nx">tag</span>
+          <span class="nv">type: </span><span class="s2">&quot;service&quot;</span>
+        <span class="nx">@collection</span><span class="p">.</span><span class="nx">add</span> <span class="nx">model</span> <span class="k">if</span> <span class="nx">model</span>
+        <span class="nx">@addSubView</span> <span class="nx">model</span></pre></div>             </td>           </tr>                               <tr id="section-20">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-20">&#182;</a>               </div>               <p>Update page</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nx">@render</span><span class="p">()</span>
+
+      <span class="nv">delService: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-21">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-21">&#182;</a>               </div>               <p>Get the view/model</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nx">event</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">()</span>
+        <span class="nv">tag = </span><span class="nx">$</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">currentTarget</span><span class="p">).</span><span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;data-tag&#39;</span><span class="p">)</span>
+        <span class="nv">view = </span><span class="nx">_</span><span class="p">.</span><span class="nx">find</span> <span class="nx">@views</span><span class="p">,</span> <span class="nf">(view) -&gt;</span>
+           <span class="nx">view</span><span class="p">.</span><span class="nx">config</span><span class="p">.</span><span class="nx">tag</span> <span class="o">is</span> <span class="nx">tag</span></pre></div>             </td>           </tr>                               <tr id="section-22">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-22">&#182;</a>               </div>               <p>Remove view</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="vi">@views = </span><span class="nx">_</span><span class="p">.</span><span class="nx">without</span> <span class="nx">@views</span><span class="p">,</span> <span class="nx">view</span>
+        <span class="nx">view</span><span class="p">.</span><span class="nx">model</span><span class="p">.</span><span class="nx">destroy</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-23">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-23">&#182;</a>               </div>               <p>Update page</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nx">@render</span><span class="p">()</span>
+
+      <span class="nv">render: </span><span class="o">-&gt;</span>
+        <span class="nx">@computeServiceList</span><span class="p">()</span>
+        <span class="nx">@$el</span><span class="p">.</span><span class="nx">html</span> <span class="nx">@template</span>
+          <span class="nv">services: </span><span class="nx">@serviceList</span>
+        <span class="nx">_</span><span class="p">.</span><span class="nx">each</span> <span class="nx">@views</span><span class="p">,</span> <span class="p">(</span><span class="nx">view</span><span class="p">)</span> <span class="o">=&gt;</span>
+          <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="nx">view</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span>
+        <span class="p">,</span> <span class="err">@</span>
+        <span class="err">@</span></pre></div>             </td>           </tr>                               <tr id="section-24">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-24">&#182;</a>               </div>               <h2>Page Application Harness</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">SettingsRouter</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Router</span>
+      <span class="nv">initialize: </span><span class="nf">(options = {}) -&gt;</span>
+          <span class="vi">@default = </span><span class="nx">options</span><span class="p">.</span><span class="nx">default</span>
+          <span class="err">@</span>
+
+      <span class="nv">routes:</span>
+          <span class="s1">&#39;:tab/*path&#39;</span><span class="o">:</span> <span class="s1">&#39;selectTab&#39;</span>
+          <span class="s1">&#39;:tab&#39;</span><span class="o">:</span> <span class="s1">&#39;selectTab&#39;</span>
+
+    <span class="k">class</span> <span class="nx">Settings</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span>
+      <span class="nv">className: </span><span class="s2">&quot;tab-content&quot;</span>
+      <span class="nv">initialize: </span><span class="o">-&gt;</span>
+        <span class="vi">@router = </span><span class="k">new</span> <span class="nx">SettingsRouter</span><span class="p">()</span>
+        <span class="vi">@navbar = </span><span class="k">new</span> <span class="nx">Widgets</span><span class="p">.</span><span class="nx">NavBar</span>
+          <span class="nv">el: </span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.subnav-fixed-top&#39;</span><span class="p">)</span>
+          <span class="nv">router: </span><span class="nx">@router</span>
+
+        <span class="vi">@views = </span><span class="p">{}</span>
+        <span class="vi">@views.preferences = </span><span class="k">new</span> <span class="nx">PreferencesView</span><span class="p">()</span>
+        <span class="vi">@views.password = </span><span class="k">new</span> <span class="nx">ChangePasswordView</span><span class="p">()</span>
+        <span class="vi">@views.services = </span><span class="k">new</span> <span class="nx">ServicesView</span>
+          <span class="nv">collection: </span><span class="nx">Core</span><span class="p">.</span><span class="nx">theUser</span><span class="p">.</span><span class="nx">services</span>
+        <span class="err">@</span>
+
+      <span class="nv">render: </span><span class="o">-&gt;</span>
+        <span class="nx">_</span><span class="p">.</span><span class="nx">each</span> <span class="nx">@views</span><span class="p">,</span> <span class="nf">(view) -&gt;</span>
+          <span class="nx">@$el</span><span class="p">.</span><span class="nx">append</span> <span class="nx">view</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span>
+        <span class="p">,</span> <span class="err">@</span>
+        <span class="err">@</span></pre></div>             </td>           </tr>                               <tr id="section-25">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-25">&#182;</a>               </div>               <h1>Start Settings Page App</h1>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">$</span><span class="p">(</span><span class="nb">document</span><span class="p">).</span><span class="nx">ready</span> <span class="o">-&gt;</span>
+      <span class="nv">settings = </span><span class="k">new</span> <span class="nx">Settings</span><span class="p">()</span>
+      <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;div#main&#39;</span><span class="p">).</span><span class="nx">append</span> <span class="nx">settings</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span>
+
+      <span class="nx">Backbone</span><span class="p">.</span><span class="nx">history</span><span class="p">.</span><span class="nx">start</span>
+        <span class="nv">root: </span><span class="s1">&#39;/account/&#39;</span>
+        <span class="nv">pushState: </span><span class="kc">true</span>
 
 </pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 

@@ -1,73 +1,213 @@
-<!DOCTYPE html>  <html> <head>   <title>core.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="core.html">                 core.coffee               </a>                                           <a class="source" href="infra.html">                 infra.coffee               </a>                                           <a class="source" href="user.html">                 user.coffee               </a>                                           <a class="source" href="common.html">                 common.coffee               </a>                                           <a class="source" href="dashboard.html">                 dashboard.coffee               </a>                                           <a class="source" href="events.html">                 events.coffee               </a>                                           <a class="source" href="explore.html">                 explore.coffee               </a>                                           <a class="source" href="home.html">                 home.coffee               </a>                                           <a class="source" href="journal.html">                 journal.coffee               </a>                                           <a class="source" href="settings.html">                 settings.coffee               </a>                                           <a class="source" href="social.html">                 social.coffee               </a>                                           <a class="source" href="trial.html">                 trial.coffee               </a>                                           <a class="source" href="widgets.html">                 widgets.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               core.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <h2>Core Models for PersonalExperiments.org</h2>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>This modules defines all of the Personal Experiment
+<!DOCTYPE html>  <html> <head>   <title>core.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="core.html">                 core.coffee               </a>                                           <a class="source" href="infra.html">                 infra.coffee               </a>                                           <a class="source" href="user.html">                 user.coffee               </a>                                           <a class="source" href="common.html">                 common.coffee               </a>                                           <a class="source" href="dashboard.html">                 dashboard.coffee               </a>                                           <a class="source" href="events.html">                 events.coffee               </a>                                           <a class="source" href="explore.html">                 explore.coffee               </a>                                           <a class="source" href="home.html">                 home.coffee               </a>                                           <a class="source" href="journal.html">                 journal.coffee               </a>                                           <a class="source" href="old-explore.html">                 old-explore.coffee               </a>                                           <a class="source" href="scheduling.html">                 scheduling.coffee               </a>                                           <a class="source" href="settings.html">                 settings.coffee               </a>                                           <a class="source" href="social.html">                 social.coffee               </a>                                           <a class="source" href="timeline.html">                 timeline.coffee               </a>                                           <a class="source" href="trial.html">                 trial.coffee               </a>                                           <a class="source" href="widgets.html">                 widgets.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               core.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <h2>Core Models for PersonalExperiments.org</h2>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>This modules defines all of the Personal Experiment
 domain models and appropriate convenience methods.
-Returns a map of Model constructors</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">define</span> <span class="p">[</span><span class="s1">&#39;jquery&#39;</span><span class="p">,</span> <span class="s1">&#39;use!Backbone&#39;</span><span class="p">,</span> <span class="s1">&#39;models/infra&#39;</span><span class="p">],</span>
-  <span class="nf">($, Backbone, Common) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <h2>Treatments</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">Treatment</span> <span class="k">extends</span> <span class="nx">Common</span><span class="p">.</span><span class="nx">Model</span>
+Returns a map of Model constructors</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">define</span> <span class="p">[</span><span class="s1">&#39;jquery&#39;</span><span class="p">,</span> <span class="s1">&#39;use!Backbone&#39;</span><span class="p">,</span> <span class="s1">&#39;models/infra&#39;</span><span class="p">,</span> <span class="s1">&#39;models/user&#39;</span><span class="p">],</span>
+  <span class="nf">($, Backbone, Infra, UserSub) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <h2>Comments</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">Comment</span> <span class="k">extends</span> <span class="nx">Infra</span><span class="p">.</span><span class="nx">Model</span>
+      <span class="nv">serverType: </span><span class="s1">&#39;comment&#39;</span>
+
+    <span class="k">class</span> <span class="nx">Comments</span> <span class="k">extends</span> <span class="nx">Infra</span><span class="p">.</span><span class="nx">Collection</span>
+      <span class="nv">model: </span><span class="nx">Comment</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <h2>Treatments</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">Treatment</span> <span class="k">extends</span> <span class="nx">Infra</span><span class="p">.</span><span class="nx">Model</span>
+      <span class="nx">@implements</span> <span class="nx">Infra</span><span class="p">.</span><span class="nx">Taggable</span>
       <span class="nv">serverType: </span><span class="s1">&#39;treatment&#39;</span>
       <span class="nv">defaults:</span>
         <span class="s1">&#39;tags&#39;</span><span class="o">:</span> <span class="p">[]</span>
         <span class="s1">&#39;comments&#39;</span><span class="o">:</span> <span class="p">[]</span>
 
-    <span class="k">class</span> <span class="nx">Treatments</span> <span class="k">extends</span> <span class="nx">Common</span><span class="p">.</span><span class="nx">Collection</span>
-      <span class="nv">model: </span><span class="nx">Treatment</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <h2>Instruments</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">Instrument</span> <span class="k">extends</span> <span class="nx">Common</span><span class="p">.</span><span class="nx">Model</span>
+      <span class="nv">name: </span><span class="o">-&gt;</span>
+        <span class="nx">@get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
+
+      <span class="nv">cloneModel: </span><span class="o">-&gt;</span>
+        <span class="nv">clone = </span><span class="nx">@clone</span><span class="p">()</span>
+        <span class="nx">_</span><span class="p">.</span><span class="nx">map</span> <span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;help&#39;</span><span class="p">,</span> <span class="s1">&#39;comments&#39;</span><span class="p">,</span> <span class="s1">&#39;votes&#39;</span><span class="p">,</span> <span class="s1">&#39;warnings&#39;</span><span class="p">,</span> <span class="s1">&#39;tags&#39;</span><span class="p">],</span> <span class="nf">(slot) -&gt;</span>
+          <span class="nx">clone</span><span class="p">.</span><span class="nx">unset</span> <span class="nx">slot</span>
+        <span class="nx">clone</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="nx">clone</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; (clone)&#39;</span><span class="p">)</span>
+        <span class="nx">clone</span>
+
+      <span class="nv">schema:</span>
+        <span class="nv">name:</span>
+          <span class="nv">type: </span><span class="s1">&#39;Text&#39;</span>
+          <span class="nv">title: </span><span class="s1">&#39;Title&#39;</span>
+          <span class="nv">editorClass: </span><span class="s1">&#39;input-xlarge&#39;</span>
+        <span class="nv">description:</span>
+          <span class="nv">type: </span><span class="s1">&#39;TextArea&#39;</span>
+          <span class="nv">editorClass: </span><span class="s1">&#39;input-xxlarge&#39;</span>
+          <span class="nv">editorAttrs:</span>
+            <span class="nv">rows: </span><span class="s1">&#39;8&#39;</span>
+        <span class="nv">reminder:</span>
+          <span class="nv">type: </span><span class="s1">&#39;Text&#39;</span>
+          <span class="nv">title: </span><span class="s1">&#39;Text for Reminders&#39;</span>
+          <span class="nv">editorClass: </span><span class="s1">&#39;input-xxlarge&#39;</span>
+        <span class="nv">dynamics:</span>
+          <span class="nv">type: </span><span class="s1">&#39;Object&#39;</span>
+          <span class="nv">title: </span><span class="s1">&#39;Treatment Impact&#39;</span>
+          <span class="nv">subSchema:</span>
+            <span class="nv">onset:</span>
+              <span class="nv">type: </span><span class="s1">&#39;Number&#39;</span>
+              <span class="nv">title: </span><span class="s1">&#39;Onset period&#39;</span>
+              <span class="nv">help: </span><span class="s1">&#39;How many days from the start of the treatment until you see an effect?&#39;</span>
+            <span class="nv">washout:</span>
+              <span class="nv">type: </span><span class="s1">&#39;Number&#39;</span>
+              <span class="nv">title: </span><span class="s1">&#39;Washout period&#39;</span>
+              <span class="nv">help: </span><span class="s1">&#39;How many days after you stop treatment before you return to &quot;normal&quot;?&#39;</span>
+
+    <span class="k">class</span> <span class="nx">Treatments</span> <span class="k">extends</span> <span class="nx">Infra</span><span class="p">.</span><span class="nx">Collection</span>
+      <span class="nv">model: </span><span class="nx">Treatment</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <h2>Instruments</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">Instrument</span> <span class="k">extends</span> <span class="nx">Infra</span><span class="p">.</span><span class="nx">Model</span>
+      <span class="nx">@implements</span> <span class="nx">Infra</span><span class="p">.</span><span class="nx">Taggable</span>
       <span class="nv">serverType: </span><span class="s1">&#39;instrument&#39;</span>
 
-    <span class="k">class</span> <span class="nx">Instruments</span> <span class="k">extends</span> <span class="nx">Common</span><span class="p">.</span><span class="nx">Collection</span>
-      <span class="nv">model: </span><span class="nx">Instrument</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <h2>Experiments</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">Experiment</span> <span class="k">extends</span> <span class="nx">Common</span><span class="p">.</span><span class="nx">Model</span>
+      <span class="nv">name: </span><span class="o">-&gt;</span>
+        <span class="nx">@get</span><span class="p">(</span><span class="s1">&#39;variable&#39;</span><span class="p">)</span>
+
+      <span class="nv">title: </span><span class="o">-&gt;</span>
+        <span class="nx">@get</span><span class="p">(</span><span class="s1">&#39;variable&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; -- &quot;</span> <span class="o">+</span> <span class="nx">@get</span><span class="p">(</span><span class="s1">&#39;service&#39;</span><span class="p">)</span>
+
+      <span class="nv">track: </span><span class="nf">(schedule) -&gt;</span>
+        <span class="k">if</span> <span class="nx">schedule</span><span class="o">?</span>
+          <span class="nv">schedule.event = </span><span class="nx">@get</span><span class="p">(</span><span class="s1">&#39;event&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="nx">@get</span><span class="p">(</span><span class="s1">&#39;event&#39;</span><span class="p">)</span><span class="o">?</span>
+          <span class="nv">schedule.event.type = </span><span class="s1">&#39;event&#39;</span>
+          <span class="nv">schedule.event.wait = </span><span class="kc">true</span>
+          <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="nx">schedule</span>
+
+        <span class="nv">tracker = </span><span class="nx">theUser</span><span class="p">.</span><span class="nx">trackers</span><span class="p">.</span><span class="nx">create</span>
+          <span class="nv">type: </span><span class="s2">&quot;tracker&quot;</span>
+          <span class="nv">user: </span><span class="nx">theUser</span><span class="p">.</span><span class="nx">asReference</span><span class="p">()</span>
+          <span class="nv">instrument: </span><span class="nx">@asReference</span><span class="p">()</span>
+          <span class="nv">schedule: </span><span class="nx">schedule</span>
+        <span class="nx">@set</span> <span class="s1">&#39;tracked&#39;</span><span class="p">,</span> <span class="kc">true</span>
+
+      <span class="nv">untrack: </span><span class="o">-&gt;</span>
+        <span class="nv">tracker = </span><span class="nx">theUser</span><span class="p">.</span><span class="nx">trackers</span><span class="p">.</span><span class="nx">find</span> <span class="nf">(tracker) -&gt;</span>
+            <span class="nx">tracker</span><span class="p">.</span><span class="nx">instrument</span><span class="p">.</span><span class="nx">id</span> <span class="o">is</span> <span class="nx">@id</span>
+        <span class="p">,</span> <span class="err">@</span>
+        <span class="k">if</span> <span class="nx">tracker</span><span class="o">?</span>
+          <span class="nx">tracker</span><span class="p">.</span><span class="nx">destroy</span><span class="p">()</span>
+          <span class="nx">@set</span><span class="p">(</span><span class="s1">&#39;tracked&#39;</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span>
+        <span class="k">else</span>
+          <span class="nx">alert</span> <span class="s1">&#39;Unable to untrack this tracker - contact the admin&#39;</span>
+
+      <span class="nv">schema:</span>
+        <span class="nv">variable:</span>
+          <span class="nv">type: </span><span class="s1">&#39;Text&#39;</span>
+          <span class="nv">title: </span><span class="s1">&#39;Variable Name&#39;</span>
+          <span class="nv">editorClass: </span><span class="s1">&#39;input-large&#39;</span>
+        <span class="nv">description:</span>
+          <span class="nv">type: </span><span class="s1">&#39;TextArea&#39;</span>
+          <span class="nv">editorClass: </span><span class="s1">&#39;input-xxlarge&#39;</span>
+          <span class="nv">editorAttrs:</span>
+            <span class="nv">rows: </span><span class="s1">&#39;8&#39;</span>
+        <span class="nv">service:</span>
+          <span class="nv">type: </span><span class="s1">&#39;Text&#39;</span>
+          <span class="nv">title: </span><span class="s1">&#39;Service Name&#39;</span>
+          <span class="nv">editorClass: </span><span class="s1">&#39;input-large&#39;</span>
+        <span class="nv">event:</span>
+          <span class="nv">type: </span><span class="s1">&#39;Object&#39;</span>
+          <span class="nv">title: </span><span class="s1">&#39;Manual Event Spec&#39;</span>
+          <span class="nv">subSchema:</span>
+            <span class="nv">etype:</span>
+              <span class="nv">type: </span><span class="s1">&#39;Text&#39;</span>
+            <span class="nv">message:</span>
+              <span class="nv">type: </span><span class="s1">&#39;Text&#39;</span>
+              <span class="nv">editorClass: </span><span class="s1">&#39;input-xxlarge&#39;</span>
+            <span class="s2">&quot;sms-value-type&quot;</span><span class="o">:</span>
+              <span class="nv">type: </span><span class="s1">&#39;Select&#39;</span>
+              <span class="nv">title: </span><span class="s1">&#39;SMS Value Type&#39;</span>
+              <span class="nv">options: </span><span class="p">[</span><span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="s2">&quot;string&quot;</span><span class="p">]</span>
+            <span class="s2">&quot;sms-prefix&quot;</span><span class="o">:</span>
+              <span class="nv">type: </span><span class="s1">&#39;Text&#39;</span>
+              <span class="nv">title: </span><span class="s1">&#39;SMS Response Prefix&#39;</span>
+
+    <span class="k">class</span> <span class="nx">Instruments</span> <span class="k">extends</span> <span class="nx">Infra</span><span class="p">.</span><span class="nx">Collection</span>
+      <span class="nv">model: </span><span class="nx">Instrument</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <h2>Experiments</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">Experiment</span> <span class="k">extends</span> <span class="nx">Infra</span><span class="p">.</span><span class="nx">Model</span>
+      <span class="nx">@implements</span> <span class="nx">Infra</span><span class="p">.</span><span class="nx">Taggable</span>
       <span class="nv">serverType: </span><span class="s1">&#39;experiment&#39;</span>
       <span class="nv">embedded:</span>
-        <span class="nv">treatment: </span><span class="p">[</span><span class="s1">&#39;reference&#39;</span><span class="p">,</span> <span class="s1">&#39;treatment&#39;</span><span class="p">]</span>
-        <span class="nv">instruments: </span><span class="p">[</span><span class="s1">&#39;references&#39;</span><span class="p">,</span> <span class="s1">&#39;Instruments&#39;</span><span class="p">]</span>
+        <span class="nv">treatment: </span><span class="p">[</span><span class="s1">&#39;reference&#39;</span><span class="p">,</span> <span class="s1">&#39;Treatment&#39;</span><span class="p">]</span>
+        <span class="nv">outcome: </span><span class="p">[</span><span class="s1">&#39;references&#39;</span><span class="p">,</span> <span class="s1">&#39;Instruments&#39;</span><span class="p">]</span>
+        <span class="nv">covariates: </span><span class="p">[</span><span class="s1">&#39;references&#39;</span><span class="p">,</span> <span class="s1">&#39;Instruments&#39;</span><span class="p">]</span>
 
-    <span class="k">class</span> <span class="nx">Experiments</span> <span class="k">extends</span> <span class="nx">Common</span><span class="p">.</span><span class="nx">Collection</span>
-      <span class="nv">model: </span><span class="nx">Experiment</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <h2>My Trials</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">Trial</span> <span class="k">extends</span> <span class="nx">Common</span><span class="p">.</span><span class="nx">Model</span>
+      <span class="nv">name: </span><span class="o">-&gt;</span>
+        <span class="nx">@treatment</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="nx">@treatment</span><span class="o">?</span>
+
+    <span class="k">class</span> <span class="nx">Experiments</span> <span class="k">extends</span> <span class="nx">Infra</span><span class="p">.</span><span class="nx">Collection</span>
+      <span class="nv">model: </span><span class="nx">Experiment</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <h2>My Trials</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">Trial</span> <span class="k">extends</span> <span class="nx">Infra</span><span class="p">.</span><span class="nx">Model</span>
       <span class="nv">serverType: </span><span class="s1">&#39;trial&#39;</span>
       <span class="nv">embedded:</span>
-        <span class="nv">experiment: </span><span class="p">[</span><span class="s1">&#39;reference&#39;</span><span class="p">,</span> <span class="s1">&#39;experiment&#39;</span><span class="p">]</span>
+        <span class="nv">experiment: </span><span class="p">[</span><span class="s1">&#39;reference&#39;</span><span class="p">,</span> <span class="s1">&#39;Experiment&#39;</span><span class="p">]</span>
+        <span class="nv">user: </span><span class="p">[</span><span class="s1">&#39;reference&#39;</span><span class="p">,</span> <span class="s1">&#39;User&#39;</span><span class="p">]</span>
 
-    <span class="k">class</span> <span class="nx">Trials</span> <span class="k">extends</span> <span class="nx">Common</span><span class="p">.</span><span class="nx">Collection</span>
-      <span class="nv">model: </span><span class="nx">Trial</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <h2>Trackers</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">Tracker</span> <span class="k">extends</span> <span class="nx">Common</span><span class="p">.</span><span class="nx">Model</span>
+      <span class="nv">schema:</span>
+        <span class="nv">start:</span>
+          <span class="nv">type: </span><span class="s1">&#39;Date&#39;</span>
+          <span class="nv">title: </span><span class="s1">&#39;Start Date&#39;</span>
+        <span class="nv">reminders:</span>
+          <span class="nv">type: </span><span class="s1">&#39;Checkboxes&#39;</span>
+          <span class="nv">title: </span><span class="s1">&#39;Enable Reminders?&#39;</span>
+          <span class="nv">options: </span><span class="p">[</span><span class="s2">&quot;SMS&quot;</span><span class="p">]</span> <span class="c1"># &quot;Email&quot;]</span>
+
+      <span class="nv">setDefaults: </span><span class="nf">(model) -&gt;</span>
+        <span class="nx">@set</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">,</span> <span class="nx">theUser</span><span class="p">)</span>
+        <span class="nx">@set</span><span class="p">(</span><span class="s1">&#39;start&#39;</span><span class="p">,</span> <span class="nb">Date</span><span class="p">())</span>
+        <span class="nx">@set</span><span class="p">(</span><span class="s1">&#39;reminders&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;SMS&quot;</span><span class="p">])</span>
+        <span class="nx">@set</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s2">&quot;active&quot;</span><span class="p">)</span>
+        <span class="err">@</span>
+
+    <span class="k">class</span> <span class="nx">Trials</span> <span class="k">extends</span> <span class="nx">Infra</span><span class="p">.</span><span class="nx">Collection</span>
+      <span class="nv">model: </span><span class="nx">Trial</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <h2>Schedule</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">Schedule</span> <span class="k">extends</span> <span class="nx">Infra</span><span class="p">.</span><span class="nx">Model</span>
+      <span class="nv">serverType: </span><span class="s1">&#39;schedule&#39;</span></pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <h2>Event</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">Event</span> <span class="k">extends</span> <span class="nx">Infra</span><span class="p">.</span><span class="nx">Model</span>
+      <span class="nv">serverType: </span><span class="s1">&#39;event&#39;</span>
+      <span class="nv">embedded:</span>
+        <span class="nv">instrument: </span><span class="p">[</span><span class="s1">&#39;reference&#39;</span><span class="p">,</span> <span class="s1">&#39;Instrument&#39;</span><span class="p">]</span>
+        <span class="nv">user: </span><span class="p">[</span><span class="s1">&#39;reference&#39;</span><span class="p">,</span> <span class="s1">&#39;User&#39;</span><span class="p">]</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <h2>Trackers</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">Tracker</span> <span class="k">extends</span> <span class="nx">Infra</span><span class="p">.</span><span class="nx">Model</span>
       <span class="nv">serverType: </span><span class="s1">&#39;tracker&#39;</span>
       <span class="nv">embedded:</span>
-        <span class="nv">user: </span><span class="p">[</span><span class="s1">&#39;reference&#39;</span><span class="p">,</span> <span class="s1">&#39;user&#39;</span><span class="p">]</span>
-        <span class="nv">instrument: </span><span class="p">[</span><span class="s1">&#39;reference&#39;</span><span class="p">,</span> <span class="s1">&#39;instrument&#39;</span><span class="p">]</span>
+        <span class="nv">user: </span><span class="p">[</span><span class="s1">&#39;reference&#39;</span><span class="p">,</span> <span class="s1">&#39;User&#39;</span><span class="p">]</span>
+        <span class="nv">instrument: </span><span class="p">[</span><span class="s1">&#39;reference&#39;</span><span class="p">,</span> <span class="s1">&#39;Instrument&#39;</span><span class="p">]</span>
+        <span class="nv">schedule: </span><span class="p">[</span><span class="s1">&#39;submodel&#39;</span><span class="p">,</span> <span class="s1">&#39;schedule&#39;</span><span class="p">]</span>
 
-    <span class="k">class</span> <span class="nx">Trackers</span> <span class="k">extends</span> <span class="nx">Common</span><span class="p">.</span><span class="nx">Collection</span>
-      <span class="nv">model: </span><span class="nx">Tracker</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <h2>Journals</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">Journal</span> <span class="k">extends</span> <span class="nx">Common</span><span class="p">.</span><span class="nx">Model</span>
+    <span class="k">class</span> <span class="nx">Trackers</span> <span class="k">extends</span> <span class="nx">Infra</span><span class="p">.</span><span class="nx">Collection</span>
+      <span class="nv">model: </span><span class="nx">Tracker</span></pre></div>             </td>           </tr>                               <tr id="section-11">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-11">&#182;</a>               </div>               <h2>Journals</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">Journal</span> <span class="k">extends</span> <span class="nx">Infra</span><span class="p">.</span><span class="nx">Model</span>
       <span class="nv">serverType: </span><span class="s1">&#39;journal&#39;</span>
       <span class="nv">embedded:</span>
-        <span class="nv">user: </span><span class="p">[</span><span class="s1">&#39;reference&#39;</span><span class="p">,</span> <span class="s1">&#39;user&#39;</span><span class="p">]</span>
+        <span class="nv">user: </span><span class="p">[</span><span class="s1">&#39;reference&#39;</span><span class="p">,</span> <span class="s1">&#39;User&#39;</span><span class="p">]</span>
 
-    <span class="k">class</span> <span class="nx">JournalEntries</span> <span class="k">extends</span> <span class="nx">Common</span><span class="p">.</span><span class="nx">Collection</span>
-      <span class="nv">model: </span><span class="nx">Journal</span></pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <h2>User Object</h2>
+    <span class="k">class</span> <span class="nx">JournalEntries</span> <span class="k">extends</span> <span class="nx">Infra</span><span class="p">.</span><span class="nx">Collection</span>
+      <span class="nv">model: </span><span class="nx">Journal</span></pre></div>             </td>           </tr>                               <tr id="section-12">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-12">&#182;</a>               </div>               <h2>Service submodel containers</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">Service</span> <span class="k">extends</span> <span class="nx">Infra</span><span class="p">.</span><span class="nx">Model</span>
+      <span class="nv">serverType: </span><span class="s1">&#39;service&#39;</span>
+
+    <span class="k">class</span> <span class="nx">Services</span> <span class="k">extends</span> <span class="nx">Infra</span><span class="p">.</span><span class="nx">Collection</span>
+      <span class="nv">model: </span><span class="nx">Service</span></pre></div>             </td>           </tr>                               <tr id="section-13">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-13">&#182;</a>               </div>               <h2>User Object</h2>
 
 <ul>
 <li>Always initialized by the server</li>
 <li>Singleton model, so use uppercase instance convention</li>
-</ul>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">User</span> <span class="k">extends</span> <span class="nx">Common</span><span class="p">.</span><span class="nx">Model</span>
+</ul>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">User</span> <span class="k">extends</span> <span class="nx">Infra</span><span class="p">.</span><span class="nx">Model</span>
       <span class="nv">serverType: </span><span class="s1">&#39;user&#39;</span>
       <span class="nv">embedded:</span>
         <span class="nv">trials: </span><span class="p">[</span><span class="s1">&#39;submodels&#39;</span><span class="p">,</span> <span class="s1">&#39;Trials&#39;</span><span class="p">]</span>
         <span class="nv">trackers: </span><span class="p">[</span><span class="s1">&#39;submodels&#39;</span><span class="p">,</span> <span class="s1">&#39;Trackers&#39;</span><span class="p">]</span>
-        <span class="nv">preferences: </span><span class="p">[</span><span class="s1">&#39;submodel&#39;</span><span class="p">,</span> <span class="s1">&#39;UserPrefs&#39;</span><span class="p">]</span>
+        <span class="nv">preferences: </span><span class="p">[</span><span class="s1">&#39;submodel&#39;</span><span class="p">,</span> <span class="s1">&#39;userprefs&#39;</span><span class="p">]</span>
         <span class="nv">services: </span><span class="p">[</span><span class="s1">&#39;submodels&#39;</span><span class="p">,</span> <span class="s1">&#39;Services&#39;</span><span class="p">]</span>
         <span class="nv">journals: </span><span class="p">[</span><span class="s1">&#39;submodels&#39;</span><span class="p">,</span> <span class="s1">&#39;Journals&#39;</span><span class="p">]</span>
 
       <span class="nv">username: </span><span class="o">-&gt;</span> <span class="nx">@get</span><span class="p">(</span><span class="s1">&#39;username&#39;</span><span class="p">)</span>
       <span class="nv">adminp: </span><span class="o">-&gt;</span> <span class="s1">&#39;admin&#39;</span> <span class="k">in</span> <span class="nx">@get</span><span class="p">(</span><span class="s1">&#39;permissions&#39;</span><span class="p">)</span>
 
-    <span class="k">class</span> <span class="nx">Users</span> <span class="k">extends</span> <span class="nx">Common</span><span class="p">.</span><span class="nx">Collection</span>
-      <span class="nv">model: </span><span class="nx">User</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <h2>Helper objects</h2>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-11">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-11">&#182;</a>               </div>               <p>Used to store data for search suggestions</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">Suggestion</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Model</span>
+    <span class="k">class</span> <span class="nx">Users</span> <span class="k">extends</span> <span class="nx">Infra</span><span class="p">.</span><span class="nx">Collection</span>
+      <span class="nv">model: </span><span class="nx">User</span></pre></div>             </td>           </tr>                               <tr id="section-14">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-14">&#182;</a>               </div>               <h2>Helper objects</h2>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-15">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-15">&#182;</a>               </div>               <p>Used to store data for search suggestions</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">class</span> <span class="nx">Suggestion</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Model</span>
 
     <span class="k">class</span> <span class="nx">Suggestions</span> <span class="k">extends</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Collection</span>
-      <span class="nv">model: </span><span class="nx">Suggestion</span></pre></div>             </td>           </tr>                               <tr id="section-12">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-12">&#182;</a>               </div>               <h2>Register types and return direct references to constructors</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">models =</span>
+      <span class="nv">model: </span><span class="nx">Suggestion</span></pre></div>             </td>           </tr>                               <tr id="section-16">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-16">&#182;</a>               </div>               <h2>Register types and return direct references to constructors</h2>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">models =</span>
       <span class="nv">Treatment: </span><span class="nx">Treatment</span>
       <span class="nv">Instrument: </span><span class="nx">Instrument</span>
       <span class="nv">Experiment: </span><span class="nx">Experiment</span>
       <span class="nv">Trial: </span><span class="nx">Trial</span>
+      <span class="nv">Schedule: </span><span class="nx">Schedule</span>
+      <span class="nv">Event: </span><span class="nx">Event</span>
       <span class="nv">Tracker: </span><span class="nx">Tracker</span>
       <span class="nv">Suggestion: </span><span class="nx">Suggestion</span>
+      <span class="nv">UserPrefs: </span><span class="nx">UserSub</span><span class="p">.</span><span class="nx">UserPrefs</span>
       <span class="nv">User: </span><span class="nx">User</span>
       <span class="nv">Journal: </span><span class="nx">Journal</span>
+      <span class="nv">Service: </span><span class="nx">Service</span>
 
     <span class="nv">collections =</span>
       <span class="nv">Treatments: </span><span class="nx">Treatments</span>
@@ -77,23 +217,27 @@ Returns a map of Model constructors</p>             </td>             <td class=
       <span class="nv">Trials: </span><span class="nx">Trials</span>
       <span class="nv">Trackers: </span><span class="nx">Trackers</span>
       <span class="nv">Suggestions: </span><span class="nx">Suggestions</span>
+      <span class="nv">Services: </span><span class="nx">Services</span>
       <span class="nv">Users: </span><span class="nx">Users</span>
 
     <span class="nv">cacheTypes = </span><span class="nf">(themap) -&gt;</span>
        <span class="nv">newmap = </span><span class="p">{}</span>
        <span class="nx">_</span><span class="p">.</span><span class="nx">each</span> <span class="nx">themap</span><span class="p">,</span> <span class="nf">(constructor, type) -&gt;</span>
              <span class="nv">tag = </span><span class="nx">constructor</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">serverType</span>
-             <span class="nx">newmap</span><span class="p">[</span><span class="nx">tag</span><span class="p">]</span> <span class="o">=</span> <span class="nx">constructor</span> <span class="k">if</span> <span class="nx">tag</span>
-       <span class="nx">newmap</span></pre></div>             </td>           </tr>                               <tr id="section-13">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-13">&#182;</a>               </div>               <p>Register our core types with the reference cache</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Backbone</span><span class="p">.</span><span class="nx">ReferenceCache</span><span class="p">.</span><span class="nx">registerTypes</span> <span class="nx">cacheTypes</span><span class="p">(</span><span class="nx">models</span><span class="p">)</span>
-    <span class="nx">Backbone</span><span class="p">.</span><span class="nx">ReferenceCache</span><span class="p">.</span><span class="nx">registerTypes</span> <span class="nx">collections</span></pre></div>             </td>           </tr>                               <tr id="section-14">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-14">&#182;</a>               </div>               <h2>Bootstrap data</h2>
+             <span class="k">if</span> <span class="nx">tag</span>
+               <span class="nx">newmap</span><span class="p">[</span><span class="nx">tag</span><span class="p">]</span> <span class="o">=</span> <span class="nx">constructor</span>
+             <span class="k">else</span>
+               <span class="nx">newmap</span><span class="p">[</span><span class="nx">type</span><span class="p">]</span> <span class="o">=</span> <span class="nx">constructor</span>
+       <span class="nx">newmap</span></pre></div>             </td>           </tr>                               <tr id="section-17">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-17">&#182;</a>               </div>               <p>Register our core types with the reference cache</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">Backbone</span><span class="p">.</span><span class="nx">ReferenceCache</span><span class="p">.</span><span class="nx">registerTypes</span> <span class="nx">cacheTypes</span><span class="p">(</span><span class="nx">models</span><span class="p">)</span>
+    <span class="nx">Backbone</span><span class="p">.</span><span class="nx">ReferenceCache</span><span class="p">.</span><span class="nx">registerTypes</span> <span class="nx">collections</span></pre></div>             </td>           </tr>                               <tr id="section-18">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-18">&#182;</a>               </div>               <h2>Bootstrap data</h2>
 
 <p>Place an array of model attributes into a non-javascript script tag
 with the bootstrap-models ID, and the session user attributes as an
-object literal in bootstrap-user</p>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-15">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-15">&#182;</a>               </div>               <p>A canonical object for the session user</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">theUser = </span><span class="k">new</span> <span class="nx">User</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-16">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-16">&#182;</a>               </div>               <p>Bootstrap models into the reference cache</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">Backbone.ReferenceCache.lazy = </span><span class="kc">true</span>
+object literal in bootstrap-user</p>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-19">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-19">&#182;</a>               </div>               <p>A canonical object for the session user</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">theUser = </span><span class="k">new</span> <span class="nx">User</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-20">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-20">&#182;</a>               </div>               <p>Bootstrap models into the reference cache</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">Backbone.ReferenceCache.lazy = </span><span class="kc">true</span>
     <span class="nx">Backbone</span><span class="p">.</span><span class="nx">ReferenceCache</span><span class="p">.</span><span class="nx">importFromID</span> <span class="s1">&#39;#bootstrap-user&#39;</span><span class="p">,</span> <span class="nx">theUser</span>
     <span class="nx">Backbone</span><span class="p">.</span><span class="nx">ReferenceCache</span><span class="p">.</span><span class="nx">importFromID</span> <span class="s1">&#39;#bootstrap-models&#39;</span>
     <span class="nv">Backbone.ReferenceCache.lazy = </span><span class="kc">false</span>
-    <span class="nx">Backbone</span><span class="p">.</span><span class="nx">ReferenceCache</span><span class="p">.</span><span class="nx">loadAll</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-17">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-17">&#182;</a>               </div>               <p>Return Core Models and canonical instances</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">_</span><span class="p">.</span><span class="nx">extend</span> <span class="p">{},</span><span class="nx">models</span><span class="p">,</span><span class="nx">collections</span><span class="p">,</span>
+    <span class="nx">Backbone</span><span class="p">.</span><span class="nx">ReferenceCache</span><span class="p">.</span><span class="nx">loadAll</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-21">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-21">&#182;</a>               </div>               <p>Return Core Models and canonical instances</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">_</span><span class="p">.</span><span class="nx">extend</span> <span class="p">{},</span><span class="nx">models</span><span class="p">,</span><span class="nx">collections</span><span class="p">,</span>
         <span class="nv">theUser: </span><span class="nx">theUser</span>
         <span class="nv">cacheTypes: </span><span class="nx">cacheTypes</span>
 
