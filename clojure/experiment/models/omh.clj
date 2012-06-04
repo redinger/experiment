@@ -124,15 +124,12 @@
   (str/split source))
 
 (defn source-name [instrument]
-  (str var ":" src))
+  (str (:variable instrument) ":" (:src instrument)))
 
 (defn catalog-entry [tracker]
   (let [instrument (resolve-dbref (:instrument tracker))]
     [(source-name instrument)
-     {:source_class {:name (:src instrument)
-                     :columns 
-                  
-                  
+     {:source_class {:name (:src instrument) :columns []}}]))
 
 (defn catalog
   ([user] 
@@ -147,7 +144,7 @@
                     (user/trackers user))))))
     
 (defapi omh-catalog [:get "/omh/v1.0/catalog"]
-  {:keys [source_name]}
+  {:keys [source_name auth_token]}
   (with-user [user auth_token]
     (vec (if source_name
            (catalog user source_name)
