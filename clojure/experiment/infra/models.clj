@@ -410,8 +410,7 @@
   (assert (:type model) (:_id model))
   (delete-model-hook model)
   (mongo/destroy! (model-collection {:type (:type model)})
-		  (select-keys model [:_id]))
-  true)
+		  (select-keys model [:_id])))
 
 
 ;; ------------------------------------------

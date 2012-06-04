@@ -33,7 +33,7 @@
 (defn order-by-date
   "Sort maps by :date (assume integer) field"
   [entries]
-  (sort-by :date entries))
+  (reverse (sort-by :date entries)))
 
 (defn all-comments [scope]
   (fetch-models :comment {:scope scope}))
