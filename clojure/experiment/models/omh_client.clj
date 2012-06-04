@@ -52,7 +52,7 @@
 (defn authenticate
   ([endpoint user password]
      (let [response (do-authenticate-request endpoint user password)]
-       (parse-response (json/parse-string (:body response) true)))
+       (parse-response (json/parse-string (:body response) true))))
   ([user password]
      (authenticate default-endpoint user password)))
   
