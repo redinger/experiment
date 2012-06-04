@@ -2,18 +2,17 @@
 
 ## Platform Architecture
 
-Basic partitioning is that the server handles data processing and the
-client handles visualization and editing of models, asking the server
-to perform pre-processing of data resulting from client queries that
-can be visualized on a front-end.
+This is a rich-client style architecture.  The main site consists of a
+set of tabs, each of which is a single-page app that users Backbone.js
+and the history object to maintain the impression of a normal flow of
+sub-page urls within the application.  Accordingly, the server handles
+data processing and the client handles visualization and editing of
+models, as well as asking the server to perform pre-processing of data
+queries that are visualized on the front-end.
 
-The rich-client app is a subsection of the site for which any URL from
-the base "/app*" renders the app and client handles the rest of the
-URL.  Basic support is provided for dispatching on the user-agent or a
-cookie value for different web-based clients.
-
-A mobile app client can use the APIs directly and bypass the /app
-namespace.
+Basic support is provided for dispatching on the user-agent or a
+cookie value for different web-based clients.  A mobile app client can
+use the APIs directly and bypass the /app namespace.
 
 A client app consists of:
 
@@ -28,8 +27,8 @@ The server exposes various APIs to clients:
 - /api/embed/...  - A submodel backbone extension API for embedded models
 - /api/suggest/... - A set of autoSuggest AJAX APIs for helping the UI
 - /api/chart/... - Renders chart content for various model / data types
-- /api/events/calendar - Renders a calendar of reminders or past events
 - /api/events/upcoming - Renders a calendar of reminders or past events
+- /api/events/calendar - Renders a calendar of reminders or past events
 
 ## Technical Architecture
 
@@ -51,25 +50,25 @@ The server manages and provides core and function-specific APIs for a rich-clien
 model and some of the supplemental page logic.  
 
 - User
-- Embedded Objects for various objects
-   - Journals
-   - Comments
 
-### Schematic layer 
+### Schematic layer
 
-- Experiment
-  - Treatment
-  - Instrument[]
-  - Schedule (schema)
+- Instrument - Definition a variable and a means of measurement
+- Treatment - Definition of a concrete intervention
+- Experiment 
+  - a Treatment
+  - outcome Instruments
+  - covariate Instruments
+  - Schedule template
 
-### Operative Layer
+### Operative layer
 
 - Trial
-  - Treatment
-  - Trackers[]
-  - Reminder
-  - Schedule (realized)
+  - Experiment
+  - Schedule (for reminders and treatment periods)
 
+- Trackers
+  - Tracking Schedule (for manual instruments)
 
 ## Tracking Workflow
 
@@ -86,21 +85,19 @@ reminders or serve as the backdrop for user-generated events.
    - Trackers can also be extracted to show recording events on a calendar
    - Trackers are processed to create canned reports or charts for a time period
 
-     
-
 # Releases
 
-## v0.1 - Academy Health Prototype Release (November 15th, 2011)
+## Alpha v0.1 - Academy Health Prototype Release (November 15th, 2011)
 
 - Basic show and tell: http://youtu.be/_OLqJtqzvK4
 
-## v0.2 - Authoring Study Prototype Release (March 16th, 2012)
+## Alpha v0.2 - Authoring Study Prototype Release (March 16th, 2012)
 
 - Switched to use Twitter Bootstrap UI
 - Dropped demo Dashboard and navigation features
 - Added Authoring Study under Research Tab
 
-## v0.3 - Beta Release (April 10th, 2012)
+## v0.9 - Beta Release (June 4th, 2012)
 
 Architectural design tasks
 
@@ -117,12 +114,15 @@ Architectural design tasks
    - X Support proper logging through server and client side
    - X Google analytics integration
 
-   - Error handling across server & client
-   - Implement server-side filtering of data and actions, how to
+   - X Release model for aggregated/versioned javascript files
+   - X Dynamic loading, caching, and pre-rendering Templates, etc.
+   - X Model abstraction on server
+      - X Handle synchronization conflicts for models
+      - X Define important properties like type checks, etc
+   - X Implement server-side filtering of data and actions, how to
      communicate ACLs to client?
-   - Dump and reload database
-   - Database and server backup
-   - NO IE popup on login
+   - X Dump and reload database
+   - X Database and server backup
 
 Feature tasks
 
@@ -133,56 +133,41 @@ Feature tasks
    - X Profile editing / forms
      - X Pretty forms CSS or JS
    - X Dashboard main page
-     - X Outcome control chart
-     - Illustrate missing data chart
-     - Trial schedule and view
-     - Date range selection for tracker page / trial view
-     - Calendar click support
-     - I want to click on tracking to change data
+     X Outcome control chart
+     - X Illustrate missing data chart
+     - X Trial schedule and view
+     - X Date range selection for tracker page / trial view
+     - X Calendar click support
+     - X I want to click on tracking to change data
    - Explore Page
-     - Style search object views
-     - Start trial from experiment view
-       - Handle schedule and reminders 
-     - Object create / edit screens
-   - Social components
+     - X Style search object views
+     - X Start trial from experiment view
+       - X Handle schedule and reminders 
+     - X Object create / edit screens
 
-## Tasks for v0.3 - Stability Release
+
+## Tasks for v1.0 - Study 2 Release
+
+Study 2 Support
+
+   - Study 2 page
+   - Study 2 content
+   - Run experiments
+   - Study 2 QA
+
+
+## Tasks for v1.1 - Production Release
 
 Architecture design tasks
 
-   - ~ Release model for aggregated/versioned javascript files
-   - Dynamic loading, caching, and pre-rendering Templates, etc.
-   - Model abstraction on server
-      - Handle synchronization conflicts for models
-      - Define important properties like type checks, etc
    - Site is down page on restarts, etc.
+   - NO IE popup on login
+   - ~ Error handling across server & client
 
 Feature tasks
 
    - Full UX and UI review   
-
-
-
-
-# Open Platform Issues
-# ----------------------------------------------------------
-
-## Longer term architectural issues
-
-   - X Server-side dispatch to client 'views' based on user-agent.  E.g. iphone
-     sends mobile client-app, search engine gets simple HTML view, web clients
-     get web app and older browsers get 'install new browser' page.
-   - Support search indexibility and SEO by rendering sub-views with
-     proper links on the server side for search crawlers or
-     accessibility.  The server-side of a given application will have
-     to handle this.  (For example, we want nice SEO URLs for all
-     browseable objects such as treatments, experiments, and public
-     discussions.
-   - ? Pallet platform distribution model
-      - pallet, git, keys
-      ~ Mongo installation, nginx as proxy and static files
-      - TODO: Leinengin
-      - TODO: Site upgrade scripts
+   - Social components
 
 
 # Design Notes
@@ -196,7 +181,8 @@ Feature tasks
  -  Middleware 
     -  Session user - Establishes (session/current-user) from DB for each request
  -  Models - Generic way of dealing with client/server models
- -  Data API - Support Backbone + Backbone.Embedded
+ -  Data API - Support Backbone + Backbone.Embedded models
+ -  Service APIs - Search, Events, Event Calendar, Open mHealth, oauth connections
  -  Services - Generic way to define, configure and support connecting to 3rd party services
  -  Dynamic Handlebar Templates - Generate server-side templates using Hiccup, dynamic loader
  -  Scheduler Controller - Schedule and manage events
@@ -208,30 +194,31 @@ Feature tasks
  -  SMS Subsystem - Support SMS gateway connectivity and result sorting/parsing
  -  E-mail Subsystem (Partial) - Support user communications
     - as instrument?
- -  Social Integration - Integrate with social networks (TBD) 
  -  Twitter - TW connect, Post updates, parse health updates?, as instrument?
  -  Facebook - FB connect, Post updates, as instrument?
+ -  Social Integration - Integrate with social networks (TBD) 
 
-## Schedules and events
 
-### Schedule
+# Open Platform Issues
+# ----------------------------------------------------------
 
-The calendar schedule for an event.
+## Longer term architectural issues
 
-Weekdays, weekends, specific day, select days
-TimeOfDay
+   - X Server-side dispatch to client 'views' based on user-agent.  E.g. iphone
+     sends mobile client-app, search engine gets simple HTML view, web clients
+     get web app and older browsers get 'install new browser' page.
 
-Schedule Protocol
-(events schedule interval)
+   - Support search indexibility and SEO by rendering sub-views with
+     proper links on the server side for search crawlers or
+     accessibility.  The server-side of a given application will have
+     to handle this.  (For example, we want nice SEO URLs for all
+     browseable objects such as treatments, experiments, and public
+     discussions.
 
-### Events
+   - ? Pallet platform distribution model
+      - pallet, git, keys
+      ~ Mongo installation, nginx as proxy and static files
+      - TODO: Leinengin
+      - TODO: Site upgrade scripts
 
-Events have types w/ parameters that determine how the action plays out
 
-### Actions
-
-For now, baked into code.  
-
-   - Sample Data: Elicit an SMS instrument value
-   - Remind: the user of treatment period (start/stop, daily)
-   - ? Report: study is finished, weekly progress?

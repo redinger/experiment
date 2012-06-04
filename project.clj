@@ -1,4 +1,4 @@
-(defproject experiment "1.0.0-SNAPSHOT"
+(defproject experiment "0.9.0"
   :description "Evaluation platform of a new model for running, recording and sharing self-experiments"
   :url "http://personalexperiments.org"
   :source-path "clojure"
