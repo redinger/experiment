@@ -106,7 +106,7 @@
   [])
 
 (defmethod refresh :default [inst user & [force?]]
-  nil)
+  (log/warnf "Can't refresh object type %s" (:type inst)))
 
 (defmethod reset :default [inst user]
   (rem-samples user inst))

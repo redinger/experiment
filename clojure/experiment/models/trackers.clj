@@ -1,24 +1,27 @@
 (ns experiment.models.trackers
   (:use experiment.infra.models
-        experiment.models.user
-        experiment.models.instruments)
+        experiment.models.user)
   (:require [clj-time.core :as time]
             [clojure.tools.logging :as log]
-	    [experiment.libs.datetime :as dt]
+            [experiment.libs.datetime :as dt]
             [experiment.libs.sms :as sms]
-	    [experiment.models.samples :as samples]
-	    [experiment.models.schedule :as schedule]
-	    [experiment.models.events :as event]))
+            [experiment.models.samples :as samples]
+            [experiment.models.schedule :as schedule]
+            [experiment.models.events :as event]
+            [experiment.models.instruments :as inst]))
 
 ;;
 ;; Instrument Trackers
 ;; ------------------------------
 ;;
-;; Trackers are associated with active trials or can be standalone
-;; if a user decides to track specific parameters.  The instrument
-;; template determines the parameters of the tracker.  The tracker
-;; in turn dictates the specific tracking events (when appropriate)
+;; Trackers are standalone specifications of an instrument and a
+;; schedule for updates in the case of manual interactions like SMS
+;; These are embedded in a collection.
 ;;
+
+
+;; Trackers with schedules can use the schedule event interface to
+;; generate future events over some time interval (clj-time)
 
 (defn tracker-events [tracker interval]
   (when-let [schedule (:schedule tracker)]
@@ -35,6 +38,36 @@
 ;; Download for service-based trackers are done automatically, no
 ;; explicit event generation is provided at present.
 
+(defmacro with-tracker [[tracker user inst sched] & body]
+  `(let [tracker# ~tracker
+         ~user (resolve-dbref (:user tracker#))
+         ~inst (resolve-dbref (:instrument tracker#))
+         ~sched (:schedule tracker#)]
+     ~@body))
+
+(defn date-updated [tracker]
+  (with-tracker [tracker u i s]
+    (inst/last-update i u)))
+
+(defn update [tracker & [interval]]
+  (with-tracker [tracker u i s]
+    (dt/with-interval [interval start end]
+      (inst/refresh i u start end))))
+
+(defn time-series [tracker & [interval]]
+  (with-tracker [tracker u i s]
+    (dt/with-interval [interval start end]
+      (inst/time-series i u start end))))
+
+(defn reset [tracker & [yes-im-sure]]
+  (with-tracker [tracker u i s]
+    (inst/reset i u)))
+
+(defn submit-data [tracker samples]
+  (with-tracker [tracker u i s]
+    (let [samples (if (map? samples) (vector samples) samples)]
+      (assert (sample/valid-samples? samples))
+      (sample/update i u samples))))
 
 ;; SMS-based Tracker Protocol
 ;; -------------------------------

@@ -301,5 +301,15 @@
   (:as-java [dt] (throw (java.lang.UnsupportedOperationException. "Not a date object")))
   (:timezone [dt] (throw (java.lang.UnsupportedOperationException. "Not a date object"))))
   
-          
+;; Make it easier to use intervals or explicit start/end dates          
+(defmacro with-interval [[interval start end & [default-start default-end]] & body]
+  `(let [interval# ~interval
+         ~start (or (and interval# (.getStart interval))
+                    default-start
+                    (time/minus (dt/now) (time/days 30)))
+         ~end (or (and interval# (.getEnd interval))
+                  default-end
+                  (dt/now))]
+     ~@body))
+
           
