@@ -101,7 +101,7 @@
         [false "We require a valid email address"]
         (models/fetch-model :user {:email email})
         [false "Email address is already registered"]
-        (models/fetch-model :user {:username username})
+        (models/fetch-model :user {:uname (.toLowerCase username)})
         [false (format "Username '%s' is already registered" username)]
         (not (> (count username) 3))
         [false "We require a valid username longer than 3 characters"]

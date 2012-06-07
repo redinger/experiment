@@ -200,11 +200,11 @@ define ['jquery', 'models/infra', 'models/core', 'models/user', 'views/widgets',
 #
 
     getStudies = () ->
-      prefs = Core.theUser.get('prefs')
+      prefs = Core.theUser.get('preferences')
       studies = []
-      if prefs['study2-consented']
+      if prefs['study2-consented']?
         studies.push $("<li class='abs pull-right'><a href='/study2'>Self-Experiment Study</a></li>")
-      if prefs['study1-consented']
+      if prefs['study1-consented']?
         studies.push $("<li class='abs pull-right'><a href='/study1'>Authoring Study</a></li>")
       studies
 

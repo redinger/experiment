@@ -189,6 +189,8 @@ define ['jquery', 'use!Backbone', 'use!Handlebars'],
 
           # Parse into existing or new collection if data is provided
           submodels: (attr, coll, type, attrs_array) ->
+              console.log attr
+              console.log attrs_array
               coll ?= new(Backbone.ReferenceCache.lookupConstructor(type))
               coll._embedParent = this
               coll._embedLocation = () -> attr

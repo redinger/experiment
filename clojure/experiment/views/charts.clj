@@ -102,10 +102,10 @@
    bounds over baseline data (if sufficient is present) using the trial schedule
    to get time regions"
   [series trial]
-  (if (< (count (:data series)) 18)
+  (if (< (count (:data series)) 1)
     series
     (let [yvalues (baseline-values series trial)]
-      (if (> (count yvalues) 12)
+      (if (> (count yvalues) 1)
         (let [mean (incanter.stats/mean yvalues)
               sd (incanter.stats/sd yvalues)
               ucl (min (+ mean (* 3 sd)) (or (:dataMax series) (apply max yvalues)))

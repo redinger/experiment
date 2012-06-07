@@ -470,13 +470,31 @@
 
 ;; ### Merge over updates for API
 
+(defn combine-names [a & names]
+  (str/join
+   "." 
+   (if (sequential? (first names))
+     (map name (cons a (first names)))
+     (map name (cons a names)))))
+  
+(defn flatten-field-refs [base kvs]
+  (zipmap (map (partial combine-names base) (keys kvs))
+          (vals kvs)))
+
+(defn flatten-fields [kvs]
+  (reduce (fn [pairs [k v]]
+            (if (and (map? v) (not (empty? v)))
+              (merge pairs (flatten-field-refs k (flatten-fields v)))
+              (assoc pairs k v)))
+          {} kvs))
+
 (defn update-by-modifiers
   ([model]
      (let [bare (dissoc model :_id :id :type)]
-       {:$set (canonical->mongo bare)}))
+       {:$set (canonical->mongo (flatten-fields bare))}))
   ([submodel path]
      {:$set (clojure.set/rename-keys
-             (canonical->mongo submodel)
+             (canonical->mongo (flatten-fields submodel))
              (serialize-slot-paths submodel path))}))
 
 ;; ------------------------------------------
@@ -571,6 +589,68 @@
   (mongo/destroy! (model-collection model) (select-keys model [:_id]))
   true)
 
+;; Migration
+;; -----------------------------------
+
+;; Handle references
+(def origin-ids* (atom (hash-map)))
+
+(defn- reset-registry []
+  (swap! origin-ids* (fn [_] (hash-map))))
+
+(defn- register-object [old new newid]
+  (println (:_id old) " -> " newid)
+  (swap! origin-ids* (fn [reg] (assoc reg (:_id old) newid)))
+  (if newid
+    (assoc new :_id newid)
+    new))
+  
+(defn- convert-dbref [node]
+  (cond (objectid? node)
+        (if-let [target (@origin-ids* node)]
+          target
+          (throw (java.lang.Error. (str "Target ID not found for " node))))
+        (dbref? node)
+        (let [target (@origin-ids* (.getId node))]
+          (if target
+            (as-dbref (.getRef node) target)
+            (throw (java.lang.Error. (str "Target ID not found for " node )))))
+        true
+        node))
+
+(defn- convert-dbrefs [object]
+  (assoc (clojure.walk/prewalk convert-dbref (dissoc object :_id))
+    :_id (:_id object)))
+
+;; Migrate models
+
+(defn migrate-models [origin destination coll query match &
+                      {:keys [origin-wins inhibit debug]}]
+  (let [origin-objs (mongo/with-mongo origin
+                  (fetch-models coll (or query {})))]
+    (mongo/with-mongo destination
+      (when (not inhibit) (println "Writing " (count origin-objs)))
+      (doseq [origin origin-objs]
+        (when (= true debug) (println "Origin: " origin))
+        (let [dest (fetch-model coll (select-keys origin match))
+              new (if origin-wins
+                    (merge dest origin)
+                    (merge origin dest))
+              new (convert-dbrefs
+                   (if dest
+                     (register-object origin new (:_id dest))
+                     (dissoc new :_id)))]
+          (when (= true debug) (println "Target: " dest))
+          (when (= true debug) (println "New: " new))
+          (when (sequential? debug) (println (select-keys new debug)))
+          (when (not inhibit)
+            (when (= debug true) (println "Writing"))
+            (if (:_id new)
+              (update-model! new)
+              (let [created (create-model! new)]
+                (register-object origin created (:_id created))
+                created))))))))
+        
 
 ;; ------------------------------------------
 ;; Client-Server SubModels API

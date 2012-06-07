@@ -50,7 +50,12 @@
      :username username
      :uname (.toLowerCase username)
      :name name
-     :email email}
+     :email email
+     :services {}
+     :trackers {}
+     :trials {}
+     :preferences {}
+     :journals {}}
     password)))
     
 (defn get-user
@@ -147,6 +152,12 @@
 
 ;; ## User Permissions
 
+(defn set-permission!
+  ([perm value]
+     (set-permisssion! (session/current-user) perm))
+  ([user perm value]
+     (modify-model! user {:$set {:permissions {perm value}}})))
+
 (defn has-permission? [perm]
   ((set (:permissions (session/current-user))) perm))
 
@@ -163,7 +174,7 @@
 ;; ------------------------
 
 (defn gen-first [] (rand-nth ["Joe" "Larry" "Curly" "Mo"]))
-(defn gen-last [] (rand-nth ["Smith" "Carvey" "Kolluri" "Kramlich"]))
+(defn gen-last [] (rand-nth ["Smith" "Carvey" "Kolluri:" "Kramlich"]))
 (defn gen-gender [] (rand-nth ["M" "F"]))
 (defn gen-weight [] (+ 100 (rand-int 150)))
 (defn gen-yob [] (+ 1940 (rand-int 54)))

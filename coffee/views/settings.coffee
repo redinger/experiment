@@ -156,13 +156,13 @@ define ['models/infra', 'models/core', 'views/widgets', 'use!Bootstrap', 'use!Ba
         @
 
       renderOauth: ->
-        data = @model.toJSON()
+        data = @model.toTemplateJSON()
         data.config = @config
         @$el.html @template data
         @
 
       renderForm: ->
-        data = @model.toJSON()
+        data = @model.toTemplateJSON()
         data.config = @config
         @$el.html @template data
         @$('.svcform').append @form.render().el

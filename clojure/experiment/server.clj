@@ -80,9 +80,9 @@
   
   ;; Setup logging
   (let [mode (keyword (or mode (props/get :mode) :dev))]
+    (server/add-middleware swank-connection)
     (if (= mode :dev)
-      (do (server/add-middleware swank-connection)
-          (set-loggers! "default"
+      (do (set-loggers! "default"
                         {:level :warn
                          :pattern "%d - %m%n"}
                         "experiment"
@@ -92,10 +92,10 @@
                         {:level :error}
                         "org.quartz.core.QuartzSchedulerThread"
                         {:level :error}))
-      (set-logger! "default"
-		   :level :warn
-		   :pattern "%d - %m%n"
-                   :out "experiment.log"))
+      (do (set-logger! "default"
+                       :level :warn
+                       :pattern "%d - %m%n"
+                       :out "experiment.log")))
 
     ;; Setup SMS subsystem
     (sms/set-credentials {:user (props/get :sms.username)
@@ -104,10 +104,10 @@
 
     ;; Start and save server
     (let [port (Integer. (get (System/getenv) "PORT" "8080"))
-	  server (server/start
-		  port {:mode (props/get :mode)
-			:ns 'experiment
-			:session-store (session/mongo-session-store)})]
+          server (server/start
+                  port {:mode (props/get :mode)
+                        :ns 'experiment
+                        :session-store (session/mongo-session-store)})]
       (alter-var-root #'noir (fn [old] server)))
 
     ;; Start event scheduler

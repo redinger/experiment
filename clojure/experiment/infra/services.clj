@@ -1,6 +1,7 @@
 (ns experiment.infra.services
   (:refer-clojure :exclude [get set])
   (:require [cheshire.core :as json]
+            [clojure.string :as str]
             [experiment.infra.models :as models]))
 
 (defonce services (atom nil))
@@ -70,7 +71,7 @@
   [user tag map]
   (models/modify-model!
    user
-   {:$set {:services {tag map}}}))
+   {:$set {(str/join (map name :services tag  map}}}))
 
 ;; Special case Oauth
 (defn get-oauth [user tag]

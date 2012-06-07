@@ -165,8 +165,8 @@ define ['jquery', 'views/common', 'use!Handlebars', 'use!BackboneFormsBS', 'use!
 
       enterPressed: => @register()
       register: =>
-        @handleUsername()
-        @handleEmail()
+        @checkUsername()
+        @checkEmail()
         if not @form.validate()
            $.post '/action/register', @form.getValue(), @serverValidate
 

@@ -20,7 +20,7 @@
 ;; support for the current-user
 
 (defn valid-password? [user plaintext]
-  (crypt/compare plaintext (:password user)))
+  (and user (crypt/compare plaintext (:password user))))
 
 (defn lookup-user-for-auth [id]
   (or (fetch-one :user :where {:username id})
@@ -33,9 +33,9 @@
   (let [user (lookup-user-for-auth (:username auth))]
     (if (valid-password? user (:password auth))
       (do (session/clear!)
-	  (session/put! :logged-in? true)
-	  (session/put! :userid (:_id user))
-	  user)
+          (session/put! :logged-in? true)
+          (session/put! :userid (:_id user))
+          user)
       nil)))
 
 (defn logout []

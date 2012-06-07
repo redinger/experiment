@@ -36,7 +36,7 @@
        true))
 
 (defn valid-samples? [samples]
-  (and (or (list? samples) (vector? samples))
+  (and (or (seq? samples) (vector? samples))
        (every? valid-sample? samples)))
 
 (defn- as-chunk-sample

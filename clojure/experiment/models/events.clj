@@ -52,19 +52,28 @@
 ;; Event primitives
 ;; ----------------------------
 
-(def required-event-keys [:type :etype :user :instrument :start])
+(def required-event-keys [:type :etype :user :start])
 
 (defn make-event [type user instrument & {:as options}]
   (merge {:type "event"
           :etype type
           :user (as-dbref user)
-          :instrument (when instrument (as-dbref instrument))}
+          :instrument (when instrument (as-dbref instrument))
+          :status "pending"}
          options))
    
-(defn make-sms-tracker-event [u i message value-type prefix]
+(defn make-sms-integer-event [u i message prefix]
   (make-event
    "sms" u i
-   :sms-value-type value-type
+   :sms-value-type "integer"
+   :sms-prefix prefix
+   :message message
+   :wait true))
+
+(defn make-sms-category-event [u i message prefix]
+  (make-event
+   "sms" u i
+   :sms-value-type "string"
    :sms-prefix prefix
    :message message
    :wait true))
@@ -157,7 +166,7 @@
           (assoc :editable (editable? event))
           (assoc :local-time ltime)
           (assoc :result-time tstime)))
-    (log/spy event)))
+    event))
              
 
 
