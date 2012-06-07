@@ -1,7 +1,7 @@
 # Account Page and Tabs
 
-define ['models/infra', 'models/core', 'views/widgets', 'use!Bootstrap', 'use!BackboneFormsBS', 'use!BackboneFormsEditors'],
-  (Infra, Core, Widgets) ->
+define ['models/infra', 'models/core', 'views/common', 'views/widgets', 'use!Bootstrap', 'use!BackboneFormsBS', 'use!BackboneFormsEditors'],
+  (Infra, Core, Common, Widgets) ->
 
     # ## View for updating User Preferences Submodel
 
@@ -105,7 +105,7 @@ define ['models/infra', 'models/core', 'views/widgets', 'use!Bootstrap', 'use!Ba
         if data.result is "success"
            @form.fields['oldPass'].clearError()
            (@form.fields[key].setValue("") for own key, val of @form.getValue())
-           window.PE.modalMessage.showMessage
+           Common.modalMessage.showMessage
                 header: "Password Set"
                 message: "Your password was set to the new value"
         if data.result is "fail"
