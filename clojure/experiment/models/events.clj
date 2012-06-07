@@ -152,7 +152,7 @@
 
 ;; Only convert instantiated events
 (defmethod server->client-hook :event [event]
-  (if (valid-event? event)
+;;  (if (valid-event? event)
     (let [start (dt/in-session-tz (:start event))
           ltime (dt/wall-time start)
           ts (when-let [res (:result-ts event)]
@@ -165,8 +165,8 @@
           (assoc :fail (fail? event))
           (assoc :editable (editable? event))
           (assoc :local-time ltime)
-          (assoc :result-time tstime)))
-    event))
+          (assoc :result-time tstime))))
+;;    event))
              
 
 

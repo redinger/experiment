@@ -43,7 +43,10 @@
 (defn group-by-start-day [events]
   (->> events
        (group-by (fn [event]
-                   (schedule/decimate :day (:start event))))
+                   (schedule/decimate
+                    :day
+                    (dt/in-session-tz
+                     (:start event)))))
        (map sort-events)))
 
 (defn group-events-by-day [events]

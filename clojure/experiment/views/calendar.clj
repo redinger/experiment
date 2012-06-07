@@ -38,7 +38,7 @@
   (nil? (:instrument event)))
 
 (defn convert-event [event]
-  (assoc (server->client event)
+  (assoc (server->client event true)
     :instrument (:instrument event)))
 
 (defn render-event [event]
