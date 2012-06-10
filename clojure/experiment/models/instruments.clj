@@ -364,5 +364,5 @@
 (defn ensure-instruments []
   (ensure-rt-instruments)
   (ensure-wi-instruments)
-  (ensure-zeo-instruments)
+;;  (ensure-zeo-instruments)
   (ensure-fit-instruments))

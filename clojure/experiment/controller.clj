@@ -65,9 +65,11 @@
 
 (defn report-scheduling-event [event]
   (when event
-    (log/tracef "Scheduling event (%s) for %s"
-                (:variable (event-inst event))
-                (:username (event-user event))))
+    (log/infof "Scheduling event (%s) for %s"
+               (if (:instrument event)
+                 (:variable (event-inst event))
+                 (:title (event-exp event)))
+               (:username (event-user event))))
   event)
 
 (defn schedule-event
@@ -136,7 +138,7 @@
 (defn schedule-pending-events
   "Schedule any events pending within the provided interval"
   [inter]
-  (doseq [user (fetch-models :user {:trackers {:$exists true}} :only user-fields*)]
+  (doseq [user (fetch-models :user :only user-fields*)]
     (dt/with-user-timezone [user]
       (doseq [trial (trials user)]
         (schedule-reminder trial inter))

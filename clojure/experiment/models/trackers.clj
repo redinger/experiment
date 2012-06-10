@@ -85,7 +85,8 @@
 
 (defn- sms-prefix-message [event]
   (if-let [prefix (:sms-prefix event)]
-    (str (:message event) " (respond by texting '" prefix " <answer>')")))
+    (str (:message event) " (respond by texting '" prefix " <answer>')")
+    (:message event)))
 
 (defmethod event/fire-event :sms [event]
   (log/spy ["Sending SMS for " event])

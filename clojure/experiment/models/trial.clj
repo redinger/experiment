@@ -115,7 +115,9 @@
        nil interval periods))))
 
 (defn reminder-events [trial interval]
-  (schedule/events (trial-schedule trial) interval))
+  (let [refs (select-keys trial [:user :experiment])]
+    (map #(merge % refs)
+         (schedule/events (trial-schedule trial) interval))))
   
 (defn all-reminder-events [user interval]
   (mapcat #(reminder-events % interval) (trials user)))

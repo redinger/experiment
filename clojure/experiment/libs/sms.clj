@@ -78,7 +78,7 @@
 ;; ## Send an SMS
 
 (defn- clean-phone-number [number]
-  (string/replace "" #"-" number))
+  (string/replace number #"-" ""))
 
 (defn send-sms [number message & [credentials]]
   (assert (< (count message) 160))

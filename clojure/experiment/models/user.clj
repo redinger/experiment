@@ -153,10 +153,10 @@
 ;; ## User Permissions
 
 (defn set-permission!
-  ([perm value]
-     (set-permisssion! (session/current-user) perm))
   ([user perm value]
-     (modify-model! user {:$set {:permissions {perm value}}})))
+     (modify-model! user {:$set {:permissions {perm value}}}))
+  ([perm value]
+     (set-permission! (session/current-user) perm)))
 
 (defn has-permission? [perm]
   ((set (:permissions (session/current-user))) perm))

@@ -204,7 +204,7 @@
                       :end end)
           (:experiment event)
           (get-events :user user
-                      :instrument (:instrument event)
+                      :experiment (:experiment event)
                       :start start
                       :end end))))
 
@@ -221,8 +221,8 @@
     (concat (filter #(not (event-scheduled? %)) near) far)))
     
 (defn register-event [event]
-  (when (and (:sms event) (empty? (matching-events event)))
-    (log/info "Found matching events for: " (:message event))
+  (if (event-scheduled? event)
+    (log/info "Found existing events for: " (:message event))
     (create-model!
      (assoc event
        :type "event"
@@ -249,6 +249,10 @@
 (defn event-inst [event]
   (assert (and (= (:type event) "event") (:instrument event)))
   (resolve-dbref (:instrument event)))
+
+(defn event-exp [event]
+  (assert (and (= (:type event) "event") (:experiment event)))
+  (resolve-dbref (:experiment event)))
 
 (defn link-event [user inst event]
   (-> event
