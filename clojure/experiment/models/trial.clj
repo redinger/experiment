@@ -19,15 +19,15 @@
 ;;  
 
 (defmethod db-reference-params :trial [model]
-  [:experiment])
+  [:experiment :user])
 
 (defmethod public-keys :trial [model]
   [:user :experiment
    :schedule :status :status_str
-   :donep :pausedp :end_str :start :start_str :stats])
+   :donep :pausedp :end_str :reminders :start :start_str :stats])
 
 (defmethod import-keys :trial [model]
-  [:user :experiment :schedule :status :start :stats])
+  [:user :experiment :schedule :reminders :status :start])
 
 (defn human-status [trial]
   ({:active "Active"
@@ -85,7 +85,7 @@
 (defn trial-schedule [trial]
   (let [exp (trial-experiment trial)]
     (merge (:schedule exp)
-           (select-keys trial [:start]))))
+           (select-keys trial [:experiment :start]))))
 
 (defn trial-periods
   ([trial]

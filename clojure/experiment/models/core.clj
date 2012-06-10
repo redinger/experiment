@@ -67,10 +67,11 @@
 (defmethod public-keys :instrument [treat]
   [:variable :description :description-html
    :service :src :tracked :event
-   :tags :comments :owner])
+   :domain :tags :comments :owner])
 
 (defmethod import-keys :instrument [treat]
-  [:variable :description :tags])
+  [:variable :description :tags
+   :domain :service :src :event])
 
 (defmethod index-keys :instrument [treat]
   [:variable :description :tags :service])

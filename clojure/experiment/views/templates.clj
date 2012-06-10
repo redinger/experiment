@@ -227,7 +227,11 @@
    [:div (% local-time) ":&nbsp;" (% message)] ;; (% status) " " 
    (%if result-val
         [:div.response (% result-time) ":&nbsp;" [:b "Response: '"] (% result-val) "'"])
-   (%if error [:div.error (% error)])])
+   (%if error [:div.error (% error)])
+   [:div.event-editor.hidden
+    [:input.event-data {:type "text"}]
+    [:button.btn.btn-primary.submit-event {:type "button"} "Record"]
+    [:button.btn.canel-event {:type "button"} "Cancel"]]])
 
 
 ;; TRIAL

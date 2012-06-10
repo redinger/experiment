@@ -44,7 +44,8 @@
         :start start
         :end end
         :dataMin (min-plot inst)
-        :dataMax (max-plot inst)}]})
+        :dataMax (max-plot inst)
+        :dataMap (ordinal-values inst)}]})
   ([inst start end]
      (tracker-chart inst start end (session/current-user))))
 
@@ -102,14 +103,16 @@
    bounds over baseline data (if sufficient is present) using the trial schedule
    to get time regions"
   [series trial]
-  (if (< (count (:data series)) 1)
+  (if (< (count (:data series)) 10)
     series
     (let [yvalues (baseline-values series trial)]
-      (if (> (count yvalues) 1)
+      (if (>= (count yvalues) 10)
         (let [mean (incanter.stats/mean yvalues)
               sd (incanter.stats/sd yvalues)
-              ucl (min (+ mean (* 3 sd)) (or (:dataMax series) (apply max yvalues)))
-              lcl (max (- mean (* 3 sd)) 0.1)]
+              ucl (+ mean (* 3 sd))
+              ucl (if (:dataMax series) (min (:dataMax series) ucl) ucl)
+              lcl (- mean (* 3 sd))
+              lcl (if (:dataMin series) (max (:dataMin series) lcl) lcl)]
           (assoc series
             :ctrl {:lcl lcl :ucl ucl :mean mean}))
         series))))

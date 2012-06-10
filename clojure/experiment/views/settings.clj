@@ -102,7 +102,7 @@
      [:i.icon-remove.icon-white]]]
    [:h2 (% config.name)]
    [:p (% config.description)]
-   (%if oauth
-        [:p "Connected as : " (% oauth.name)])
-   (%unless oauth
-        [:p "Connect to " [:a {:href (% config.url)} (% config.title)]])])
+   (%if token
+        [:p "Successfully connected to " (% config.title)])
+   (%unless token
+        [:p [:a {:href (% config.url)} "Connect to " (% config.title)]])])

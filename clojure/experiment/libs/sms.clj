@@ -176,14 +176,21 @@
   [message event]
   (when-let [value (second (re-matches (second (default-sms-parser-re event)) message))]
     (case (:sms-value-type event)
-      "string" value
+      "string" (if-let [dom (:sms-domain event)]
+                 (if-let [result (dom value)]
+                   result
+                   (throw (java.lang.Error. "Invalid value")))
+                 value)
       "float" (Float/parseFloat value)
       (Integer/parseInt value))))
     
 (defmethod parse-sms :default [message ts event]
-  (when-let [val (and (:sms-prefix event)
-                      (default-sms-parser message event))]
-    {:ts ts :v val :raw message :event event}))
+  (try 
+    (when-let [val (and (:sms-prefix event)
+                        (default-sms-parser message event))]
+      {:ts ts :v val :raw message :event event})
+    (catch java.lang.Error e
+      nil)))
 
 
        

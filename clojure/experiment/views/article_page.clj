@@ -21,7 +21,6 @@
      "Edit Article"]))
 
 (defpage "/article/:name" {:keys [name] :as options}
-  (println name)
   (let [article (get-article name)]
     (common/layout
      [(:title article)

@@ -32,6 +32,11 @@
 (defn all-tracker-events [user interval]
   (mapcat #(tracker-events % interval) (trackers user)))
 
+(defn get-tracker [user variable & [service]]
+  (when-let [inst (fetch-model :instrument {:variable variable :service service})]
+    (let [ref (as-dbref inst)]
+      (first (filter #(= (:instrument %) ref) (trackers user))))))
+    
 
 ;; Service-based Trackers
 ;; -------------------------------
@@ -66,8 +71,8 @@
 (defn submit-data [tracker samples]
   (with-tracker [tracker u i s]
     (let [samples (if (map? samples) (vector samples) samples)]
-      (assert (sample/valid-samples? samples))
-      (sample/update i u samples))))
+      (assert (samples/valid-samples? samples))
+      (inst/update i u samples))))
 
 ;; SMS-based Tracker Protocol
 ;; -------------------------------
@@ -83,6 +88,7 @@
     (str (:message event) " (respond by texting '" prefix " <answer>')")))
 
 (defmethod event/fire-event :sms [event]
+  (log/spy ["Sending SMS for " event])
   (let [number (get-pref (event/event-user event) :cell)
         message (sms-prefix-message event)]
     (sms/send-sms number message)

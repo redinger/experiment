@@ -64,6 +64,7 @@ define ['jquery', 'models/infra', 'models/core', 'models/user', 'views/widgets',
       events:
         'click .edit-event': 'editEvent'
         'click .submit-event': 'submitEvent'
+        'click .cancel-event': 'cancelEvent'
         'click .view-timeline': 'viewTimeline'
 
       viewTimeline: =>
@@ -71,7 +72,10 @@ define ['jquery', 'models/infra', 'models/core', 'models/user', 'views/widgets',
           trigger: true
 
       editEvent: =>
-        @$('.event-view').append "<div class='event-editor'><input type='text' class='event-data'></input> <button type='button' class='submit-event btn'>Submit</button><button type='button' class='submit-event btn'>Cancel</button></div>"
+        @$('.event-editor').show()
+
+      cancelEvent: =>
+        @$('.event-editor').hide()
 
       submitEvent: =>
         entry = @$('.event-data').val()
@@ -83,11 +87,15 @@ define ['jquery', 'models/infra', 'models/core', 'models/user', 'views/widgets',
              date: @model.get('start')
              text: "#{ @model.get('sms-prefix') } #{ entry }"
            context: @
+           failure: () ->
+             @model.set
+               error: "There was a problem recording your entry"
            success: (evt) ->
              if evt
                @model.set evt
                @model.set
                  error: null
+               @$('.event-editor').hide()
              else
                @model.set
                  error: "There was a problem recording your entry"
@@ -202,10 +210,10 @@ define ['jquery', 'models/infra', 'models/core', 'models/user', 'views/widgets',
     getStudies = () ->
       prefs = Core.theUser.get('preferences')
       studies = []
-      if prefs['study2-consented']?
-        studies.push $("<li class='abs pull-right'><a href='/study2'>Self-Experiment Study</a></li>")
-      if prefs['study1-consented']?
-        studies.push $("<li class='abs pull-right'><a href='/study1'>Authoring Study</a></li>")
+#      if prefs['study2-consented']?
+#        studies.push $("<li class='abs pull-right'><a href='/study2'>Self-Experiment Study</a></li>")
+#      if prefs['study1-consented']?
+#        studies.push $("<li class='abs pull-right'><a href='/study1'>Authoring Study</a></li>")
       studies
 
     class Dashboard extends Backbone.View

@@ -358,7 +358,6 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
         , @
         @form = new Backbone.Form
           model: @model
-        window.mydebug = @
         @
 
       forwardEvents: (action, arg1, arg2) ->
@@ -396,7 +395,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
         event.preventDefault()
         errors = @form.commit()
         if not errors and @validateTrackers()
-          Core.theUser.trials.create @model,
+          Core.theUser.trials.create @model.toJSON(),
             wait: true
             success: (model, resp) =>
               window.location = '/dashboard/overview'
@@ -767,8 +766,9 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
       # Common events
       events:
         'click .tags .label': 'searchTagClick'
-        'click .create-experiment': 'createExp'
         'click .create-treatment': 'createTreat'
+        'click .create-instrument': 'createInst'
+        'click .create-experiment': 'createExp'
 
       # Common UI event handlers
       searchTagClick: (event) =>
@@ -777,10 +777,16 @@ define ['models/infra', 'models/core', 'models/user', 'views/widgets', 'views/jo
         @router.navTag tag, 1
 
       createExp: (event) =>
+        event.preventDefault()
         @router.navCreateModel('experiment')
 
       createTreat: (event) =>
+        event.preventDefault()
         @router.navCreateModel('treatment')
+
+      createInst: (event) =>
+        event.preventDefault()
+        @router.navCreateModel('instrument')
 
       # Managing view and view navigation actions
       changeView: (view) ->

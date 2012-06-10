@@ -18,7 +18,9 @@
 (defonce ^{:dynamic true} *auth* nil)
 
 (defn- zeo-key []
-  (props/get :zeo.key))
+  "F0F751291B8AFA0EC1BCC471A9A3B39D")
+;; "ACE41D854610E84DAF16419E087C2ADF")
+;; "6B58F54966A8A9632A68EBBFF0192D4C");;(props/get :zeo.key))
 
 (defn- zeo-base []
   (props/get :zeo.url))

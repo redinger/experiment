@@ -77,13 +77,13 @@
          lu))))
 
 (defn min-plot [inst]
-  (if-let [min (:min-domain inst)]
-    min nil))
+  (when-let [min (:min-domain inst)] min))
 
 (defn max-plot [inst]
-  (if-let [max (:max-domain inst)]
-    max nil))
+  (when-let [max (:max-domain inst)] max))
 
+(defn ordinal-values [inst]
+  (when-let [domain (:domain inst)] domain))
 
 ;; Defaults
 
@@ -98,12 +98,6 @@
    (get-samples user inst
                 :start (or start (dt/a-month-ago))
                 :end (or end (dt/now)))))
-
-(defmethod time-series :categorical [inst user & [start end convert?]]
-  [])
-  
-(defmethod time-series :opentext [inst user & [start end convert?]]
-  [])
 
 (defmethod refresh :default [inst user & [force?]]
   (log/warnf "Can't refresh object type %s" (:type inst)))
@@ -275,6 +269,13 @@
   true)
 
 ;; ------------------------------------------
+;; Zeo Instruments
+;; ------------------------------------------
+
+;;(defmethod configured? :zeo [inst user]
+;;  (zeo/
+
+;; ------------------------------------------
 ;; FitBit-derived Instruments
 ;; ------------------------------------------
 
@@ -363,4 +364,5 @@
 (defn ensure-instruments []
   (ensure-rt-instruments)
   (ensure-wi-instruments)
+  (ensure-zeo-instruments)
   (ensure-fit-instruments))

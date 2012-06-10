@@ -65,7 +65,7 @@
 
 (defn report-scheduling-event [event]
   (when event
-    (log/tracef "Scheduling tracker event (%s) for %s"
+    (log/tracef "Scheduling event (%s) for %s"
                 (:variable (event-inst event))
                 (:username (event-user event))))
   event)
@@ -125,7 +125,7 @@
     (time/interval (time/now)
                    (time/plus (time/now) (time/hours scheduling-horizon)))
     (when (need-to-schedule? last)
-      (time/interval (.getEnd last)
+      (time/interval (time/now)
                      (time/plus (.getEnd last) (time/hours scheduling-quantum))))))
 
 (def user-fields* [:trials :trackers :services :preferences :type :_id])
@@ -139,9 +139,7 @@
   (doseq [user (fetch-models :user {:trackers {:$exists true}} :only user-fields*)]
     (dt/with-user-timezone [user]
       (doseq [trial (trials user)]
-        (schedule-reminder trial inter)
-        (doseq [tracker (:trackers trial)]
-          (schedule-tracker tracker inter)))
+        (schedule-reminder trial inter))
       (doseq [tracker (trackers user)]
         (schedule-tracker tracker inter))))
   (doseq [expired (get-expired-events)]
@@ -152,7 +150,7 @@
   "Loop over all event generating objects and queue any events
    within the event manager horizon defined by next-interval"
   [context]
-  (when (= (prop/get :mode) :dev)
+  (when (= (prop/get :mode) :prod)
     (when-let [inter (next-interval (:last (q/context-data context)))]
       (log/info "Scheduling new events from " (.getStart inter) " to " (.getEnd inter))
       (schedule-pending-events inter)

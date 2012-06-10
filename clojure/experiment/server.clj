@@ -27,6 +27,9 @@
      [:ie6 "/not-supported"]
      [:ie7 "/not-supported"]]}))
 
+;; Debug support
+(server/add-middleware swank-connection)
+
 ;; Redirection rules
 (server/add-middleware redirect-url-for-user-agent
                        agent-redirect-rules)
@@ -80,7 +83,6 @@
   
   ;; Setup logging
   (let [mode (keyword (or mode (props/get :mode) :dev))]
-    (server/add-middleware swank-connection)
     (if (= mode :dev)
       (do (set-loggers! "default"
                         {:level :warn

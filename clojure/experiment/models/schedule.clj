@@ -201,7 +201,6 @@
   (->> (:periods (periodic-record-intervals schedule))
        (periods-overlapping schedule interval)
        (mapcat (fn [period]
-                 (println period)
                  (events (:event-schedule schedule)
                          (.overlap interval (:interval period)))))))
                

@@ -86,13 +86,11 @@
 
 (defapi submit-event [:post "/api/events/submit"]
   {:keys [userid instid date text] :as options}
-  (log/spy options)
   (let [user (resolve-dbref :user (deserialize-id userid))
         inst (resolve-dbref :instrument (deserialize-id instid))
         dt (dt/with-server-timezone
              (dt/from-iso date))
-        _ (log/spy [(:_id  user) (:_id inst) dt])
-        events (log/spy (events/get-events :user user :instrument inst :start dt :end dt))]
+        events (events/get-events :user user :instrument inst :start dt :end dt)]
     (if (not (empty? events))
       (server->client
        (trackers/associate-message-with-events user events (dt/now) text))

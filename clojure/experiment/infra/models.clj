@@ -282,6 +282,8 @@
 (defn filter-import-keys
   "Must define import-keys for safety purposes"
   [cmodel]
+  (when (cmodel nil)
+    (log/warnf "Importing 'nil' as key in model:%n%s" cmodel))
   (if-let [keys (import-keys cmodel)]
     (select-keys cmodel (conj keys :_id :id :type :submodel))
     (throw (java.lang.Error. (str "import-keys not defined for " (:type cmodel))))))
@@ -289,9 +291,10 @@
 (defn as-dbref
   "Return a Mongo DBRef for a model object"
   ([model]
-     (let [{:keys [type _id]} model]
-       (assert (and type _id))
-       (mongo/db-ref type _id)))
+     (if (dbref? model) model
+         (let [{:keys [type _id]} model]
+           (assert (and type _id))
+           (mongo/db-ref type _id))))
   ([name id]
      (mongo/db-ref name id)))
 
@@ -340,18 +343,19 @@
 
 ;; ### Support for sub-objects and partial object updates
 
+(defn location->keyword-array
+  "Transform a location string to a sequence"
+  [location]
+  (cond (sequential? location) (map keyword location)
+        (keyword? location) (vector keyword)
+        true (map keyword (str/split location #"\."))))
+
 (defn lookup-location
   "Resolve string or keyword location and indirect into
    a model object so we can extract sub-content from the results
    of a mongo query using said location"
   [model location]
-  (cond (string? location)
-        (let [fields (str/split location #"\.")]
-          (get-in model (map keyword fields)))
-        (keyword? location)
-        (model location)
-        (sequential? location)
-        (get-in model location)))
+  (get-in model (location->keyword-array location)))
         
 
 (defn serialize-path
@@ -493,9 +497,10 @@
      (let [bare (dissoc model :_id :id :type)]
        {:$set (canonical->mongo (flatten-fields bare))}))
   ([submodel path]
-     {:$set (clojure.set/rename-keys
-             (canonical->mongo (flatten-fields submodel))
-             (serialize-slot-paths submodel path))}))
+     (let [flattened (canonical->mongo (flatten-fields submodel))]
+       {:$set (clojure.set/rename-keys
+               flattened
+               (serialize-slot-paths flattened path))})))
 
 ;; ------------------------------------------
 ;; Client-Server Models API
@@ -710,17 +715,28 @@
                  location)]
     (mongo/update! (model-collection model)
                    (select-keys model [:_id])
-                   updates                 
+                   updates
                    :upsert false)))
 
 (defn delete-submodel!
   [model location]
-  (delete-model-hook
-   (get-submodel model location))
-  (mongo/update! (model-collection model)
-                 (select-keys model [:_id])
-                 {:$unset {(serialize-path location) 1}}
-                 :upsert false))
+  (let [sig (select-keys model [:type :_id])
+        model (fetch-model (model-collection model) sig)
+        location (location->keyword-array location)]
+    (delete-model-hook
+     (lookup-location model location))
+    (mongo/update! (model-collection model) sig
+                   (canonical->mongo
+                    (update-in model (vec (butlast location))
+                               (fn [coll]
+                                 (dissoc coll (last location))))))))
+     
+;;    (delete-model-hook
+;;     (get-submodel model location))
+;;  (mongo/update! (model-collection model)
+;;                 (select-keys model [:_id])
+;;                 {:$unset {(log/spy (serialize-path location)) 1}}
+;;                 :upsert false))
 
 ;; ## Misc Store Utilities
 

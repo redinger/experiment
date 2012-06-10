@@ -74,6 +74,8 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
               title: model.instrument.get('variable')
             view
         , @
+        @views = _.sortBy @views, (view) ->
+          view.model.instrument.id
         if not _.isEmpty @views
           _.first(@views).setXaxisView 'top'
           _.last(@views).setXaxisView true

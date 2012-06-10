@@ -106,10 +106,10 @@
   (if-let [user (session/current-user)]
     {:nav
      {:active active
-      :main [{:tag "dashboard" :name "Dashboard" :href "/"}
-             {:tag "explore" :name "Explore"   :href "/explore"
+      :main [{:tag "dashboard" :name "Dashboard " :href "/dashboard"}
+             {:tag "explore" :name "Explore "   :href "/explore"
               :aprops {:class "explore-link"}}
-             {:name "Research " :href "#"
+             {:name "Research Studies " :href "#"
               :submenu (research-submenu)}
              {:tag "about" :name "About " :href "#"
               :submenu (about-submenu)}]
@@ -119,14 +119,14 @@
 ;;             {:name "Dashboard" :href "/dashboard"}]}
     {:nav
      {:active active
-      :main [{:tag "home" :name "Home" :href "/"}
-             {:tag "research" :name "Research" :href "#"
+      :main [{:tag "home" :name "Home " :href "/"}
+             {:tag "research" :name "Research Studies " :href "#"
               :submenu (research-submenu)}
              {:tag "about" :name "About " :href "#"
               :submenu (about-submenu)}]
-      :ctrl [{:tag "register" :name "Register" :href "#registerModal"
+      :ctrl [{:tag "register" :name "Register " :href "#registerModal"
               :aprops {:class "register-button"}}
-             {:tag "login" :name "Login" :href "#loginModal"
+             {:tag "login" :name "Login " :href "#loginModal"
               :aprops {:class "login-button"}}]}}))
 
 

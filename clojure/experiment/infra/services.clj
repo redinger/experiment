@@ -67,22 +67,13 @@
   (assoc-in user [:services (keyword tag) (keyword property)] value))
 
 (defn set-model!
-  "Modify MongoDB directly (convenience)"
+  "Modify MongoDB directly (convenience).  Overwrites existing."
   [user tag map]
-  (models/modify-model!
-   user
-   {:$set {(str/join (map name :services tag  map}}}))
-
-;; Special case Oauth
-(defn get-oauth [user tag]
-  (get-in user [:services tag :oauth]))
-
-(defn set-oauth!
-  "Set oauth properties"
-  [user tag properties]
-  (models/modify-model!
-   user
-   {:$set {:services {tag {:oauth properties}}}}))
+  (let [prefix (str "services." (name tag))
+        model (assoc map :id tag)]
+    (models/modify-model!
+     user
+     {:$set {prefix model}})))
 
 ;;
 ;; Service Models

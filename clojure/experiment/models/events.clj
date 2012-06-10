@@ -176,10 +176,12 @@
 
 (defn- event-query [query]
   (let [user (:user query)
-        inst (:instrument query)]
+        inst (:instrument query)
+        exp (:experiment query)]
     (-> query
-        (modify-if :user (if (dbref? user) user (as-dbref user)))
-        (modify-if :instrument (if (dbref? inst) inst (as-dbref inst)))
+        (modify-if :user (as-dbref user))
+        (modify-if :instrument (as-dbref inst))
+        (modify-if :experiment (as-dbref exp))
         (modify-if :type :etype (:type query))
         (modify-if :start {:$gte (dt/as-date (:start query))})
         (modify-if :end :start {:$lte (dt/as-date (:end query))}))))
@@ -190,12 +192,21 @@
   (fetch-models :event (event-query query) :sort {:start 1}))
 
 (defn matching-events [event]
-  (get-events :user (:user event)
-              :instrument (:instrument event)
-              :start (time/minus (:start event)
-                                 (time/minutes (or (:jitter event) 0)))
-              :end (time/plus (:start event)
-                              (time/minutes (or (:jitter event) 0)))))
+  (let [user (:user event)
+        start (time/minus (:start event)
+                          (time/minutes (or (:jitter event) 0)))
+        end (time/plus (:start event)
+                       (time/minutes (or (:jitter event) 0)))]
+    (cond (:instrument event)
+          (get-events :user user
+                      :instrument (:instrument event)
+                      :start start
+                      :end end)
+          (:experiment event)
+          (get-events :user user
+                      :instrument (:instrument event)
+                      :start start
+                      :end end))))
 
 (defn event-scheduled? [event]
   (not (empty? (matching-events event))))
@@ -209,9 +220,9 @@
         [near far] (split-with #(time/before? (:start %) outer) events)]
     (concat (filter #(not (event-scheduled? %)) near) far)))
     
-
 (defn register-event [event]
-  (when (empty? (matching-events event))
+  (when (and (:sms event) (empty? (matching-events event)))
+    (log/info "Found matching events for: " (:message event))
     (create-model!
      (assoc event
        :type "event"
@@ -236,13 +247,13 @@
   (resolve-dbref (:user event)))
   
 (defn event-inst [event]
-  (assert (and (= (:type event) "event") (:inst event)))
-  (resolve-dbref (:inst event)))
+  (assert (and (= (:type event) "event") (:instrument event)))
+  (resolve-dbref (:instrument event)))
 
 (defn link-event [user inst event]
   (-> event
       (assoc :user (as-dbref user))
-      (assoc :inst (as-dbref inst))))
+      (assoc :instrument (as-dbref inst))))
 
 
 ;; Event Action Protocol
@@ -252,7 +263,8 @@
 
 ;; By default do nothing
 (defmethod fire-event :default [event]
-  nil)
+  (log/info "Firing event")
+  (log/spy event))
 
 ;; Example action event that writes to a log
 (defmethod fire-event :log [event]
