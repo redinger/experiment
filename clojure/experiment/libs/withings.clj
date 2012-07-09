@@ -27,7 +27,7 @@
  ["Withings"
   :description "Connect to Withings service"]
  :title "Withings"
- :url "http://www.personalexperiments.org/api/withings/oauth-link")
+ :url "http://www.personalexperiments.org/api/svc/withings/oauth-link")
 
 ;; Book keeping across phases
 
@@ -79,8 +79,8 @@
           :oauth_callback target))))
 
 ;; Via settings
-(defpage [:get "/api/withings/oauth-link"] {:as request}
-  (let [target "http://www.personalexperiments.org/api/withings/authorize"]
+(defpage [:get "/api/svc/withings/oauth-link"] {:as request}
+  (let [target "http://www.personalexperiments.org/api/svc/withings/authorize"]
     (save-req-tokens
      (oauth/request-token consumer target))
     (resp/redirect 
@@ -94,10 +94,10 @@
        :href (build-authorize-uri target)}
    name])
 
-(defpage [:get "/api/withings/oauth"] {:as request}
+(defpage [:get "/api/svc/withings/oauth"] {:as request}
   (html
    (oauth-link "Oauth Withings"
-               "http://www.personalexperiments.org/api/withings/authorize")))
+               "http://www.personalexperiments.org/api/svc/withings/authorize")))
 
 
 ;;
@@ -125,7 +125,8 @@
                  {:query-params params
                   :headers {"Authorization" (oauth/authorization-header (sort params))}})))))
 
-(defpage [:get "/api/withings/authorize"] {:keys [userid oauth_token oauth_verifier] :as request}
+(defpage [:get "/api/svc/withings/authorize"]
+  {:keys [userid oauth_token oauth_verifier] :as request}
   (assert (= (get-req-token) oauth_token))
   (save-access-tokens userid (fetch-access-token oauth_verifier))
   (resp/redirect "/account/services"))

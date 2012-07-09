@@ -174,15 +174,16 @@
         [:h2
          "You must click on register (top right of page) and then return and login to consent to this study"])]]))
      
-(defpage "/study1/consent" {}
+(defpage "/study1/consent" {:as args}
   (common/layout
    ["Authoring Study Consent"
     (study1-nav "Consent")
     :deps ["views/home"]]
    (render-consent)))
 
-(defpage [:post "/study1/consent"] {}
+(defpage [:post "/study1/consent"] {:as args}
   (let [req req/*request*]
+    (println (log/spy args))
     (consent-patient!)
     (resp/redirect "/study1")))
 

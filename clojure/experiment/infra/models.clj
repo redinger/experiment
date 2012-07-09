@@ -556,7 +556,8 @@
                                 (select-keys model [:_id])
                                 (update-by-modifiers
                                  (update-model-hook model))
-                                :upsert false)]
+                                :return-new? true)]
+      (session/update-user! model)
       (if-let [err (.getError result)]
         "DB Error"
         true))
@@ -687,7 +688,8 @@
         pref (select-keys parent [:_id :type])
         path (serialize-path location (:id new))]
     ;; Ensure we have a fresh target to insert into
-    (mongo/update! pcoll pref {:$set {path {}}})
+    (mongo/update! pcoll pref {:$set {path {}}
+                               :$inc {"updates" 1}})
     ;; Insert all the slots
     (mongo/update! pcoll pref (update-by-modifiers new path))
     ;; Return the new model
@@ -752,6 +754,6 @@
      (set-collection-field type field value {}))
   ([type field value criteria]
      (mongo/update! (model-collection {:type type})
-		    criteria {:$set {field value}} :multiple true)))
+		    criteria {:$set {field value} :$inc {"updates" 1}} :multiple true)))
 
 

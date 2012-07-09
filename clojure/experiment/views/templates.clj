@@ -231,7 +231,7 @@
    [:div.event-editor.hidden
     [:input.event-data {:type "text"}]
     [:button.btn.btn-primary.submit-event {:type "button"} "Record"]
-    [:button.btn.canel-event {:type "button"} "Cancel"]]])
+    [:button.btn.cancel-event {:type "button"} "Cancel"]]])
 
 
 ;; TRIAL

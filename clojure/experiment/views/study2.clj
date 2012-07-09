@@ -76,9 +76,7 @@
                {:name "Consent" :href "/study2/consent"}
                {:name "Online Q&A" :href "/study2/discuss"}]
               (when consented?
-                [{:name "Introduction" :href "/study2/doc/study2-background"}
-                 {:name "Examples" :href "/study2/doc/study2-example"}
-                 {:name "Author Study" :href "/study2/author"}]))
+                [{:name "Choose and Begin" :href "/study2/doc/study2-select"}]))
              :active current}})))
 
 ;; ## Study home page
@@ -138,6 +136,7 @@
     (common/layout
      [(str "Reading: " (:title article))
       (study2-nav (case name
+                    "study2-select" "Choose and Begin"
                     "study2-protocol" "Study Protocol"
                     "study2-background" "Introduction"
                     "study2-example" "Examples"

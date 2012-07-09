@@ -9,6 +9,7 @@
    handlebars.templates
    experiment.infra.api)
   (:require
+   [clojure.tools.logging :as log]
    [experiment.infra.session :as session]
    [experiment.infra.auth :as auth]
    [experiment.infra.models :as models]
@@ -58,16 +59,17 @@
 
 ;; NOTE: be sure to adjust this to open up dashboard soon
 (defn handle-private-route []
-  (let [uri (:uri (noir.request/ring-request))]
-    (when-not (session/logged-in?)
+  (when-not (session/logged-in?)
+    (let [uri (:uri (noir.request/ring-request))]
       (login-with-redirect uri))))
   
 
-(pre-route "/" {}
-           (when (session/logged-in?)
-             (if (user/is-admin?)
-               (resp/redirect "/dashboard")
-               (resp/redirect "/study1"))))
+(pre-route "/" {} nil)
+;;           (when (session/logged-in?)
+;;             (log/spy "Root access")))
+;;             (if (user/is-admin?)
+;;               (resp/redirect "/dashboard")
+;;               (resp/redirect "/study1"))))
 
 (pre-route "/dashboard*" {}
            (handle-private-route))
@@ -190,7 +192,8 @@
     (if (auth/valid-password? user oldPass)
       (let [newuser (auth/set-user-password user newPass1)]
         (do (models/modify-model! newuser
-                                  {:$set {:password (:password newuser)}})
+                                  {:$set {:password (:password newuser)}
+                                   :$inc {"updates" 1}})
             {:result "success"}))
       {:result "fail"
        :message "Old password is not valid"})

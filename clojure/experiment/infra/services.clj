@@ -73,7 +73,8 @@
         model (assoc map :id tag)]
     (models/modify-model!
      user
-     {:$set {prefix model}})))
+     {:$set {prefix model}
+      :$inc {"updates" 1}})))
 
 ;;
 ;; Service Models

@@ -99,15 +99,16 @@
 
 (defn fail? [event]
   (and (= (:status event) "done")
+       (:wait event)
        (not= (:result event) "success")))
 
 (defn within-24-hours-of?
-  "If 't' is within 24 hours of 'ref'"
+  "If 't' is up to 24 after or 12 hours before ref"
   [t ref]
   (time/within?
    (time/interval
     (time/minus ref (time/hours 24))
-    (time/plus ref (time/hours 24)))
+    (time/plus ref (time/hours 12)))
    t))
   
 (defn editable? [event]
@@ -189,14 +190,15 @@
 (defn get-events 
   "Return the events for the user associated with this incoming message"
   [& {:keys [user status type start end] :as query}]
+  (log/spy query)
   (fetch-models :event (event-query query) :sort {:start 1}))
 
 (defn matching-events [event]
   (let [user (:user event)
         start (time/minus (:start event)
-                          (time/minutes (or (:jitter event) 0)))
+                          (time/minutes (* (or (:jitter event) 0) 2)))
         end (time/plus (:start event)
-                       (time/minutes (or (:jitter event) 0)))]
+                       (time/minutes (* (or (:jitter event) 0) 2)))]
     (cond (:instrument event)
           (get-events :user user
                       :instrument (:instrument event)
@@ -229,18 +231,22 @@
        :status "active"))))
 
 (defn set-status [event status]
-  (modify-model! event {:$set {:status status}}))
+  (modify-model! event {:$set {:status status}
+                        :$inc {:updates 1}}))
+
 
 (defn complete [event ts data]
   (modify-model! event {:$set {:status "done"
                                :result "success"
                                :result-ts ts
-                               :result-val data}}))
+                               :result-val data}
+                        :$inc {:updates 1}}))
 
 (defn cancel [event & [reason]]
   (modify-model! event {:$set {:status "done"
                                :result (or reason "fail")
-                               :result-ts (dt/now)}}))
+                               :result-ts (dt/now)}
+                        :$inc {:updates 1}}))
 
 (defn event-user [event]
   (assert (and (= (:type event) "event") (:user event)))

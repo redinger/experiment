@@ -4,9 +4,6 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
     # Control chart with dynamic loading
 
     class ControlChart extends Backbone.View
-      attributes:
-        id: 'control1'
-
       initialize: (options) ->
         if @model.get('type') is not 'trial'
           alert 'Control chart init error'
@@ -31,28 +28,27 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
         @
 
       fetchData: (start, end) ->
-        $.ajax '/api/charts/trial',
-          data:
-            id: @model.id
-            start: start.format('YYYYMMDDTHHmmss.000Z')
-            end: end.format('YYYYMMDDTHHmmss.000Z')
-          context: @
-          success: (data) =>
-            if data? and data.series?
-               @renderChart data
-          spinner: false
+        if @data?
+          @renderChart()
+        else
+          $.ajax '/api/charts/trial',
+            data:
+              id: @model.id
+              start: start.format('YYYYMMDDTHHmmss.000Z')
+              end: end.format('YYYYMMDDTHHmmss.000Z')
+            context: @
+            success: (data) =>
+              if data? and data.series?
+                @data = data
+                @renderChart()
+            spinner: false
 
       redraw: ->
-        $('#control1').html('')
+        @$el.html('')
         @renderChart @data if @data?
 
-      renderChart: (data) =>
-        ready = $('#control1')
-        if data and _.isEmpty(ready)
-           _.delay @renderChart, 1000, data
-        else
-           @data = data
-           QIChart.renderChart '#control1', data, @cfg
+      renderChart: () =>
+        QIChart.renderChart @$el, @data, @cfg
 
       render: ->
         @
@@ -67,6 +63,7 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
       initialize: (options) ->
           @template = Infra.templateLoader.getTemplate 'trial-view-header'
           @chart = new ControlChart
+            id: @model.cid
             model: @model
           @model.on 'change', @render, @
           @model.experiment.on 'change', @render, @
@@ -158,15 +155,16 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
         @renderTrial()
 
       renderTrial: =>
+        console.log @currentTrial
         if @views[@currentTrial]?
           @$('#trial-pane-wrapper').html @views[@currentTrial].render().el
         @
 
       updateTrialHeader: =>
         @$('.trial-title-bar .button').removeClass 'disabled'
-        if (@currentTrial + 1) is @views.length
+        if (@currentTrial + 1) >= @views.length
           @$('.trial-title-bar .next').addClass 'disabled'
-        if @currentTrial is 0
+        if @currentTrial <= 0
           @$('.trial-title-bar .prev').addClass 'disabled'
 
       renderInstruments: (experiment) ->
@@ -181,13 +179,17 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
         'click button.next': 'nextTrial'
         'click button.prev': 'prevTrial'
 
-      nextTrial: =>
-        @currentTrial = @currentTrial + 1
-        @renderTrial()
+      nextTrial: (event) =>
+        if not $(event.currentTarget).hasClass('disabled')
+          @currentTrial = @currentTrial + 1
+          @renderTrial()
+          @updateTrialHeader()
 
-      prevTrial: =>
-        @currentTrial = @currentTrial - 1
-        @renderTrial()
+      prevTrial: (event) =>
+        if not $(event.currentTarget).hasClass('disabled')
+          @currentTrial = @currentTrial - 1
+          @renderTrial()
+          @updateTrialHeader()
 
     # NAMESPACE
 

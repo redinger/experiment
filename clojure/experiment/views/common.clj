@@ -81,8 +81,8 @@
         (str (:username user) " "))))
 
 (defn- research-submenu []
-  [{:name "Authoring Study Page" :href "/study1"}
-   {:name "Self-Experiment Study Page" :href "/study2"}])
+  [{:name "Authoring Study Page" :href "/study1"}])
+;;   {:name "Self-Experiment Study Page" :href "/study2"}])
 ;;   {:name "Site Analysis" :href "/article/analysis"}
 
 (defn- about-submenu []
@@ -106,10 +106,11 @@
   (if-let [user (session/current-user)]
     {:nav
      {:active active
-      :main [{:tag "dashboard" :name "Dashboard " :href "/dashboard"}
+      :main [{:tag "home" :name "Home" :href "/"}
+             {:tag "dashboard" :name "Dashboard " :href "/dashboard"}
              {:tag "explore" :name "Explore "   :href "/explore"
               :aprops {:class "explore-link"}}
-             {:name "Research Studies " :href "#"
+             {:tag "research" :name "Research Studies " :href "#"
               :submenu (research-submenu)}
              {:tag "about" :name "About " :href "#"
               :submenu (about-submenu)}]
@@ -119,7 +120,7 @@
 ;;             {:name "Dashboard" :href "/dashboard"}]}
     {:nav
      {:active active
-      :main [{:tag "home" :name "Home " :href "/"}
+      :main [{:tag "home" :name "Home" :href "/"}
              {:tag "research" :name "Research Studies " :href "#"
               :submenu (research-submenu)}
              {:tag "about" :name "About " :href "#"

@@ -23,7 +23,7 @@
   (and user (crypt/compare plaintext (:password user))))
 
 (defn lookup-user-for-auth [id]
-  (or (fetch-one :user :where {:username id})
+  (or (fetch-one :user :where {:uname id})
       (fetch-one :user :where {:email id})))
 
 (defn login

@@ -24,7 +24,8 @@
   (let [article (get-article name)]
     (common/layout
      [(:title article)
-      (common/default-nav name)]
+      (common/default-nav name)
+      :deps ["views/home"]]
      [:div.container
       (if article
         [:div.article.span8

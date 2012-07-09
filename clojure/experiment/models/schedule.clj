@@ -168,7 +168,7 @@
         interval (interval start end)]
     {:label label :interval interval}))
 
-(defn- periodic-record-intervals
+(defn periodic-record-intervals
   ([rec]
      (periodic-record-intervals (or (:start rec) (dt/now)) rec))
   ([start rec]

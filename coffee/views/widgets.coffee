@@ -166,6 +166,7 @@ define ['models/infra', 'views/common', 'use!Backbone'],
         'click li': 'clickToPage'
 
       clickToPage: (event) =>
+        event.preventDefault()
         type = $(event.currentTarget).attr('class')
         if not (type is 'active' or type is 'disabled')
           newpage = $(event.target).text()
@@ -190,17 +191,21 @@ define ['models/infra', 'views/common', 'use!Backbone'],
         'click .previous': 'prevMonth'
         'click .day': 'gotoDay'
 
-      nextMonth: =>
+      nextMonth: (e) =>
         @date = @date.add('months', 1)
         @update()
+        false
 
-      prevMonth: =>
+      prevMonth: (e) =>
         @date = @date.subtract('months', 1)
         @update()
+        false
 
       gotoDay: (event) =>
+        event.preventDefault()
         date = $(event.currentTarget).attr 'data-date'
         @trigger 'view', 'eventlog', date
+        false
 
       update: ->
         $.ajax @url,
@@ -214,6 +219,7 @@ define ['models/infra', 'views/common', 'use!Backbone'],
             @$('.cal-body').fadeIn(200)
             @$('.date_has_event').popover()
           spinner: false
+        false
 
       render: ->
         @$el.append @template

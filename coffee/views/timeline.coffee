@@ -85,6 +85,7 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
         dates = $('#timelinerange').val()
         @dates = dates if dates
         [start, end] = _.map @dates.split(" - "), Date.parse
+        end = end.add(1).days()
         _.each @views, (view) ->
           view.fetchData start, end
         @

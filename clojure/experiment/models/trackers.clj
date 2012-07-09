@@ -2,6 +2,7 @@
   (:use experiment.infra.models
         experiment.models.user)
   (:require [clj-time.core :as time]
+            [incanter.stats]
             [clojure.tools.logging :as log]
             [experiment.libs.datetime :as dt]
             [experiment.libs.sms :as sms]
@@ -19,6 +20,9 @@
 ;; These are embedded in a collection.
 ;;
 
+(defn tracker-name [tracker]
+  (let [inst (resolve-dbref (:instrument tracker))]
+    (str (:variable inst) " -- " (:service inst))))
 
 ;; Trackers with schedules can use the schedule event interface to
 ;; generate future events over some time interval (clj-time)
@@ -83,15 +87,16 @@
 
 ;; ## Fire an SMS Event
 
-(defn- sms-prefix-message [event]
+(defn sms-prefix-message [event]
   (if-let [prefix (:sms-prefix event)]
-    (str (:message event) " (respond by texting '" prefix " <answer>')")
+    (str (:message event) " (prefix your answer with \"" prefix "\"")
     (:message event)))
 
 (defmethod event/fire-event :sms [event]
   (log/spy ["Sending SMS for " event])
   (let [number (get-pref (event/event-user event) :cell)
         message (sms-prefix-message event)]
+    (println number message)
     (sms/send-sms number message)
     (let [status (if (event/requires-reply? event) "active" "done")]
       (event/set-status event status))))
@@ -111,6 +116,7 @@
     (event/cancel event ts)))
 
 (defn associate-message-with-events [user events ts text]
+  (println (map :instrument events))
   (let [samples (keep (partial sms/parse-sms text ts) events)]
     (cond (empty? samples)
           (do (log/info
@@ -126,7 +132,14 @@
               (complete-event-with-sample user (last samples))))))
   
 (defn associate-message-with-user [user ts text]
-  (let [events (event/get-events :user user :type "sms" :status "active")]
+  "Associate with any event that could have sent an SMS recently to
+   this user and expects a response."
+  (let [events (event/get-events
+                :user user
+                :type "sms"
+                :status "active"
+                :wait true
+                :end (dt/now))]
     (associate-message-with-events user events ts text)))
 
 (defn associate-message-with-tracker [user ts text]
@@ -135,7 +148,7 @@
   false)
                                      
 (defn- user-for-cell-number [num]
-  (fetch-model :user {:profile.cell num}))
+  (fetch-model :user {:preferences.cell num}))
 
 (defn sms-reply-handler
   "Main handler for SMS replies from our texting service.
@@ -144,9 +157,11 @@
    appropriate.  (TODO) Send failure messages if no parser
    matches or on a failure to parse"
   [ts number text]
-  (let [user (user-for-cell-number number)]
-    (or (associate-message-with-events user ts text)
-        (associate-message-with-tracker user ts text))))
+  (if-let [user (user-for-cell-number number)]
+    (do (log/infof "SMS Response from %s: '%s'" (:username user) text)
+        (or (associate-message-with-user user ts text)
+            (associate-message-with-tracker user ts text)))
+    (log/errorf "Unable to resolve phone number %s to a user" number)))
 
 ;; Example
 ;; -------------------
@@ -167,3 +182,35 @@
                         :sms-prefix "e"
                         :sms-value-type "int"}}}))
 
+;; Synthesizing data
+;; ----------------------
+
+(defn sample-from-normal [mean sd]
+  (fn []
+    (int (incanter.stats/sample-normal 1 :mean mean :sd sd))))
+
+(defn create-integer-samples [tracker interval generator]
+  (submit-data
+   tracker
+   (map
+    (fn [day]
+      {:ts day :v (generator)})
+    (schedule/interval->days interval))))
+
+(comment
+  (let [periods
+        (schedule/periodic-record-intervals
+         {:start (dt/from-iso "2012-05-01T12:00:00.000Z")
+          :periods [["base" 14] ["treat" 21] ["base" 14]]})
+        periods (map :interval (:periods periods))
+        tracker 
+        (get-tracker (fetch-model :user {:username "eslick"})
+                     "Positivity" "Manual")]
+    (create-integer-samples tracker (first periods)
+                            (sample-from-normal 3 0.5))
+    (create-integer-samples tracker (second periods)
+                            (sample-from-normal 4 0.8))
+    (create-integer-samples tracker (nth periods 2)
+                            (sample-from-normal 3 0.6))))
+   
+     

@@ -18,6 +18,7 @@ define ['jquery', 'views/common', 'use!Handlebars', 'use!BackboneFormsBS', 'use!
       attributes:
         id: 'loginModal'
         class: 'modal hide fade'
+
       initialize: ->
         @schema = loginSchema
         super()
@@ -41,6 +42,11 @@ define ['jquery', 'views/common', 'use!Handlebars', 'use!BackboneFormsBS', 'use!
         'click .close': 'loginCancel'
         'click .login': 'login'
         'click .forgot-pw': 'forgot'
+
+#      show: ->
+#        super()
+#        field = @$('#username')
+#        field.focus()
 
       enterPressed: => @login()
       login: =>

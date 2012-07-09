@@ -70,7 +70,11 @@
     (catch java.lang.Throwable e
       (clojure.tools.logging/error "Get User from Session Error: " e)
       nil)))
-	
+
+(defn update-user! [user]
+  (when (= (:_id user) (:_id mid/*current-user*))
+    (set! mid/*current-user* user)))
+
 (defn logged-in? []
   (when (current-user) true))
        

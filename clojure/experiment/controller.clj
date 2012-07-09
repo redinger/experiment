@@ -9,6 +9,7 @@
    [quartz-clj.core :as q]
    [experiment.libs.datetime :as dt]
    [experiment.libs.properties :as prop]
+   [experiment.models.instruments :as instruments]
    [clojure.tools.logging :as log]
    [clj-time.core :as time]))
 
@@ -83,7 +84,7 @@
     (q/schedule-task [(str "EventAction-" (:_id event))
                       "experiment-events"]
                      EventActionJob
-                     :start (:start event)
+                     :start (dt/as-date (:start event))
                      :datamap {"eid" (serialize-id (:_id event))})))
 
 (defn schedule-tracker [tracker inter]
@@ -141,9 +142,11 @@
   (doseq [user (fetch-models :user :only user-fields*)]
     (dt/with-user-timezone [user]
       (doseq [trial (trials user)]
-        (schedule-reminder trial inter))
+        (instruments/safe-body
+         (schedule-reminder trial inter)))
       (doseq [tracker (trackers user)]
-        (schedule-tracker tracker inter))))
+        (instruments/safe-body
+         (schedule-tracker tracker inter)))))
   (doseq [expired (get-expired-events)]
     (cancel-event expired)))
 
@@ -168,10 +171,19 @@
 ;; 
 
 (defn update-task
-  "Update resources from 3rd party resources on a daily schedule"
+  "Update resources from 3rd party resources on a daily schedule for the
+   period of the last 24 hours"
   [context]
   (when (= (prop/get :mode) :prod)
-    (println "Running daily download task")))
+    (log/info "Running daily download task")
+    (let [interval (time/interval (dt/ago time/days 1) (dt/now))]
+      (doseq [user (fetch-models :user)]
+        (doseq [tracker (trackers user)]
+          (instruments/safe-body
+           (log/infof "Updating %s for %s"
+                      (tracker-name tracker)
+                      (:username user))
+           (update tracker interval)))))))
 
 (q/defjob UpdateJob [context]
   (update-task context))

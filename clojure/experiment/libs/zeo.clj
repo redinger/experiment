@@ -1,6 +1,8 @@
 (ns experiment.libs.zeo
   (:use experiment.infra.models)
   (:require [clj-http.client :as http]
+            [clojure.tools.logging :as log]
+            [clojure.walk]
             [experiment.libs.properties :as props]
             [experiment.infra.services :as services]
             [experiment.libs.datetime :as dt]))
@@ -44,28 +46,40 @@
   `(binding [*auth* ~auth]
      ~@body))
 
+(defn zeo-date? [date]
+  (when date
+    (re-matches #"(\d\d\d\d)-(\d\d)-(\d\d)" date)))
+
+(defn zeo-date [node]
+  (if (= (type node) org.joda.time.DateTime)
+    (dt/as-iso-8601-date node)
+    node))
+        
+(defn convert-dates [record]
+  (clojure.walk/prewalk zeo-date record))
+
 (defn zeo-request
   ([auth action params]
      (assert (valid-auth? auth))
      (assert (map? params))
-     (http/get (zeo-url action)
-               {:as :json
-                :debug true
-                :query-params (assoc params :key (zeo-key))
-                :basic-auth (or auth (get-default-auth))
-                :content-type :json
-                :accept :json}))
+     (let [params (assoc (convert-dates params) :key (zeo-key))]
+       (assert (or (nil? (:date params))
+                   (zeo-date? (:date params))))
+       (let [response 
+             (http/get (zeo-url action)
+                       {:as :json
+                        :query-params params
+                        :basic-auth (or auth (get-default-auth))
+                        :content-type :json
+                        :accept :json})]
+         (if (= (:status response) 200)
+           (:response (:body response))
+           (throw (java.lang.Error. "Invalid response"))))))
   ([action params]
      (zeo-request (get-default-auth) action params))
   ([action]
      (zeo-request (get-default-auth) action {})))
 
-(defn zeo-date [date]
-  (cond org.joda.time.DateTime
-        (dt/as-iso-8601-date date)
-        (string? date)
-        (do (assert (re-matches #"(\d\d\d\d)-(\d\d)-(\d\d)" date))
-            date)))
 
 ;;
 ;; These methods require default or dynamic *auth* setting
@@ -99,3 +113,4 @@
 
 (defn next-sleep-record [date]
   (zeo-request "getPreviousSleepRecord" {:date date}))
+

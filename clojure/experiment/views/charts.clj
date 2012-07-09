@@ -56,14 +56,16 @@
       nil)))
 
 (defpage event-chart-api [:get "/api/charts/tracker"] {:keys [inst start end] :as options}
-  (let [instrument (get-instrument (deserialize-id inst))]
+  (let [instrument (get-instrument (deserialize-id inst))
+        user (session/current-user)]
     (response/json
-     (as-utc-dataset
-      (tracker-chart instrument
-                     (or (dt/from-iso-8601 start)
-                         (time/minus (dt/now) (time/months 1)))
-                     (or (dt/from-iso-8601 end)
-                         (dt/now)))))))
+     (dt/with-user-timezone [user]
+       (as-utc-dataset
+        (tracker-chart instrument
+                       (or (dt/from-iso-8601 start)
+                           (time/minus (dt/now) (time/months 1)))
+                       (or (dt/from-iso-8601 end)
+                           (dt/now))))))))
   
 
 ;; Control chart
@@ -189,8 +191,9 @@
           points (:data series)
           sig-points (map significant-point
                       (outside-control? ucl lcl points))
-          sig-seqs (map significant-seq
-                        (significant-sequences mean points))]
+          sig-seqs '() ;;(map significant-seq
+                       ;; (significant-sequences mean points))]
+          ]
       (assoc series
         :significance (vec (concat sig-points sig-seqs))))
     series))

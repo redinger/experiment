@@ -250,8 +250,13 @@ var QIchart = {
 				return d.tooltip;
 			} else {
 				var date = new Date(d.ts);
-                var tip = date.toString("ddd MMM dd, yyyy htt") + " | " + 
-					Math.round(d.v * 100) / 100;
+                var val;
+				if ( _.isString( d.v ) ) {
+					val = d.v;
+				} else {
+					val = Math.round(d.v * 100) / 100;
+				}
+                var tip = date.toString("ddd MMM dd, yyyy htt") + " | " +  val;
                 if ( me.isWeekend(d.ts) ) {
 					tip = "Weekend Data <br>" + tip
 				}
@@ -300,7 +305,11 @@ var QIchart = {
 			}, true);
 
 		/* Mean line  */
-		if (mean) {
+		if (_.isNumber(mean)) {
+
+            this.solidLine(chart, yscale(mean), cfg);
+
+		} else if ( mean !== false ) {
     	    var mean = this.mean(_.pluck(series, 'v'));
 
             this.solidLine(chart, yscale(mean), cfg);
@@ -391,9 +400,11 @@ var QIchart = {
 		cfg.dataMin = series.dataMin;
 		cfg.dataMax = series.dataMax;
         cfg.dataMap = series.dataMap;
-        var mean = true;
-        if ( cfg.dataMap !== null ) {
+        var mean;
+        if ( series.ctrl || cfg.dataMap !== null ) {
 			mean = false;
+		} else {
+            mean = true
 		}
 
 		/* Configure Chart Boundaries */
@@ -438,8 +449,8 @@ var QIchart = {
 		}
 
         var series = dataset.series;
-        var primary = series[0]
-		var pdata = primary.data
+        var primary = series[0];
+		var pdata = primary.data;
 		cfg.start = primary.start;
 		cfg.end = primary.end;
 		cfg.dataMin = primary.dataMin;
@@ -463,6 +474,10 @@ var QIchart = {
             this.dashedLine(chart, yscale(primary.ctrl.lcl), cfg)
 		}
 
+        if ( primary.ctrl && primary.ctrl.mean ) {
+            this.solidLine(chart, yscale(primary.ctrl.mean), cfg);
+		}
+
 		/* Render regions if provided */
         if (primary.regions) {
 			_.each(primary.regions, function (region) {
@@ -483,7 +498,7 @@ var QIchart = {
                 _cfg = _.extend({},cfg);
                 _cfg.xaxis = false
                 _cfg.yaxis = false
-				this.renderSeries(chart,s,xscale,yscale,cfg);
+				this.renderSeries(chart,s,xscale,yscale,_cfg);
 			}, this);
 		}
 		if ( primary.data.length === 0 ) {

@@ -69,7 +69,8 @@
     (println "Setting default for " (:username *current-user*))
     (somnium.congomongo/update! :user
                                 {:_id (:_id *current-user*)}
-                                {:$set {:preferences.tz_default default}}
+                                {:$set {:preferences.tz_default default}
+                                 :$inc {"updates" 1}}
                                 :upsert false)))
 
 (defn request-timezone [req]

@@ -3,6 +3,7 @@
    noir.core
    experiment.infra.models)
   (:require
+   [experiment.libs.datetime :as dt]
    [experiment.infra.session :as session]
    [experiment.infra.middleware :as mid]
    [experiment.infra.auth :as auth]))
@@ -51,6 +52,7 @@
      :uname (.toLowerCase username)
      :name name
      :email email
+     :startdate (dt/now)
      :services {}
      :trackers {}
      :trials {}
@@ -125,11 +127,13 @@
 
 (defn set-service [user service record]
   (assert (model? user))
-  (modify-model! user {:$set {:services {service record}}}))
+  (modify-model! user {:$set {:services {service record}}
+                       :$inc {:updates 1}}))
 
 (defn set-service-param [user service param value]
   (assert (model? user))
-  (modify-model! user {:$set {:services {param value}}}))
+  (modify-model! user {:$set {(str "services." (name param)) value}
+                       :$inc {:updates 1}}))
 
 (defn get-service-param [user service entry]
   (assert (model? user))
@@ -146,20 +150,22 @@
   
 (defn set-pref!
   ([user property value]
-     (modify-model! user {:$set {:preferences {property value}}}))
+     (modify-model! user {:$set {(str "preferences." (name property)) value}
+                          :$inc {:updates 1}}))
   ([property value]
      (set-pref! (session/current-user) property value)))
 
 ;; ## User Permissions
 
 (defn set-permission!
-  ([user perm value]
-     (modify-model! user {:$set {:permissions {perm value}}}))
-  ([perm value]
+  ([user perm]
+     (modify-model! user {:$addToSet {:permissions perm}
+                          :$inc {:updates 1}}))
+  ([perm]
      (set-permission! (session/current-user) perm)))
 
 (defn has-permission? [perm]
-  ((set (:permissions (session/current-user))) perm))
+  ((set (:permissions (session/current-user))) (name perm)))
 
 (defn is-admin? []
   (has-permission? "admin"))

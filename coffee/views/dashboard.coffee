@@ -1,17 +1,6 @@
 define ['jquery', 'models/infra', 'models/core', 'models/user', 'views/widgets', 'views/journal', 'views/timeline', 'views/trial', 'use!Handlebars', 'use!D3time', 'use!BackboneFormsBS', 'use!BackboneFormsEditors', 'use!jQueryDatePicker', 'use!Moment', 'views/events' ],
   ($, Infra, Core, User, Widgets, Journal, Timeline, Trial) ->
 
-# Control Chart
-# ------------------------------------------
-
-    class ControlChart extends Backbone.View
-      initialize: (options) ->
-        @trials = Core.theUser.trials
-
-      render: ->
-        @$el.append
-        @
-
 # Summary View
 # ---------------------------------
     class Overview extends Backbone.View
@@ -67,17 +56,20 @@ define ['jquery', 'models/infra', 'models/core', 'models/user', 'views/widgets',
         'click .cancel-event': 'cancelEvent'
         'click .view-timeline': 'viewTimeline'
 
-      viewTimeline: =>
+      viewTimeline: (e) =>
+        e.preventDefault()
         window.Dashboard.router.navigate '/timeline',
           trigger: true
 
-      editEvent: =>
+      editEvent: (e) =>
         @$('.event-editor').show()
+        false
 
-      cancelEvent: =>
+      cancelEvent: (e) =>
         @$('.event-editor').hide()
+        false
 
-      submitEvent: =>
+      submitEvent: (e) =>
         entry = @$('.event-data').val()
         $.ajax "/api/events/submit",
            type: "POST"
@@ -99,6 +91,7 @@ define ['jquery', 'models/infra', 'models/core', 'models/user', 'views/widgets',
              else
                @model.set
                  error: "There was a problem recording your entry"
+      false
 
     periodHeader = (target, date) ->
       date = moment(date).format('dddd, MMMM, Do YYYY')
