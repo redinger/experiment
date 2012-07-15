@@ -168,7 +168,7 @@
         interval (interval start end)]
     {:label label :interval interval}))
 
-(defn- periodic-record-intervals
+(defn periodic-record-intervals
   ([rec]
      (periodic-record-intervals (or (:start rec) (dt/now)) rec))
   ([start rec]
@@ -201,7 +201,6 @@
   (->> (:periods (periodic-record-intervals schedule))
        (periods-overlapping schedule interval)
        (mapcat (fn [period]
-                 (println period)
                  (events (:event-schedule schedule)
                          (.overlap interval (:interval period)))))))
                

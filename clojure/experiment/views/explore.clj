@@ -49,11 +49,14 @@
        [:span.caret]]
       [:ul.dropdown-menu
        [:li.menuitem
-        [:a {:href "#" :class "action create-experiment"}
-         "Experiment"]]
-       [:li.menuitem
         [:a {:href "#" :class "action create-treatment"}
-         "Treatment"]]]]]]
+         "Treatment"]]
+       [:li.menuitem
+        [:a {:href "#" :class "action create-instrument"}
+         "Instrument"]]
+       [:li.menuitem
+        [:a {:href "#" :class "action create-experiment"}
+         "Experiment"]]]]]]
    [:div#pagination]
    [:div.row
     [:div#results.span8

@@ -22,8 +22,7 @@
                    :accept :json})]
     (log/spy response)
     (json/parse-string
-     (:body response))
-   true))
+     (:body response) true)))
 
 (services/register :rt ["RescueTime"]
    :user {:title "Account Email"}
@@ -65,6 +64,17 @@
        (update-in results [:rows]
                   #(filter (partial matching-row-p pos pattern) %)))))
 
+(defn convert-dates
+  ([results]
+     (let [pos (column-index results "Date")]
+       (if pos
+         (assoc results
+           :rows
+           (map (fn [point]
+                  (assoc point pos (dt/from-rt (get point pos))))
+                (:rows results)))
+         results))))
+
 (defonce ^{:dynamic true} *test* nil)
 
 (defn aggregate-rows
@@ -83,12 +93,13 @@
 (defn efficiency
   ([interval start end]
      (assert (#{"week" "day" "month"} interval))
-     (api-request
-      {:restrict_kind "efficiency"
-       :restrict_begin (dt/as-iso-8601-date start)
-       :restrict_end (dt/as-iso-8601-date end)
-       :perspective "interval"
-       :resolution_time interval})))
+     (convert-dates
+      (api-request
+       {:restrict_kind "efficiency"
+        :restrict_begin (dt/as-iso-8601-date start)
+        :restrict_end (dt/as-iso-8601-date end)
+        :perspective "interval"
+        :resolution_time interval}))))
 
 ;;(defn- parse-productivity [result]
 ;;  (assoc result :rows
@@ -98,43 +109,47 @@
   ([interval start end]
      (assert (#{"week" "day" "month"} interval))
 ;;     (parse-productivity
+     (convert-dates
       (api-request
        {:restrict_kind "productivity"
         :restrict_begin (dt/as-iso-8601-date start)
         :restrict_end (dt/as-iso-8601-date end)
         :perspective "interval"
-        :resolution_time interval})))
+        :resolution_time interval}))))
 
 (defn categories
   ([interval start end]
      (assert (#{"week" "day" "month"} interval))
-     (api-request
-      {:restrict_kind "category"
-       :restrict_begin (dt/as-iso-8601-date start)
-       :restrict_end (dt/as-iso-8601-date end)
-       :perspective "interval"
-       :resolution_time interval}))
+     (convert-dates
+      (api-request
+       {:restrict_kind "category"
+        :restrict_begin (dt/as-iso-8601-date start)
+        :restrict_end (dt/as-iso-8601-date end)
+        :perspective "interval"
+        :resolution_time interval})))
   ([interval start end name]
      (filter-rows-by-name name "Category" (categories interval start end))))
   
 (defn activities
   ([interval start end]
      (assert (#{"week" "day" "month"} interval))
-     (api-request
-      {:restrict_kind "activity"
-       :restrict_begin (dt/as-iso-8601-date start)
-       :restrict_end (dt/as-iso-8601-date end)
-       :perspective "interval"
-       :resolution_time interval}))
+     (convert-dates
+      (api-request
+       {:restrict_kind "activity"
+        :restrict_begin (dt/as-iso-8601-date start)
+        :restrict_end (dt/as-iso-8601-date end)
+        :perspective "interval"
+        :resolution_time interval})))
   ([interval start end name]
      (assert (#{"week" "day" "month"} interval))
-     (api-request
-      {:restrict_kind "activity"
-       :restrict_begin (dt/as-iso-8601-date start)
-       :restrict_end (dt/as-iso-8601-date end)
-       :perspective "interval"
-       :restrict_thing name
-       :resolution_time interval})))
+     (convert-dates
+      (api-request
+       {:restrict_kind "activity"
+        :restrict_begin (dt/as-iso-8601-date start)
+        :restrict_end (dt/as-iso-8601-date end)
+        :perspective "interval"
+        :restrict_thing name
+        :resolution_time interval}))))
 
 ;; Specific interfaces
 

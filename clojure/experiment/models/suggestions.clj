@@ -239,7 +239,7 @@
       (remove #(= % model)
               (fetch-models :experiment
                             {:$or [{:treatment (:treatment model)}
-                                   {:instruments {:$in (:instruments model)}}]})))
+                                   {:covariates {:$in (:covariates model)}}]})))
     "instrument"
     (let [inst (resolve-dbref dbref)]
       (concat (fetch-models :experiment {:instruments dbref})

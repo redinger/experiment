@@ -1,6 +1,7 @@
 (ns experiment.infra.services
   (:refer-clojure :exclude [get set])
   (:require [cheshire.core :as json]
+            [clojure.string :as str]
             [experiment.infra.models :as models]))
 
 (defonce services (atom nil))
@@ -66,22 +67,14 @@
   (assoc-in user [:services (keyword tag) (keyword property)] value))
 
 (defn set-model!
-  "Modify MongoDB directly (convenience)"
+  "Modify MongoDB directly (convenience).  Overwrites existing."
   [user tag map]
-  (models/modify-model!
-   user
-   {:$set {:services {tag map}}}))
-
-;; Special case Oauth
-(defn get-oauth [user tag]
-  (get-in user [:services tag :oauth]))
-
-(defn set-oauth!
-  "Set oauth properties"
-  [user tag properties]
-  (models/modify-model!
-   user
-   {:$set {:services {tag {:oauth properties}}}}))
+  (let [prefix (str "services." (name tag))
+        model (assoc map :id tag)]
+    (models/modify-model!
+     user
+     {:$set {prefix model}
+      :$inc {"updates" 1}})))
 
 ;;
 ;; Service Models

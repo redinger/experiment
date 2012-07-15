@@ -60,10 +60,16 @@
 
 (defn get-messages
   ([from]
-     (mongo/fetch :sms :where {:from from}))
+     (mongo/fetch :sms :where {:from from} :sort {:date 1} :limit 20))
   ([start end]
      (mongo/fetch :sms :where {:date {:$gte (dt/as-date start) :$lte (dt/as-date end)}}
-                  :sort {:date 1})))
+                  :sort {:date 1}))
+  ([from start end]
+     (mongo/fetch :sms :where {:from from :date {:$gte (dt/as-date start) :$lte (dt/as-date end)}} :sort {:date 1}))
+
+  ([from start end prefix]
+     (mongo/fetch :sms :where {:from from :date {:$gte (dt/as-date start) :$lte (dt/as-date end)} :message (re-pattern (str "(?i)^" prefix))} :sort {:date 1})))
+     
 
 (defn get-latest-message [from]
   (first
@@ -78,7 +84,7 @@
 ;; ## Send an SMS
 
 (defn- clean-phone-number [number]
-  (string/replace "" #"-" number))
+  (string/replace number #"-" ""))
 
 (defn send-sms [number message & [credentials]]
   (assert (< (count message) 160))
@@ -110,7 +116,13 @@
 (defonce ^{:dynamic true} *handler* 'default-handler)
 
 (defn set-reply-handler [handler]
-  (alter-var-root #'*handler* (fn [a b] b) handler))
+  (alter-var-root #'*handler* (fn [old] handler)))
+
+(defn apply-reply-handler [& args]
+  (apply (var-get #'*handler*) args))
+
+(defn reply-handler? []
+  (var-get #'*handler*))
 
 (defn- handle-reply
   "Internal handler for any received SMS messages.
@@ -118,12 +130,17 @@
    from and message are strings"
   [from message]
   (let [ts (dt/now)]
-    (log-message! {:from message :message message :ts (dt/as-utc ts)})
-    (when (or (fn? *handler*) (var? *handler*))
-      (*handler* ts from message))))
-  
+    (log-message! {:from from :message message :ts (dt/as-date ts)})
+    (when (reply-handler?)
+      (apply-reply-handler ts from message))))
+
+(defn replay-logged-message [record]
+  (let [{:keys [ts from message]} record]
+    (when (reply-handler?)
+      (apply-reply-handler ts from message))))
+
 (defpage inbox-url [:get "/sms/receive"]
-  {:keys [from message]}
+  {:keys [from message] :as args}
   (handle-reply from message)
   (response/empty))
 
@@ -159,7 +176,7 @@
     (or (find @patterns lookup)
         (swap! patterns assoc lookup
                (re-pattern
-                (str (or (str "(?i:" (:sms-prefix event) ")") "")
+                (str (or (str "(?i)" (:sms-prefix event)) "")
                      (case (:sms-value-type event)
                        "string" "\\s*([^\\s]+)"
                        "float" "\\s*([\\d\\.]+)"
@@ -176,14 +193,26 @@
   [message event]
   (when-let [value (second (re-matches (second (default-sms-parser-re event)) message))]
     (case (:sms-value-type event)
-      "string" value
+      "string" (if-let [dom (:sms-domain event)]
+                 (if-let [result (dom (keyword value))]
+                   result
+                   (throw (java.lang.Error. "Invalid value")))
+                 value)
       "float" (Float/parseFloat value)
       (Integer/parseInt value))))
-    
+
+(defn recode-val [event val]
+  (if-let [mapr (:sms-domain event)]
+    (mapr (if (string? val) (keyword val) val))
+    val))
+
 (defmethod parse-sms :default [message ts event]
-  (when-let [val (and (:sms-prefix event)
-                      (default-sms-parser message event))]
-    {:ts ts :v val :raw message :event event}))
+  (try 
+    (when-let [val (and (:sms-prefix event)
+                        (default-sms-parser message event))]
+      {:ts ts :v (recode-val event val) :raw message :event event})
+    (catch java.lang.Error e
+      nil)))
 
 
        

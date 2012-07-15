@@ -282,6 +282,8 @@
 (defn filter-import-keys
   "Must define import-keys for safety purposes"
   [cmodel]
+  (when (cmodel nil)
+    (log/warnf "Importing 'nil' as key in model:%n%s" cmodel))
   (if-let [keys (import-keys cmodel)]
     (select-keys cmodel (conj keys :_id :id :type :submodel))
     (throw (java.lang.Error. (str "import-keys not defined for " (:type cmodel))))))
@@ -289,9 +291,10 @@
 (defn as-dbref
   "Return a Mongo DBRef for a model object"
   ([model]
-     (let [{:keys [type _id]} model]
-       (assert (and type _id))
-       (mongo/db-ref type _id)))
+     (if (dbref? model) model
+         (let [{:keys [type _id]} model]
+           (assert (and type _id))
+           (mongo/db-ref type _id))))
   ([name id]
      (mongo/db-ref name id)))
 
@@ -340,18 +343,19 @@
 
 ;; ### Support for sub-objects and partial object updates
 
+(defn location->keyword-array
+  "Transform a location string to a sequence"
+  [location]
+  (cond (sequential? location) (map keyword location)
+        (keyword? location) (vector keyword)
+        true (map keyword (str/split location #"\."))))
+
 (defn lookup-location
   "Resolve string or keyword location and indirect into
    a model object so we can extract sub-content from the results
    of a mongo query using said location"
   [model location]
-  (cond (string? location)
-        (let [fields (str/split location #"\.")]
-          (get-in model (map keyword fields)))
-        (keyword? location)
-        (model location)
-        (sequential? location)
-        (get-in model location)))
+  (get-in model (location->keyword-array location)))
         
 
 (defn serialize-path
@@ -470,14 +474,33 @@
 
 ;; ### Merge over updates for API
 
+(defn combine-names [a & names]
+  (str/join
+   "." 
+   (if (sequential? (first names))
+     (map name (cons a (first names)))
+     (map name (cons a names)))))
+  
+(defn flatten-field-refs [base kvs]
+  (zipmap (map (partial combine-names base) (keys kvs))
+          (vals kvs)))
+
+(defn flatten-fields [kvs]
+  (reduce (fn [pairs [k v]]
+            (if (and (map? v) (not (empty? v)))
+              (merge pairs (flatten-field-refs k (flatten-fields v)))
+              (assoc pairs k v)))
+          {} kvs))
+
 (defn update-by-modifiers
   ([model]
      (let [bare (dissoc model :_id :id :type)]
-       {:$set (canonical->mongo bare)}))
+       {:$set (canonical->mongo (flatten-fields bare))}))
   ([submodel path]
-     {:$set (clojure.set/rename-keys
-             (canonical->mongo submodel)
-             (serialize-slot-paths submodel path))}))
+     (let [flattened (canonical->mongo (flatten-fields submodel))]
+       {:$set (clojure.set/rename-keys
+               flattened
+               (serialize-slot-paths flattened path))})))
 
 ;; ------------------------------------------
 ;; Client-Server Models API
@@ -533,7 +556,8 @@
                                 (select-keys model [:_id])
                                 (update-by-modifiers
                                  (update-model-hook model))
-                                :upsert false)]
+                                :return-new? true)]
+      (session/update-user! model)
       (if-let [err (.getError result)]
         "DB Error"
         true))
@@ -571,6 +595,68 @@
   (mongo/destroy! (model-collection model) (select-keys model [:_id]))
   true)
 
+;; Migration
+;; -----------------------------------
+
+;; Handle references
+(def origin-ids* (atom (hash-map)))
+
+(defn- reset-registry []
+  (swap! origin-ids* (fn [_] (hash-map))))
+
+(defn- register-object [old new newid]
+  (println (:_id old) " -> " newid)
+  (swap! origin-ids* (fn [reg] (assoc reg (:_id old) newid)))
+  (if newid
+    (assoc new :_id newid)
+    new))
+  
+(defn- convert-dbref [node]
+  (cond (objectid? node)
+        (if-let [target (@origin-ids* node)]
+          target
+          (throw (java.lang.Error. (str "Target ID not found for " node))))
+        (dbref? node)
+        (let [target (@origin-ids* (.getId node))]
+          (if target
+            (as-dbref (.getRef node) target)
+            (throw (java.lang.Error. (str "Target ID not found for " node )))))
+        true
+        node))
+
+(defn- convert-dbrefs [object]
+  (assoc (clojure.walk/prewalk convert-dbref (dissoc object :_id))
+    :_id (:_id object)))
+
+;; Migrate models
+
+(defn migrate-models [origin destination coll query match &
+                      {:keys [origin-wins inhibit debug]}]
+  (let [origin-objs (mongo/with-mongo origin
+                  (fetch-models coll (or query {})))]
+    (mongo/with-mongo destination
+      (when (not inhibit) (println "Writing " (count origin-objs)))
+      (doseq [origin origin-objs]
+        (when (= true debug) (println "Origin: " origin))
+        (let [dest (fetch-model coll (select-keys origin match))
+              new (if origin-wins
+                    (merge dest origin)
+                    (merge origin dest))
+              new (convert-dbrefs
+                   (if dest
+                     (register-object origin new (:_id dest))
+                     (dissoc new :_id)))]
+          (when (= true debug) (println "Target: " dest))
+          (when (= true debug) (println "New: " new))
+          (when (sequential? debug) (println (select-keys new debug)))
+          (when (not inhibit)
+            (when (= debug true) (println "Writing"))
+            (if (:_id new)
+              (update-model! new)
+              (let [created (create-model! new)]
+                (register-object origin created (:_id created))
+                created))))))))
+        
 
 ;; ------------------------------------------
 ;; Client-Server SubModels API
@@ -602,7 +688,8 @@
         pref (select-keys parent [:_id :type])
         path (serialize-path location (:id new))]
     ;; Ensure we have a fresh target to insert into
-    (mongo/update! pcoll pref {:$set {path {}}})
+    (mongo/update! pcoll pref {:$set {path {}}
+                               :$inc {"updates" 1}})
     ;; Insert all the slots
     (mongo/update! pcoll pref (update-by-modifiers new path))
     ;; Return the new model
@@ -630,17 +717,28 @@
                  location)]
     (mongo/update! (model-collection model)
                    (select-keys model [:_id])
-                   updates                 
+                   updates
                    :upsert false)))
 
 (defn delete-submodel!
   [model location]
-  (delete-model-hook
-   (get-submodel model location))
-  (mongo/update! (model-collection model)
-                 (select-keys model [:_id])
-                 {:$unset {(serialize-path location) 1}}
-                 :upsert false))
+  (let [sig (select-keys model [:type :_id])
+        model (fetch-model (model-collection model) sig)
+        location (location->keyword-array location)]
+    (delete-model-hook
+     (lookup-location model location))
+    (mongo/update! (model-collection model) sig
+                   (canonical->mongo
+                    (update-in model (vec (butlast location))
+                               (fn [coll]
+                                 (dissoc coll (last location))))))))
+     
+;;    (delete-model-hook
+;;     (get-submodel model location))
+;;  (mongo/update! (model-collection model)
+;;                 (select-keys model [:_id])
+;;                 {:$unset {(log/spy (serialize-path location)) 1}}
+;;                 :upsert false))
 
 ;; ## Misc Store Utilities
 
@@ -656,6 +754,6 @@
      (set-collection-field type field value {}))
   ([type field value criteria]
      (mongo/update! (model-collection {:type type})
-		    criteria {:$set {field value}} :multiple true)))
+		    criteria {:$set {field value} :$inc {"updates" 1}} :multiple true)))
 
 

@@ -1,17 +1,6 @@
 define ['jquery', 'models/infra', 'models/core', 'models/user', 'views/widgets', 'views/journal', 'views/timeline', 'views/trial', 'use!Handlebars', 'use!D3time', 'use!BackboneFormsBS', 'use!BackboneFormsEditors', 'use!jQueryDatePicker', 'use!Moment', 'views/events' ],
   ($, Infra, Core, User, Widgets, Journal, Timeline, Trial) ->
 
-# Control Chart
-# ------------------------------------------
-
-    class ControlChart extends Backbone.View
-      initialize: (options) ->
-        @trials = Core.theUser.trials
-
-      render: ->
-        @$el.append
-        @
-
 # Summary View
 # ---------------------------------
     class Overview extends Backbone.View
@@ -64,16 +53,23 @@ define ['jquery', 'models/infra', 'models/core', 'models/user', 'views/widgets',
       events:
         'click .edit-event': 'editEvent'
         'click .submit-event': 'submitEvent'
+        'click .cancel-event': 'cancelEvent'
         'click .view-timeline': 'viewTimeline'
 
-      viewTimeline: =>
+      viewTimeline: (e) =>
+        e.preventDefault()
         window.Dashboard.router.navigate '/timeline',
           trigger: true
 
-      editEvent: =>
-        @$('.event-view').append "<div class='event-editor'><input type='text' class='event-data'></input> <button type='button' class='submit-event btn'>Submit</button><button type='button' class='submit-event btn'>Cancel</button></div>"
+      editEvent: (e) =>
+        @$('.event-editor').show()
+        false
 
-      submitEvent: =>
+      cancelEvent: (e) =>
+        @$('.event-editor').hide()
+        false
+
+      submitEvent: (e) =>
         entry = @$('.event-data').val()
         $.ajax "/api/events/submit",
            type: "POST"
@@ -83,14 +79,19 @@ define ['jquery', 'models/infra', 'models/core', 'models/user', 'views/widgets',
              date: @model.get('start')
              text: "#{ @model.get('sms-prefix') } #{ entry }"
            context: @
+           failure: () ->
+             @model.set
+               error: "There was a problem recording your entry"
            success: (evt) ->
              if evt
                @model.set evt
                @model.set
                  error: null
+               @$('.event-editor').hide()
              else
                @model.set
                  error: "There was a problem recording your entry"
+      false
 
     periodHeader = (target, date) ->
       date = moment(date).format('dddd, MMMM, Do YYYY')
@@ -200,12 +201,12 @@ define ['jquery', 'models/infra', 'models/core', 'models/user', 'views/widgets',
 #
 
     getStudies = () ->
-      prefs = Core.theUser.get('prefs')
+      prefs = Core.theUser.get('preferences')
       studies = []
-      if prefs['study2-consented']
-        studies.push $("<li class='abs pull-right'><a href='/study2'>Self-Experiment Study</a></li>")
-      if prefs['study1-consented']
-        studies.push $("<li class='abs pull-right'><a href='/study1'>Authoring Study</a></li>")
+#      if prefs['study2-consented']?
+#        studies.push $("<li class='abs pull-right'><a href='/study2'>Self-Experiment Study</a></li>")
+#      if prefs['study1-consented']?
+#        studies.push $("<li class='abs pull-right'><a href='/study1'>Authoring Study</a></li>")
       studies
 
     class Dashboard extends Backbone.View

@@ -138,7 +138,8 @@
                     "study1-background" "Introduction"
                     "study1-example" "Examples"
                     "study1-suggestions" "Suggestions"
-                    true "Author"))]
+                    true "Author"))
+      :deps ["views/home"]]
      [:div.container
       [:div.span8
        (if article
@@ -173,14 +174,16 @@
         [:h2
          "You must click on register (top right of page) and then return and login to consent to this study"])]]))
      
-(defpage "/study1/consent" {}
+(defpage "/study1/consent" {:as args}
   (common/layout
    ["Authoring Study Consent"
-    (study1-nav "Consent")]
+    (study1-nav "Consent")
+    :deps ["views/home"]]
    (render-consent)))
 
-(defpage [:post "/study1/consent"] {}
+(defpage [:post "/study1/consent"] {:as args}
   (let [req req/*request*]
+    (println (log/spy args))
     (consent-patient!)
     (resp/redirect "/study1")))
 
@@ -189,7 +192,8 @@
 (defpage "/study1/discuss" {}
   (common/layout
    ["Authoring Study Discussion"
-    (study1-nav "Online Q&A")]
+    (study1-nav "Online Q&A")
+    :deps ["views/home"]]
    [:div.container
     [:div.page-header
      [:h1 "Authoring Study Q&A"]]
@@ -213,7 +217,8 @@
 (defpage "/study1/review" {}
   (common/layout
    ["Authored Experiments"
-    (study1-nav "Author")]
+    (study1-nav "Author")
+    :deps ["views/home"]]
    [:div.container
     [:h1 "My Submitted Experiments"]
     [:p "It is perfectly acceptable during the duration of this experiment (through mid-June 2012) to revisit experiments you have submitted and make changes to them"]
@@ -275,7 +280,7 @@
   (common/layout
    ["Author an Experiment"
     (study1-nav "Author")
-    :deps []]
+    :deps ["views/home"]]
    [:div.container
     [:div.study1-author
      [:div.page-header
@@ -292,7 +297,8 @@
   (let [exp (get-experiment (:id options))]
     (common/layout
      ["View a Study"
-      (study1-nav "")]
+      (study1-nav "")
+      :deps ["views/home"]]
      [:div.span8
       [:div.study1-author
        (if (not exp)
@@ -318,7 +324,8 @@
 (defpage [:post "/study1/author"] {:as spec}
   (common/layout
    ["Thank you"
-    (study1-nav "Author")]
+    (study1-nav "Author")
+    :deps ["views/home"]]
    [:div.container
     (if (and (:submit spec) (experiment-valid? spec))
       (do

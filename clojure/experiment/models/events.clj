@@ -52,7 +52,7 @@
 ;; Event primitives
 ;; ----------------------------
 
-(def required-event-keys [:type :etype :user :instrument :start])
+(def required-event-keys [:type :etype :user :start])
 
 (defn make-event [type user instrument & {:as options}]
   (merge {:type "event"
@@ -62,10 +62,18 @@
           :status "pending"}
          options))
    
-(defn make-sms-tracker-event [u i message value-type prefix]
+(defn make-sms-integer-event [u i message prefix]
   (make-event
    "sms" u i
-   :sms-value-type value-type
+   :sms-value-type "integer"
+   :sms-prefix prefix
+   :message message
+   :wait true))
+
+(defn make-sms-category-event [u i message prefix]
+  (make-event
+   "sms" u i
+   :sms-value-type "string"
    :sms-prefix prefix
    :message message
    :wait true))
@@ -91,15 +99,16 @@
 
 (defn fail? [event]
   (and (= (:status event) "done")
+       (:wait event)
        (not= (:result event) "success")))
 
 (defn within-24-hours-of?
-  "If 't' is within 24 hours of 'ref'"
+  "If 't' is up to 24 after or 12 hours before ref"
   [t ref]
   (time/within?
    (time/interval
     (time/minus ref (time/hours 24))
-    (time/plus ref (time/hours 24)))
+    (time/plus ref (time/hours 12)))
    t))
   
 (defn editable? [event]
@@ -144,7 +153,7 @@
 
 ;; Only convert instantiated events
 (defmethod server->client-hook :event [event]
-  (if (valid-event? event)
+;;  (if (valid-event? event)
     (let [start (dt/in-session-tz (:start event))
           ltime (dt/wall-time start)
           ts (when-let [res (:result-ts event)]
@@ -157,8 +166,8 @@
           (assoc :fail (fail? event))
           (assoc :editable (editable? event))
           (assoc :local-time ltime)
-          (assoc :result-time tstime)))
-    (log/spy event)))
+          (assoc :result-time tstime))))
+;;    event))
              
 
 
@@ -168,10 +177,12 @@
 
 (defn- event-query [query]
   (let [user (:user query)
-        inst (:instrument query)]
+        inst (:instrument query)
+        exp (:experiment query)]
     (-> query
-        (modify-if :user (if (dbref? user) user (as-dbref user)))
-        (modify-if :instrument (if (dbref? inst) inst (as-dbref inst)))
+        (modify-if :user (as-dbref user))
+        (modify-if :instrument (as-dbref inst))
+        (modify-if :experiment (as-dbref exp))
         (modify-if :type :etype (:type query))
         (modify-if :start {:$gte (dt/as-date (:start query))})
         (modify-if :end :start {:$lte (dt/as-date (:end query))}))))
@@ -179,15 +190,25 @@
 (defn get-events 
   "Return the events for the user associated with this incoming message"
   [& {:keys [user status type start end] :as query}]
+  (log/spy query)
   (fetch-models :event (event-query query) :sort {:start 1}))
 
 (defn matching-events [event]
-  (get-events :user (:user event)
-              :instrument (:instrument event)
-              :start (time/minus (:start event)
-                                 (time/minutes (or (:jitter event) 0)))
-              :end (time/plus (:start event)
-                              (time/minutes (or (:jitter event) 0)))))
+  (let [user (:user event)
+        start (time/minus (:start event)
+                          (time/minutes (* (or (:jitter event) 0) 2)))
+        end (time/plus (:start event)
+                       (time/minutes (* (or (:jitter event) 0) 2)))]
+    (cond (:instrument event)
+          (get-events :user user
+                      :instrument (:instrument event)
+                      :start start
+                      :end end)
+          (:experiment event)
+          (get-events :user user
+                      :experiment (:experiment event)
+                      :start start
+                      :end end))))
 
 (defn event-scheduled? [event]
   (not (empty? (matching-events event))))
@@ -201,40 +222,48 @@
         [near far] (split-with #(time/before? (:start %) outer) events)]
     (concat (filter #(not (event-scheduled? %)) near) far)))
     
-
 (defn register-event [event]
-  (when (empty? (matching-events event))
+  (if (event-scheduled? event)
+    (log/info "Found existing events for: " (:message event))
     (create-model!
      (assoc event
        :type "event"
        :status "active"))))
 
 (defn set-status [event status]
-  (modify-model! event {:$set {:status status}}))
+  (modify-model! event {:$set {:status status}
+                        :$inc {:updates 1}}))
+
 
 (defn complete [event ts data]
   (modify-model! event {:$set {:status "done"
                                :result "success"
                                :result-ts ts
-                               :result-val data}}))
+                               :result-val data}
+                        :$inc {:updates 1}}))
 
 (defn cancel [event & [reason]]
   (modify-model! event {:$set {:status "done"
                                :result (or reason "fail")
-                               :result-ts (dt/now)}}))
+                               :result-ts (dt/now)}
+                        :$inc {:updates 1}}))
 
 (defn event-user [event]
   (assert (and (= (:type event) "event") (:user event)))
   (resolve-dbref (:user event)))
   
 (defn event-inst [event]
-  (assert (and (= (:type event) "event") (:inst event)))
-  (resolve-dbref (:inst event)))
+  (assert (and (= (:type event) "event") (:instrument event)))
+  (resolve-dbref (:instrument event)))
+
+(defn event-exp [event]
+  (assert (and (= (:type event) "event") (:experiment event)))
+  (resolve-dbref (:experiment event)))
 
 (defn link-event [user inst event]
   (-> event
       (assoc :user (as-dbref user))
-      (assoc :inst (as-dbref inst))))
+      (assoc :instrument (as-dbref inst))))
 
 
 ;; Event Action Protocol
@@ -244,7 +273,8 @@
 
 ;; By default do nothing
 (defmethod fire-event :default [event]
-  nil)
+  (log/info "Firing event")
+  (log/spy event))
 
 ;; Example action event that writes to a log
 (defmethod fire-event :log [event]

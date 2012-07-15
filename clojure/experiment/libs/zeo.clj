@@ -1,6 +1,9 @@
 (ns experiment.libs.zeo
   (:use experiment.infra.models)
   (:require [clj-http.client :as http]
+            [clojure.tools.logging :as log]
+            [clojure.walk]
+            [experiment.libs.properties :as props]
             [experiment.infra.services :as services]
             [experiment.libs.datetime :as dt]))
 
@@ -14,29 +17,20 @@
 ;; "ACE41D854610E84DAF16419E087C2ADF" ;; mit.edu
 ;; "6B58F54966A8A9632A68EBBFF0192D4C" ;; media.mit.edu
 
-(def ^{:dynamic true} *std-key* "ACE41D854610E84DAF16419E087C2ADF")
-(def ^{:dynamic true} *std-base* "https://api.myzeo.com:8443/zeows/api/v1/json/sleeperService/%s")
-
-(def ^{:dynamic true} *staging-key* "6B58F54966A8A9632A68EBBFF0192D4C")
-(def ^{:dynamic true} *staging-base* "https://staging.myzeo.com:8443/zeows/api/v1/json/sleeperService/%s")
-  
-(def zeo-mode :standard)
 (defonce ^{:dynamic true} *auth* nil)
 
 (defn- zeo-key []
-  (if (= zeo-mode :staging)
-    *staging-key*
-    *std-key*))
+  "F0F751291B8AFA0EC1BCC471A9A3B39D")
+;; "ACE41D854610E84DAF16419E087C2ADF")
+;; "6B58F54966A8A9632A68EBBFF0192D4C");;(props/get :zeo.key))
 
 (defn- zeo-base []
-  (if (= zeo-mode :staging)
-    *staging-base*
-    *std-base*))
+  (props/get :zeo.url))
 
 (defn- zeo-url [action]
   (format (zeo-base) action))
 
-(defn- valid-auth? [auth]
+(defn valid-auth? [auth]
   (and (sequential? auth)
        (= (count auth) 2)
        (every? string? auth)))
@@ -48,31 +42,44 @@
 (defn get-default-auth []
   *auth*)
 
-(defn- with-auth [auth & body]
-  `(let [*auth* auth]
+(defmacro with-auth [auth & body]
+  `(binding [*auth* ~auth]
      ~@body))
+
+(defn zeo-date? [date]
+  (when date
+    (re-matches #"(\d\d\d\d)-(\d\d)-(\d\d)" date)))
+
+(defn zeo-date [node]
+  (if (= (type node) org.joda.time.DateTime)
+    (dt/as-iso-8601-date node)
+    node))
+        
+(defn convert-dates [record]
+  (clojure.walk/prewalk zeo-date record))
 
 (defn zeo-request
   ([auth action params]
      (assert (valid-auth? auth))
      (assert (map? params))
-     (http/get (zeo-url action)
-               {:as :json
-                :query-params (assoc params :key (zeo-key))
-                :basic-auth auth
-                :content-type :json
-                :accept :json}))
+     (let [params (assoc (convert-dates params) :key (zeo-key))]
+       (assert (or (nil? (:date params))
+                   (zeo-date? (:date params))))
+       (let [response 
+             (http/get (zeo-url action)
+                       {:as :json
+                        :query-params params
+                        :basic-auth (or auth (get-default-auth))
+                        :content-type :json
+                        :accept :json})]
+         (if (= (:status response) 200)
+           (:response (:body response))
+           (throw (java.lang.Error. "Invalid response"))))))
   ([action params]
-     (zeo-request *auth* action params))
+     (zeo-request (get-default-auth) action params))
   ([action]
-     (zeo-request *auth* action {})))
+     (zeo-request (get-default-auth) action {})))
 
-(defn zeo-date [date]
-  (cond org.joda.time.DateTime
-        (dt/as-iso-8601-date date)
-        (string? date)
-        (do (assert (re-matches #"(\d\d\d\d)-(\d\d)-(\d\d)" date))
-            date)))
 
 ;;
 ;; These methods require default or dynamic *auth* setting
@@ -106,3 +113,4 @@
 
 (defn next-sleep-record [date]
   (zeo-request "getPreviousSleepRecord" {:date date}))
+

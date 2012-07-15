@@ -22,15 +22,18 @@
                        "https://oauth.withings.com/account/authorize"
                        :hmac-sha1))
 
-(services/register-oauth :rt ["Withings"]
-    :title "Fitbit Oauth"
-    :img nil
-    :url "http://personalexperiments.org/api/withings/authorize")
+(services/register-oauth
+ :withings
+ ["Withings"
+  :description "Connect to Withings service"]
+ :title "Withings"
+ :url "http://www.personalexperiments.org/api/svc/withings/oauth-link")
 
 ;; Book keeping across phases
 
 (defn save-req-tokens [request]
   (when (session/active?)
+    (clojure.tools.logging/spy "Saving tokens")
     (session/put! "withings_oauth_token" (:oauth_token request))
     (session/put! "withings_oauth_secret" (:oauth_token_secret request))))
 
@@ -40,23 +43,24 @@
 (defn get-req-secret []
   (session/get "withings_oauth_secret"))
 
-
 (defn save-access-tokens [userid response]
+  (clojure.tools.logging/spy "Received Response")
+  (clojure.tools.logging/spy response)
   (services/set-model!
    (session/current-user)
-   :wi
+   :withings
    {:userid userid
     :token (:oauth_token response)
     :secret (:oauth_secret response)}))
   
 (defn get-userid [user]
-  (services/get user :wi :userid))
+  (services/get user :withings :userid))
 
 (defn get-access-token [user]
-  (services/get user :wi :token))
+  (services/get user :withings :token))
 
 (defn get-access-secret [user]
-  (services/get user :wi :secret))
+  (services/get user :withings :secret))
 
 
 ;;
@@ -74,6 +78,15 @@
                                      (get-req-secret))
           :oauth_callback target))))
 
+;; Via settings
+(defpage [:get "/api/svc/withings/oauth-link"] {:as request}
+  (let [target "http://www.personalexperiments.org/api/svc/withings/authorize"]
+    (save-req-tokens
+     (oauth/request-token consumer target))
+    (resp/redirect 
+     (build-authorize-uri target))))
+   
+;; Manual
 (defn oauth-link [name target]
   (save-req-tokens
    (oauth/request-token consumer target))
@@ -81,10 +94,10 @@
        :href (build-authorize-uri target)}
    name])
 
-(defpage [:get "/api/withings/oauth"] {:as request}
+(defpage [:get "/api/svc/withings/oauth"] {:as request}
   (html
    (oauth-link "Oauth Withings"
-               "http://personalexperiments.org/api/withings/authorize")))
+               "http://www.personalexperiments.org/api/svc/withings/authorize")))
 
 
 ;;
@@ -112,10 +125,11 @@
                  {:query-params params
                   :headers {"Authorization" (oauth/authorization-header (sort params))}})))))
 
-(defpage [:get "/api/withings/authorize"] {:keys [oauth_token oauth_verifier] :as request}
+(defpage [:get "/api/svc/withings/authorize"]
+  {:keys [userid oauth_token oauth_verifier] :as request}
   (assert (= (get-req-token) oauth_token))
-  (save-access-tokens (fetch-access-token oauth_verifier))
-  (resp/redirect "/app/profile"))
+  (save-access-tokens userid (fetch-access-token oauth_verifier))
+  (resp/redirect "/account/services"))
 
 ;; ===================================================================
 

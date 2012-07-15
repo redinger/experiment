@@ -1,7 +1,8 @@
 (ns experiment.models.samples
   (:use experiment.infra.models
         clojure.math.numeric-tower)
-  (:require [somnium.congomongo :as mongo]
+  (:require [clojure.tools.logging :as log]
+            [somnium.congomongo :as mongo]
             [experiment.models.schedule :as schedule]
             [clj-time.core :as time]
             [experiment.libs.datetime :as dt]))
@@ -36,7 +37,7 @@
        true))
 
 (defn valid-samples? [samples]
-  (and (or (list? samples) (vector? samples))
+  (and (or (seq? samples) (vector? samples))
        (every? valid-sample? samples)))
 
 (defn- as-chunk-sample
@@ -94,7 +95,8 @@
                        :stats.count (count samples)
                        :stats.sum (when (number? (:v (first samples)))
                                     (apply + (map :v samples)))
-                       }}]
+                       }
+                :$inc {"updates" 1}}]
     (mongo/update!
      :chunks
      (if old-chunk
@@ -143,7 +145,7 @@
               (when start
                 {:start {:$gte (dt/as-date start)}})
               (when end
-                {:start {:$lt (dt/as-date end)}})))))
+                {:start {:$lte (dt/as-date end)}})))))
 
 (defn- sample-filter-fn
   "Return a filter function to select only those samples
@@ -207,22 +209,28 @@
 (defn rem-samples
   "Remove samples"
   [u i & {:keys [start end] :as options}]
-  (mongo/destroy! :chunks
-                  :where (chunk-select u i options)))
+  (mongo/destroy! :chunks (chunk-select u i options)))
 
-(def mytest (atom nil))
+(defn get-chunks
+  ([where-clause only]
+     (mongo/fetch :chunks
+                  :where where-clause
+                  :only only))
+  ([where-clause]
+     (mongo/fetch :chunks
+                  :where where-clause)))
 
 (defn get-samples
   "Get a sequence of samples {:ts <date> :v <any> ...}"
   [u i & {:keys [start end] :as options}]
-  (->> (mongo/fetch :chunks
-                    :where (chunk-select u i options)
-                    :only [:samples])
+  (->> (get-chunks (chunk-select u i options) [:samples])
        (mapcat :samples)
        (map as-native-sample)
        (sort-by :ts)
        (remove-overlapping-samples i)
        (filter (sample-filter-fn options))))
+
+;; ## Last Updated
 
 (defn last-sample [u i]
   (->> (mongo/fetch :chunks
@@ -250,3 +258,32 @@
                   :updated)]
     (dt/from-date updated)))
 
+;; ## Recode sample values
+
+(defn recode-sample-values
+  "Update each sample in the seq of chunks with the response of mapfn"
+  [mapfn chunks]
+  (map (fn [chunk]
+         (mongo/update! :chunks chunk
+          (assoc chunk :samples
+                 (vec (map mapfn (:samples chunk))))))
+       chunks))
+
+(defn map-recoder
+  "Recode a sample according to map; if match on key, replace with value,
+   otherwise keep unchanged"
+  [map]
+  (fn [sample]
+    (if-let [new (map (:v sample))]
+      (assoc sample :v new)
+      sample)))
+
+(comment
+  (recode-sample-values
+   (map-recoder {"y" "Yes" "m" "Mostly" "n" "No"})
+   (get-chunks
+    (chunk-select 
+     (fetch-model :user {:username "eslick"})
+     (fetch-model :instrument {:variable "Adherence"})
+     {:start (dt/ago time/days 2)
+      :end (dt/now)}))))

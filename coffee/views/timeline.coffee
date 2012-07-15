@@ -74,14 +74,18 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
               title: model.instrument.get('variable')
             view
         , @
-        _.first(@views).setXaxisView 'top'
-        _.last(@views).setXaxisView true
+        @views = _.sortBy @views, (view) ->
+          view.model.instrument.id
+        if not _.isEmpty @views
+          _.first(@views).setXaxisView 'top'
+          _.last(@views).setXaxisView true
         @
 
       updateTimeline: =>
         dates = $('#timelinerange').val()
         @dates = dates if dates
         [start, end] = _.map @dates.split(" - "), Date.parse
+        end = end.add(1).days()
         _.each @views, (view) ->
           view.fetchData start, end
         @
@@ -99,9 +103,12 @@ define ['models/infra', 'models/core', 'views/widgets', 'QIchart', 'use!D3time',
           earliestDate: ''
 
         # Render trackers
-        _.map @views, (view) ->
-            @$el.append view.render().el
-        , @
+        if _.isEmpty @views
+          @$el.append "<h3 style='text-align:center;margin-left:auto;margin-right:auto;margin-top:100px;width:50em'><a href='/explore/search/query/show instruments/p1'>Find an Instrument to Track</a></h3>"
+        else
+          _.map @views, (view) ->
+              @$el.append view.render().el
+          , @
         @updateTimeline()
 
         # Tooltip support

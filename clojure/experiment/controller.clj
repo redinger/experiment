@@ -9,6 +9,7 @@
    [quartz-clj.core :as q]
    [experiment.libs.datetime :as dt]
    [experiment.libs.properties :as prop]
+   [experiment.models.instruments :as instruments]
    [clojure.tools.logging :as log]
    [clj-time.core :as time]))
 
@@ -65,9 +66,11 @@
 
 (defn report-scheduling-event [event]
   (when event
-    (log/tracef "Scheduling tracker event (%s) for %s"
-                (:variable (event-inst event))
-                (:username (event-user event))))
+    (log/infof "Scheduling event (%s) for %s"
+               (if (:instrument event)
+                 (:variable (event-inst event))
+                 (:title (event-exp event)))
+               (:username (event-user event))))
   event)
 
 (defn schedule-event
@@ -81,7 +84,7 @@
     (q/schedule-task [(str "EventAction-" (:_id event))
                       "experiment-events"]
                      EventActionJob
-                     :start (:start event)
+                     :start (dt/as-date (:start event))
                      :datamap {"eid" (serialize-id (:_id event))})))
 
 (defn schedule-tracker [tracker inter]
@@ -125,7 +128,7 @@
     (time/interval (time/now)
                    (time/plus (time/now) (time/hours scheduling-horizon)))
     (when (need-to-schedule? last)
-      (time/interval (.getEnd last)
+      (time/interval (time/now)
                      (time/plus (.getEnd last) (time/hours scheduling-quantum))))))
 
 (def user-fields* [:trials :trackers :services :preferences :type :_id])
@@ -136,14 +139,14 @@
 (defn schedule-pending-events
   "Schedule any events pending within the provided interval"
   [inter]
-  (doseq [user (fetch-models :user {:trackers {:$exists true}} :only user-fields*)]
+  (doseq [user (fetch-models :user :only user-fields*)]
     (dt/with-user-timezone [user]
       (doseq [trial (trials user)]
-        (schedule-reminder trial inter)
-        (doseq [tracker (:trackers trial)]
-          (schedule-tracker tracker inter)))
+        (instruments/safe-body
+         (schedule-reminder trial inter)))
       (doseq [tracker (trackers user)]
-        (schedule-tracker tracker inter))))
+        (instruments/safe-body
+         (schedule-tracker tracker inter)))))
   (doseq [expired (get-expired-events)]
     (cancel-event expired)))
 
@@ -152,7 +155,7 @@
   "Loop over all event generating objects and queue any events
    within the event manager horizon defined by next-interval"
   [context]
-  (when (= (prop/get :mode) :dev)
+  (when (= (prop/get :mode) :prod)
     (when-let [inter (next-interval (:last (q/context-data context)))]
       (log/info "Scheduling new events from " (.getStart inter) " to " (.getEnd inter))
       (schedule-pending-events inter)
@@ -168,10 +171,19 @@
 ;; 
 
 (defn update-task
-  "Update resources from 3rd party resources on a daily schedule"
+  "Update resources from 3rd party resources on a daily schedule for the
+   period of the last 24 hours"
   [context]
   (when (= (prop/get :mode) :prod)
-    (println "Running daily download task")))
+    (log/info "Running daily download task")
+    (let [interval (time/interval (dt/ago time/days 1) (dt/now))]
+      (doseq [user (fetch-models :user)]
+        (doseq [tracker (trackers user)]
+          (instruments/safe-body
+           (log/infof "Updating %s for %s"
+                      (tracker-name tracker)
+                      (:username user))
+           (update tracker interval)))))))
 
 (q/defjob UpdateJob [context]
   (update-task context))

@@ -227,7 +227,11 @@
    [:div (% local-time) ":&nbsp;" (% message)] ;; (% status) " " 
    (%if result-val
         [:div.response (% result-time) ":&nbsp;" [:b "Response: '"] (% result-val) "'"])
-   (%if error [:div.error (% error)])])
+   (%if error [:div.error (% error)])
+   [:div.event-editor.hidden
+    [:input.event-data {:type "text"}]
+    [:button.btn.btn-primary.submit-event {:type "button"} "Record"]
+    [:button.btn.cancel-event {:type "button"} "Cancel"]]])
 
 
 ;; TRIAL
@@ -236,7 +240,8 @@
   [:div.well
    [:div#trial-pane-wrapper
     (%if empty
-         [:h1.centered "No Active Trials"])]
+         [:h2 {:style "text-align:center;margin-left:auto;margin-right:auto;margin-top:100px;width:10em"}
+          [:a {:href "/explore/search/query/show experiments/p1"} "Find an Experiment, Start a Trial"]])]
    [:p]])
 
 (defelem render-decorated-button [name & [icon-class]]
@@ -532,12 +537,8 @@
 ;;   [:h2 "Schedule"]
 ;;   [:div.schedule "Schedule view TBD"]])
 
-;;(deftemplate experiment-editor
-;;  )
-
-;;(deftemplate trial-creation
-;;  )
-
+(deftemplate experiment-editor
+  [:h1 "Experiment Creator Coming Soon"])
 
 ;; COMMENT
 

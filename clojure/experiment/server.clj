@@ -27,6 +27,9 @@
      [:ie6 "/not-supported"]
      [:ie7 "/not-supported"]]}))
 
+;; Debug support
+(server/add-middleware swank-connection)
+
 ;; Redirection rules
 (server/add-middleware redirect-url-for-user-agent
                        agent-redirect-rules)
@@ -81,8 +84,7 @@
   ;; Setup logging
   (let [mode (keyword (or mode (props/get :mode) :dev))]
     (if (= mode :dev)
-      (do (server/add-middleware swank-connection)
-          (set-loggers! "default"
+      (do (set-loggers! "default"
                         {:level :warn
                          :pattern "%d - %m%n"}
                         "experiment"
@@ -92,22 +94,33 @@
                         {:level :error}
                         "org.quartz.core.QuartzSchedulerThread"
                         {:level :error}))
-      (set-logger! "default"
-		   :level :warn
-		   :pattern "%d - %m%n"
-                   :out "experiment.log"))
+      (do (set-loggers! "default"
+                        {:level :error
+                         :pattern "%d - %m%n"}
+                        "experiment"
+                        {:level :info
+                         :pattern "%d - %m%n"}
+                        "org.apache.http"
+                        {:level :error
+                         :pattern "%d - %m%n"}
+                        "org.mortbay.log"
+                        {:level :error}
+                        "org.quartz.core.QuartzSchedulerThread"
+                        {:level :error})))
 
     ;; Setup SMS subsystem
     (sms/set-credentials {:user (props/get :sms.username)
                           :pw (props/get :sms.password)})
-    (sms/set-reply-handler 'track/sms-reply-handler)
+    (sms/set-reply-handler
+     (fn [& args]
+       (apply track/sms-reply-handler args)))
 
     ;; Start and save server
     (let [port (Integer. (get (System/getenv) "PORT" "8080"))
-	  server (server/start
-		  port {:mode (props/get :mode)
-			:ns 'experiment
-			:session-store (session/mongo-session-store)})]
+          server (server/start
+                  port {:mode (props/get :mode)
+                        :ns 'experiment
+                        :session-store (session/mongo-session-store)})]
       (alter-var-root #'noir (fn [old] server)))
 
     ;; Start event scheduler

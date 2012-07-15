@@ -98,6 +98,21 @@
      (.appendLiteral "-")
      (.appendDayOfMonth 2))))
 
+(def ^{:private true} rt-format
+  (.toFormatter
+   (doto (DateTimeFormatterBuilder.)
+     (.appendYear 4 4)
+     (.appendLiteral "-")
+     (.appendMonthOfYear 2)
+     (.appendLiteral "-")
+     (.appendDayOfMonth 2)
+     (.appendLiteral "T")
+     (.appendHourOfDay 2)
+     (.appendLiteral ":")
+     (.appendMinuteOfHour 2)
+     (.appendLiteral ":")
+     (.appendSecondOfMinute 2))))
+
 (def ^{:private true} iso-format
   (.toFormatter
    (doto (DateTimeFormatterBuilder.)
@@ -166,8 +181,11 @@
 		(within-period-ago? dt cur period))
 	      short-fmt-intervals)))))
 
+(defn ago [f amount]
+  (time/minus (now) (f amount)))
+
 (defn a-month-ago []
-  (time/minus (time/now) (time/months 1)))
+  (ago time/months 1))
 
 (defmacro with-server-timezone
   [& body]
@@ -183,8 +201,12 @@
        ~@body)))
 
 (defn from-utc
-  ([utc] (from-utc utc (mid/session-timezone)))
-  ([utc tz] (when utc (time/to-time-zone (from-utc utc) tz))))
+  ([utc] (when utc
+           (from-utc utc (mid/session-timezone))))
+  ([utc tz] (when utc
+              (time/to-time-zone
+               (coerce/from-long utc)
+               tz))))
 
 (defn from-iso
   "Simplified ISO formatted date/times"
@@ -195,7 +217,17 @@
        (time/from-time-zone
         (.parseDateTime iso-format string)
         tz))))
-  
+
+(defn from-rt
+  "Simplified ISO formatted date/times"
+  ([string]
+     (from-rt string (mid/session-timezone)))
+  ([string tz]
+     (when (and string tz)
+       (time/from-time-zone
+        (.parseDateTime rt-format string)
+        tz))))
+
 (defn from-iso-8601
   ([string]
      (from-iso-8601 string (mid/session-timezone)))
@@ -304,11 +336,11 @@
 ;; Make it easier to use intervals or explicit start/end dates          
 (defmacro with-interval [[interval start end & [default-start default-end]] & body]
   `(let [interval# ~interval
-         ~start (or (and interval# (.getStart interval))
-                    default-start
+         ~start (or (and interval# (.getStart interval#))
+                    ~default-start
                     (time/minus (dt/now) (time/days 30)))
-         ~end (or (and interval# (.getEnd interval))
-                  default-end
+         ~end (or (and interval# (.getEnd interval#))
+                  ~default-end
                   (dt/now))]
      ~@body))
 

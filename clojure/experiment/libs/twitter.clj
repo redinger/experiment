@@ -10,12 +10,12 @@
             [oauth.signature :as sig]
             [clj-http.client :as http]))
             
-(services/register-oauth
- :tw
- ["Twitter"
-  :description "Twitter connections will allow you to power instruments from your twitter stream by using microformats.  You will also be able to engage in social sharing of your experimental activities via Twitter (all this TBD)"]
- :title "Twitter"
- :url "http://personalexperiments.org/api/svc/twitter/authorize")
+;;(services/register-oauth
+;; :tw
+;; ["Twitter"
+;;  :description "Twitter connections will allow you to power instruments from your twitter stream by using microformats.  You will also be able to engage in social sharing of your experimental activities via Twitter (all this TBD)"]
+;; :title "Twitter"
+;; :url "http://personalexperiments.org/api/svc/twitter/authorize")
 
 ;;
 ;; Configuration

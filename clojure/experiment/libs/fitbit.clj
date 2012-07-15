@@ -177,11 +177,11 @@
 
 (defn subscribe [user]
   (request :post user (str "apiSubscriptions/" (get-user-uid user) ".json"))
-  (modify-model! user {:$set {"fit-cred.subscribed" true}}))
+  (modify-model! user {:$set {"services.fitbit.subscribed" true} :$inc {"updates" 1}}))
 
 (defn unsubscribe [user]
   (request :delete user (str "apiSubscriptions/" (get-user-uid user) ".json"))
-  (modify-model! user {:$unset {"fit-cred.subscribed" true}}))
+  (modify-model! user {:$unset {"services.fitbit.subscribed" true} :$inc {"updates" 1}}))
 
 (defn list-subscriptions [user]
   (request :get user "apiSubscriptions.json"))

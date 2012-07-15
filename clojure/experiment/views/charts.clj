@@ -44,7 +44,8 @@
         :start start
         :end end
         :dataMin (min-plot inst)
-        :dataMax (max-plot inst)}]})
+        :dataMax (max-plot inst)
+        :dataMap (ordinal-values inst)}]})
   ([inst start end]
      (tracker-chart inst start end (session/current-user))))
 
@@ -55,14 +56,16 @@
       nil)))
 
 (defpage event-chart-api [:get "/api/charts/tracker"] {:keys [inst start end] :as options}
-  (let [instrument (get-instrument (deserialize-id inst))]
+  (let [instrument (get-instrument (deserialize-id inst))
+        user (session/current-user)]
     (response/json
-     (as-utc-dataset
-      (tracker-chart instrument
-                     (or (dt/from-iso-8601 start)
-                         (time/minus (dt/now) (time/months 1)))
-                     (or (dt/from-iso-8601 end)
-                         (dt/now)))))))
+     (dt/with-user-timezone [user]
+       (as-utc-dataset
+        (tracker-chart instrument
+                       (or (dt/from-iso-8601 start)
+                           (time/minus (dt/now) (time/months 1)))
+                       (or (dt/from-iso-8601 end)
+                           (dt/now))))))))
   
 
 ;; Control chart
@@ -102,14 +105,16 @@
    bounds over baseline data (if sufficient is present) using the trial schedule
    to get time regions"
   [series trial]
-  (if (< (count (:data series)) 18)
+  (if (< (count (:data series)) 10)
     series
     (let [yvalues (baseline-values series trial)]
-      (if (> (count yvalues) 12)
+      (if (>= (count yvalues) 10)
         (let [mean (incanter.stats/mean yvalues)
               sd (incanter.stats/sd yvalues)
-              ucl (min (+ mean (* 3 sd)) (or (:dataMax series) (apply max yvalues)))
-              lcl (max (- mean (* 3 sd)) 0.1)]
+              ucl (+ mean (* 3 sd))
+              ucl (if (:dataMax series) (min (:dataMax series) ucl) ucl)
+              lcl (- mean (* 3 sd))
+              lcl (if (:dataMin series) (max (:dataMin series) lcl) lcl)]
           (assoc series
             :ctrl {:lcl lcl :ucl ucl :mean mean}))
         series))))
@@ -186,8 +191,9 @@
           points (:data series)
           sig-points (map significant-point
                       (outside-control? ucl lcl points))
-          sig-seqs (map significant-seq
-                        (significant-sequences mean points))]
+          sig-seqs '() ;;(map significant-seq
+                       ;; (significant-sequences mean points))]
+          ]
       (assoc series
         :significance (vec (concat sig-points sig-seqs))))
     series))

@@ -211,7 +211,7 @@ define ['models/infra', 'models/core', 'models/user', 'views/common', 'views/wid
             if result is 'accept'
               handler(null)
               if not Core.theUser.services.find( (service) ->
-                   service.get('id') is instrument.get('src') )
+                   service.id is instrument.get('service').toLowerCase() )
                 Common.modalMessage.showMessage
                   header: "Configure Service"
                   message: "Click Continue to configure the #{instrument.get('service')} service"

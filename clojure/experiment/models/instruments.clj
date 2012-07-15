@@ -77,13 +77,13 @@
          lu))))
 
 (defn min-plot [inst]
-  (if-let [min (:min-domain inst)]
-    min nil))
+  (when-let [min (:min-domain inst)] min))
 
 (defn max-plot [inst]
-  (if-let [max (:max-domain inst)]
-    max nil))
+  (when-let [max (:max-domain inst)] max))
 
+(defn ordinal-values [inst]
+  (when-let [domain (:domain inst)] domain))
 
 ;; Defaults
 
@@ -98,12 +98,6 @@
    (get-samples user inst
                 :start (or start (dt/a-month-ago))
                 :end (or end (dt/now)))))
-
-(defmethod time-series :categorical [inst user & [start end convert?]]
-  [])
-  
-(defmethod time-series :opentext [inst user & [start end convert?]]
-  [])
 
 (defmethod refresh :default [inst user & [force?]]
   (log/warnf "Can't refresh object type %s" (:type inst)))
@@ -142,7 +136,7 @@
   (/ (round (* (/ seconds 3600) 100)) 100.0))
 
 (defn- socmed->series [[dt time people cat]]
-  {:ts (dt/from-iso-8601 dt) :v (seconds-to-hours time) :secs time})
+  {:ts dt :v (seconds-to-hours time) :secs time})
 
 (alter-var-root #'ih derive :rt-socmed-usage :rt)
 (defmethod refresh :rt-socmed-usage
@@ -152,10 +146,10 @@
        (update inst user (map socmed->series (:rows data))))))
 
 (defn- efficiency->total [[dt total people eff]]
-  {:ts (dt/from-iso-8601 dt) :v (seconds-to-hours total) :secs total})
+  {:ts dt :v (seconds-to-hours total) :secs total})
 
 (defn- efficiency->eff [[dt total people eff]]
-  {:ts (dt/from-iso-8601 dt) :v eff})
+  {:ts dt :v eff})
 
 (alter-var-root #'ih derive :rt-efficiency :rt)
 (defmethod refresh :rt-efficiency
@@ -207,7 +201,7 @@
 ;; Withings Instruments (scale only)
 ;; ------------------------------------------
 
-(defmethod configured? :wt [inst user]
+(defmethod configured? :withings [inst user]
   (and (wi/get-access-token user)
        (wi/get-access-secret user)
        (wi/get-userid user)))
@@ -225,7 +219,7 @@
   (update (wi-inst-by-type type) user 
           (keep wi-sample samples)))
 
-(defmethod refresh :wi
+(defmethod refresh :withings
   [inst user & [force?]]
   (when (or force? (stale? inst user))
     (doall
@@ -243,7 +237,7 @@
             
 (dorun
   (map (fn [iname]
-         (alter-var-root #'ih derive iname :wi))
+         (alter-var-root #'ih derive iname :withings))
        wi-instruments))
             
 (defn ensure-wi-instruments []
@@ -273,6 +267,13 @@
      :nicknames ["fat mass" "fat"]
      :description "Fat Mass according to Withings Scale"})
   true)
+
+;; ------------------------------------------
+;; Zeo Instruments
+;; ------------------------------------------
+
+;;(defmethod configured? :zeo [inst user]
+;;  (zeo/
 
 ;; ------------------------------------------
 ;; FitBit-derived Instruments
@@ -384,4 +385,5 @@
   (ensure-rt-instruments)
   (ensure-wi-instruments)
   (ensure-fit-instruments)
+;;  (ensure-zeo-instruments)
   (ensure-manual-instruments))

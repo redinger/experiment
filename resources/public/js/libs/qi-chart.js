@@ -75,11 +75,21 @@ var QIchart = {
 	    .attr("y2", cfg.h);
 
 	/* Heading */
+	var points;
+	if ( yScale.ticks ) {
+		points = _.map( yScale.ticks(5), function (tick) {
+			return [tick, tick];
+		});
+	} else {
+		points = _.map( cfg.dataMap, function (label) {
+			return [yScale(label), label];
+		});
+	}
 	var ticks = chart.selectAll('.tick')
-	    .data(yScale.ticks(5))
+		.data(points)
 	    .enter().append('svg:g')
 	    .attr('transform', function(d) {
-		      return "translate(0, " + yScale(d) + ")";
+		      return "translate(0, " + yScale(d[0]) + ")";
          })
 	    .attr('class', cfg.defaults.valueaxis || "vaxis")
 
@@ -91,6 +101,13 @@ var QIchart = {
 	    .attr("y2", 0);
 
 	/* Labels */
+    var labeler = function (d) {
+		if ( _.isString(d[1]) ) {
+			return d[1];
+		} else {
+			return d[1].toString();
+		}
+	}
 	ticks.append("svg:text")
 	    .attr("text-anchor", "end")
 	    .attr("transform", "translate(-7 0)")
@@ -98,8 +115,7 @@ var QIchart = {
         .style("stroke", "none")
 	    .attr("x", 0)
 	    .attr("y", 0)
-	    .text(String);
-	
+		.text(labeler);
     },
 
     mean: function(data) {
@@ -161,25 +177,34 @@ var QIchart = {
     yScale: function(data,cfg) {
 		var min;
 		var max;
-        if ( cfg.dataMin == null && data.length > 0 ) {
+        var map; 
+		if ( cfg.dataMap !== null ) { 
+            map = cfg.dataMap;
+		} else if ( cfg.dataMin == null && data.length > 0 ) {
 			min = d3.min(data);
 			max = d3.max(data);
 			var range = max - min;
 			var diff = range*0.05;
 			min = min - diff;
 			max = max + diff;
-		} else {
+		} else if ( cfg.dataMin !== null) {
 			min = cfg.dataMin;
 			max = cfg.dataMax;
 		}
 
 		if (_.isNumber(min) && _.isNumber(max)) {
-          return d3.scale.linear()
-              .domain([min, max])
-  		      .nice()
-              .range([cfg.h,0]);
-		} else {
-		  return null;
+			return d3.scale.linear()
+				.domain([min, max])
+  				.nice()
+				.range([cfg.h,0]);
+		} else if ( map != null ) {
+            var scale = d3.scale.ordinal()
+			    .domain( map )
+                .rangePoints([cfg.h,0], 1.0)
+			return scale;
+        } else {
+			console.log("Cannot plot y values: " + data)
+			return null;
 		}
     },
 
@@ -225,8 +250,17 @@ var QIchart = {
 				return d.tooltip;
 			} else {
 				var date = new Date(d.ts);
-				return date.toString("ddd MMM dd, yyyy htt") + " | " + 
-					Math.round(d.v * 100) / 100;
+                var val;
+				if ( _.isString( d.v ) ) {
+					val = d.v;
+				} else {
+					val = Math.round(d.v * 100) / 100;
+				}
+                var tip = date.toString("ddd MMM dd, yyyy htt") + " | " +  val;
+                if ( me.isWeekend(d.ts) ) {
+					tip = "Weekend Data <br>" + tip
+				}
+				return tip;
 			}
 		}
 
@@ -271,7 +305,11 @@ var QIchart = {
 			}, true);
 
 		/* Mean line  */
-		if (mean) {
+		if (_.isNumber(mean)) {
+
+            this.solidLine(chart, yscale(mean), cfg);
+
+		} else if ( mean !== false ) {
     	    var mean = this.mean(_.pluck(series, 'v'));
 
             this.solidLine(chart, yscale(mean), cfg);
@@ -356,11 +394,18 @@ var QIchart = {
     },
 
     renderSeries: function (chart, series, xscale, yscale, cfg) {
-        data = series.data;
+        var data = series.data;
 		cfg.start = series.start;
 		cfg.end = series.end;
 		cfg.dataMin = series.dataMin;
 		cfg.dataMax = series.dataMax;
+        cfg.dataMap = series.dataMap;
+        var mean;
+        if ( series.ctrl || cfg.dataMap !== null ) {
+			mean = false;
+		} else {
+            mean = true
+		}
 
 		/* Configure Chart Boundaries */
 		if (cfg.render.xaxis && xscale) {
@@ -370,12 +415,12 @@ var QIchart = {
   			this.renderValueAxis(chart,yscale,0,cfg);
 		}
 		if (data.length > 0 && xscale && yscale) {
-  			this.renderData(chart,data,xscale,yscale,cfg,true);
+  			this.renderData(chart,data,xscale,yscale,cfg,mean);
 		}
 	},
 
     isValidSeries: function (series) {
-        return (series.data != null) && (series.data[0] != null) && (_.isNumber(series.data[0].v));
+        return (series.data != null) && (series.data[0] != null);
 	},
 
     renderChart: function (cid,dataset,cfg) {
@@ -404,12 +449,17 @@ var QIchart = {
 		}
 
         var series = dataset.series;
-        var primary = series[0]
-		var pdata = primary.data
+        var primary = series[0];
+		var pdata = primary.data;
 		cfg.start = primary.start;
 		cfg.end = primary.end;
 		cfg.dataMin = primary.dataMin;
 		cfg.dataMax = primary.dataMax;
+        cfg.dataMap = primary.dataMap;
+		/* Is categorical - make it's own chart type? */
+        if ( cfg.dataMap !== null ) { 
+			cfg.render.path = false;
+		}
 		var ds = _.pluck(pdata, 'ts')
 		var vs = _.pluck(pdata, 'v')
 		var xscale = this.xScale(ds, cfg);
@@ -417,13 +467,15 @@ var QIchart = {
 
         /* Control Lines */
         if ( primary.ctrl && primary.ctrl.ucl ) {
-			console.log('render ucl')
             this.dashedLine(chart, yscale(primary.ctrl.ucl), cfg)
 		}
 
         if ( primary.ctrl && primary.ctrl.lcl ) {
-			console.log('render lcl')
             this.dashedLine(chart, yscale(primary.ctrl.lcl), cfg)
+		}
+
+        if ( primary.ctrl && primary.ctrl.mean ) {
+            this.solidLine(chart, yscale(primary.ctrl.mean), cfg);
 		}
 
 		/* Render regions if provided */
@@ -446,7 +498,7 @@ var QIchart = {
                 _cfg = _.extend({},cfg);
                 _cfg.xaxis = false
                 _cfg.yaxis = false
-				this.renderSeries(chart,s,xscale,yscale,cfg);
+				this.renderSeries(chart,s,xscale,yscale,_cfg);
 			}, this);
 		}
 		if ( primary.data.length === 0 ) {

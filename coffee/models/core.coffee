@@ -64,6 +64,19 @@ define ['jquery', 'use!Backbone', 'models/infra', 'models/user'],
       model: Treatment
 
 # ## Instruments
+
+    variableValid = (variable, formValues) ->
+      null
+
+    serviceValid = (service, formValues) ->
+      null
+
+    messageValid = (message, formValues) ->
+      null
+
+    itagValid = (message, formValues) ->
+      null
+
     class Instrument extends Infra.Model
       @implements Infra.Taggable
       serverType: 'instrument'
@@ -79,13 +92,13 @@ define ['jquery', 'use!Backbone', 'models/infra', 'models/user'],
           schedule.event = @get('event') if @get('event')?
           schedule.event.type = 'event'
           schedule.event.wait = true
-          console.log schedule
 
         tracker = theUser.trackers.create
           type: "tracker"
           user: theUser.asReference()
           instrument: @asReference()
           schedule: schedule
+
         @set 'tracked', true
 
       untrack: ->
@@ -103,6 +116,8 @@ define ['jquery', 'use!Backbone', 'models/infra', 'models/user'],
           type: 'Text'
           title: 'Variable Name'
           editorClass: 'input-large'
+          help: 'What are you measuring?  Pick a simple name.'
+          validators: [ variableValid ]
         description:
           type: 'TextArea'
           editorClass: 'input-xxlarge'
@@ -112,15 +127,26 @@ define ['jquery', 'use!Backbone', 'models/infra', 'models/user'],
           type: 'Text'
           title: 'Service Name'
           editorClass: 'input-large'
+          help: "Use 'Manual' unless you know what you are doing"
+          validators: [ serviceValid ]
+        src:
+          type: 'Text'
+          title: 'Instrument tag'
+          editorClass: 'input-large'
+          help: "Use 'manual' unless you know what you are doing"
+          validators: [ itagValid ]
         event:
           type: 'Object'
-          title: 'Manual Event Spec'
+          title: 'Event Specification'
           subSchema:
             etype:
-              type: 'Text'
+              type: 'Select'
+              title: 'Event type'
+              options: ["sms"] # "Email"
             message:
               type: 'Text'
               editorClass: 'input-xxlarge'
+              validators: [ messageValid ]
             "sms-value-type":
               type: 'Select'
               title: 'SMS Value Type'
@@ -128,6 +154,7 @@ define ['jquery', 'use!Backbone', 'models/infra', 'models/user'],
             "sms-prefix":
               type: 'Text'
               title: 'SMS Response Prefix'
+              help: 'A short, unique prefix so the system can identify which of several SMS responses by a user is associated with a specific instrument'
 
     class Instruments extends Infra.Collection
       model: Instrument
@@ -191,7 +218,6 @@ define ['jquery', 'use!Backbone', 'models/infra', 'models/user'],
       embedded:
         user: ['reference', 'User']
         instrument: ['reference', 'Instrument']
-        schedule: ['submodel', 'schedule']
 
     class Trackers extends Infra.Collection
       model: Tracker
