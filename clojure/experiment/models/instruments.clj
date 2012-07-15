@@ -356,6 +356,26 @@
 (fit/set-notification-handler 'fitbit-handler-fn)
 
 
+;; Default set of manual instruments
+
+(comment
+  {:type "instrument"
+   :description "Manual assessment of sleep duration."
+   :variable "Sleep Duration"
+   :service "Manual"
+   :src "manual"
+   :event {:etype "sms"
+           :message "How many hours (approximately) did you sleep last night?"
+           :sms-value-type "int"
+           :sms-prefix "sl"}
+   :channels {:sms {:type :channel
+                    :channel :sms
+                    :prompt ""}
+              :email {:type :channel
+                      :channel :email
+                      :prompt ""}}})
+        
+
 ;; ------------------------------------------
 ;; Bootstrapping
 ;; ------------------------------------------
@@ -363,4 +383,5 @@
 (defn ensure-instruments []
   (ensure-rt-instruments)
   (ensure-wi-instruments)
-  (ensure-fit-instruments))
+  (ensure-fit-instruments)
+  (ensure-manual-instruments))

@@ -58,7 +58,8 @@
   (merge {:type "event"
           :etype type
           :user (as-dbref user)
-          :instrument (when instrument (as-dbref instrument))}
+          :instrument (when instrument (as-dbref instrument))
+          :status "pending"}
          options))
    
 (defn make-sms-tracker-event [u i message value-type prefix]

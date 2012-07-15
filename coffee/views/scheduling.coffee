@@ -38,10 +38,11 @@ define ['models/infra', 'models/core', 'models/user', 'views/common', 'views/wid
     dailySchema =
         stype:
           type: "Hidden"
-        sms:
-          title: "Enable SMS"
-          type: "Checkbox"
-          options: ["Yes"]
+        channels:
+          title: 'Channels'
+          type: 'Checkboxes'
+          options: ["SMS"]
+          validators: [ { type: 'required', message: 'Must choose one' } ]
         times:
           title: "Sample Times"
           type: "List"
@@ -75,9 +76,11 @@ define ['models/infra', 'models/core', 'models/user', 'views/common', 'views/wid
     weeklySchema =
         stype:
           type: 'Hidden'
-        sms:
-          title: 'Enable SMS'
-          type: 'Checkbox'
+        channels:
+          title: 'Channels'
+          type: 'Checkboxes'
+          options: ["SMS"]
+          validators: [ { type: 'required', message: 'Must choose one' } ]
         day:
           type: 'Select'
           title: 'Day of Week'
@@ -118,13 +121,18 @@ define ['models/infra', 'models/core', 'models/user', 'views/common', 'views/wid
         @callback = options.callback
         @schedule = new Core.Schedule
         @forms = {}
+        @channels = @parent.channels
+        @dailySchema = _.extend dailySchema
+        @dailySchema.channels.options = @channels if @channels
+        @weeklySchema = _.extend weeklySchema
+        @weeklySchema.channels.options = @channels if @channels
         @forms.daily = new Backbone.Form
-          data: (if @schedule.stype is 'daily' then @schedule.toJSON() else dailyDefault)
-          schema: dailySchema
+          data: (if @schedule.stype is 'daily' then @schedule.toJSON() else @dailyDefault)
+          schema: @dailySchema
           itemToString: (item) ->
         @forms.weekly = new Backbone.Form
-          data: (if @schedule.stype is 'weekly' then @schedule.toJSON() else weeklyDefault)
-          schema: weeklySchema
+          data: (if @schedule.stype is 'weekly' then @schedule.toJSON() else @weeklyDefault)
+          schema: @weeklySchema
         @
 
       attach: (fn, parent) ->
