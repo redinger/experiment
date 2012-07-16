@@ -1,5 +1,7 @@
 .DS_Store
 *.#*
+*~
+.lein-deps-sum
 lib/*
 classes/*
 checkouts/*
@@ -13,3 +15,5 @@ resources/public/css/reset.css
 resources/public/js/app.js
 resources/public/js/dialog.js
 resources/public/js/simple.js
+resources/public/js/views/
+resources/public/js/models/
