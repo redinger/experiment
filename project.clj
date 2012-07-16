@@ -4,11 +4,12 @@
   :source-path "clojure"
   :dependencies
   [ ;; Clojure Core
-   [org.clojure/clojure "1.3.0"]
+   [org.clojure/clojure "1.4.0"]
    [org.clojure/tools.logging "0.2.3"]
    [org.clojure/math.numeric-tower "0.0.1"]
    ;; Backends
    [congomongo "0.1.8"]
+   [com.datomic/datomic "0.1.3164"]
    [org.clojars.alexnixon/clucy "0.3.2-SNAPSHOT"]
    [swank-clojure "1.4.0"]
    [clucy "0.3.0"]
@@ -28,6 +29,7 @@
    ;; Java libs
    [log4j "1.2.16"]
    [org.slf4j/slf4j-log4j12 "1.6.1"]]
+  :exclusions [org.clojure/clojure]
   :main experiment.server
   :daemon {:server {:ns experiment.server
                     :pidfile "./server.pid"}}
