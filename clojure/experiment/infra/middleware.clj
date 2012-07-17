@@ -1,5 +1,6 @@
 (ns experiment.infra.middleware
   (:require
+   swank.core.connection
    [clojure.tools.logging :as log]
    [somnium.congomongo :as mongo]
 ;;   [experiment.infra.session :as session2]
