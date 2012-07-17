@@ -1,7 +1,7 @@
 (ns experiment.models.core
-  (:use experiment.infra.models
-        experiment.models.user)
+  (:use experiment.infra.models)
   (:require
+   [experiment.models.user :as user]
    [experiment.libs.datetime :as dt]
    [experiment.infra.session :as session]))
 

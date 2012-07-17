@@ -4,10 +4,10 @@
         hiccup.page-helpers
 	hiccup.form-helpers
 	experiment.infra.models
-	experiment.models.user
         experiment.models.article
         experiment.views.discuss)
   (:require
+   [experiment.models.user :as user]
    [clojure.tools.logging :as log]
    [clojure.string :as str]
    [somnium.congomongo :as mongo]
@@ -30,10 +30,10 @@
 ;; ## Utilities
 
 (defn consent-patient! []
-  (set-pref! :study2-consented true))
+  (user/set-pref! :study2-consented true))
 
 (defn patient-consented? []
-  (get-pref :study2-consented))
+  (user/get-pref :study2-consented))
 
 (defn record-experiment [exp]
   (if (> (count (:id exp)) 0)
@@ -66,7 +66,7 @@
 
 (defn study2-nav [current]
   (let [user (session/current-user)
-        consented? (get-pref :study2-consented)]
+        consented? (user/get-pref :study2-consented)]
     (merge (common/default-nav "research")
            {:subnav
             {:menu
@@ -146,7 +146,7 @@
      [:div.container
       [:div.span8
        (if article
-         (list (when (is-admin?)
+         (list (when (user/is-admin?)
                  [:a.admin-link {:href (format "/article/edit/%s" name)}
                   "Edit Article"])
                [:div.page-header

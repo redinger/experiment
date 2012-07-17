@@ -6,17 +6,17 @@
    [clojure.string :as str]
    [somnium.congomongo :as mongo]
    [noir.response :as resp]
-   [noir.util.crypt :as crypt])
+   [noir.util.crypt :as crypt]
+   [experiment.models.user :as user])
   (:use noir.core
 	experiment.infra.models
         experiment.models.article
-        experiment.models.user
         hiccup.core
         hiccup.page-helpers
 	hiccup.form-helpers))
 
 (defpartial edit-link [name]
-  (when (is-admin?)
+  (when (user/is-admin?)
     [:a.admin-link {:href (format "/article/edit/%s" name)}
      "Edit Article"]))
 

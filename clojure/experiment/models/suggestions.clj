@@ -3,10 +3,10 @@
    noir.core
    experiment.infra.models 
    experiment.infra.api
-   [experiment.models.core]
-   [experiment.models.user])
+   [experiment.models.core])
   (:import [org.bson.types ObjectId])
   (:require
+   [experiment.models.user :as user]
    [somnium.congomongo :as mongo]
    [noir.response :as response]
    [noir.request :as request]

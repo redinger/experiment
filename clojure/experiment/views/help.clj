@@ -4,11 +4,11 @@
         hiccup.page-helpers
         [hiccup.form-helpers :exclude [form-to label]]
         experiment.infra.models
-        experiment.models.user
         experiment.models.article
         experiment.views.bootstrap
         experiment.views.discuss)
   (:require
+   [experiment.models.user :as user]
    [clojure.tools.logging :as log]
    [noir.response :as resp]
    [noir.request :as req]

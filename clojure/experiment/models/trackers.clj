@@ -1,7 +1,7 @@
 (ns experiment.models.trackers
-  (:use experiment.infra.models
-        experiment.models.user)
-  (:require [clj-time.core :as time]
+  (:use experiment.infra.models)
+  (:require [experiment.models.user :as user]
+            [clj-time.core :as time]
             [clojure.tools.logging :as log]
             [experiment.libs.datetime :as dt]
             [experiment.libs.sms :as sms]

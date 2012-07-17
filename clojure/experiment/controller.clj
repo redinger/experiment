@@ -1,11 +1,11 @@
 (ns experiment.controller
   (:use
    experiment.infra.models
-   experiment.models.user
    experiment.models.trial
    experiment.models.events
    experiment.models.trackers)
   (:require
+   [experiment.models.user :as user]
    [quartz-clj.core :as q]
    [experiment.libs.datetime :as dt]
    [experiment.libs.properties :as prop]
@@ -140,9 +140,9 @@
   [inter]
   (doseq [user (fetch-models :user :only user-fields*)]
     (dt/with-user-timezone [user]
-      (doseq [trial (trials user)]
+      (doseq [trial (user/trials user)]
         (schedule-reminder trial inter))
-      (doseq [tracker (trackers user)]
+      (doseq [tracker (user/trackers user)]
         (schedule-tracker tracker inter))))
   (doseq [expired (get-expired-events)]
     (cancel-event expired)))

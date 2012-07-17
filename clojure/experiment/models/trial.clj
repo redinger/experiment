@@ -1,9 +1,9 @@
 (ns experiment.models.trial
   (:use
    experiment.infra.models
-   experiment.models.core
-   experiment.models.user)
+   experiment.models.core)
   (:require
+   [experiment.models.user :as user]
    [clj-time.core :as time]
    [experiment.infra.session :as session]
    [experiment.libs.datetime :as dt]

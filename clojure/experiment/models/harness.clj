@@ -1,9 +1,9 @@
 (ns experiment.models.harness
   (:use experiment.infra.models
 	experiment.models.core
-	experiment.models.user
 	clj-time.core)
   (:require
+   [experiment.models.user :as user]
    [experiment.infra.session :as session]
    [experiment.infra.auth :as auth]
    [somnium.congomongo :as mongo]
