@@ -78,3 +78,76 @@
 
 ;; (:services :preferences :name :happy :username :uname : :preferenceshappy :journals :email :trackers :type :_id :trials :permissions :preferences:study1-consented :updates :password)
 
+
+;; ISE: Comments and Tags are common across objects, common namespace or is duplication not a sin in this case?
+
+(comment
+  ;; Instrument
+  [(attr :instrument/id       :uuid   :one)
+   (attr :instrument/variable :string :one)
+   (attr :instrument/service  :string :one)
+   (attr :instrument/src      :string :one) ;; dispatch value for methods
+   (attr :instrument/description :string :one)
+   (attr :instrument/nicknames :?     :one) ;; array of strings
+   (attr :instrument/comments  :?     :?)   ;; subcollection of Comment objs
+   ]
+  ;; Tracker
+  [(attr :tracker/id :uuid :one)
+   (attr :tracker/instrument :ref :one) ;; by reference
+   (attr :tracker/user :ref :one) ;; by reference
+   (attr :tracker/schedule :ref :one) ;; embedded
+  ]
+  ;; Treatment
+  [(attr :treatment/id   :uuid :one)
+   (attr :treatment/name :string :one)
+   (attr :treatment/description :string :one)
+   (attr :treatment/tags :? :?) ;; array of strings
+   (attr :treatment/reminder :string :one)
+   (attr :treatment/dynamics :? :?) ;; structure of simple keys + integer values
+   (attr :treatment/user :? :?) ;; entity reference
+   (attr :treatment/comments :? :?) ;; subcollection of Comment objs
+   (attr :treatment/editors :? :?) ;; list of entities
+   ]
+  ;; Experiment
+  [(attr :experiment/id        :uuid :one)
+   (attr :experiment/title     :string :one)
+   (attr :experiment/treatment :string :one)
+   (attr :experiment/outcome   :? :one) ;; Primary outcome, entity ref
+   (attr :experiment/covariates :? :?) ;; Set of entity references 1-to-many
+   (attr :experiment/schedule :? :?)   ;; embedded object or reference
+   (attr :experiment/editors :? :?)    ;; as above
+   (attr :experiment/comments :? :?)   ;; as above
+   ]
+  ;; Trial
+  [(attr :trial/id :uuid :one)
+   (attr :trial/user :? :one) ;; reference
+   (attr :trial/experiment :? :one) ;; reference
+   (attr :trial/start :date :one)
+   (attr :trial/status :string :one)
+   (attr :trial/channels :? :?) ;; array of strings
+   ]
+  ;; Schedule (see models/schedule.clj)
+  [(attr :schedule/id :uuid :one)
+   (attr :schedule/stype :string :one) ;; e.g. :daily, :weekly, :periodic
+   (attr :times :? :?) ;; array of simple structures (blobs?)
+   (attr :channels :? :?) ;; array of strings
+   (attr :jitter :integer :one)
+   (attr :event :? :one) ;; reference to a partial, anonymous event object (blob?)
+   ]
+  ;; Event - Ian will port this subsystem over on Thu/Fri
+  []
+  ;; Journal
+  [(:id :date :enddate :content :annotation :sharing :short)]
+  ;; Service (instance - stores user's tokens/credentials for a given service)
+  [(attr :service/id :string :one) ;; unique to user, not db - need to change client for this
+   (attr :service/user :? :one) ;; reference
+   (attr :service/user :string :one) ;; creds
+   (attr :service/email :string :one) ;; creds
+   (attr :service/password :string :one) ;; creds
+   (attr :service/token :string :one) ;; oauth
+   (attr :service/secret :string :one) ;; oauth
+   (attr :service/userid :string :one) ;; for zeo
+   (attr :service/segment1 :string :one) ;; for strava
+   (attr :service/segment2 :string :one) ;; for strava
+   ]
+   )
